@@ -1,4 +1,4 @@
-package com.geohunt
+package com.geohunt.core.base
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,25 +10,38 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
-import com.geohunt.core.navigation.AppNavhost
 import com.geohunt.core.ui.theme.GeoHuntTheme
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class BaseActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             GeoHuntTheme {
-                Scaffold(modifier = Modifier.fillMaxSize(), containerColor = Color.White) { innerPadding ->
-                    val navController = rememberNavController()
-                    AppNavhost(navController,Modifier.padding(innerPadding))
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Greeting(
+                        name = "Android",
+                        modifier = Modifier.padding(innerPadding)
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+fun Greeting(name: String, modifier: Modifier = Modifier) {
+    Text(
+        text = "Hello $name!",
+        modifier = modifier
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    GeoHuntTheme {
+        Greeting("Kevin")
     }
 }

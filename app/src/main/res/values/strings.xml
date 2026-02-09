@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">GeoHunt</string>
+    <string name="title_activity_base">BaseActivity</string>
+    <string name="title_activity_test">TestActivity</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="how_good_is_your_geography">How good is your geography?</string>
+    <string name="pick_a_country">Pick a Country</string>
+    <string name="difficulty">Difficulty</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_splash_screen">SplashScreenActivity</string>
+    <string name="title_activity_loading_single_player">LoadingSinglePlayerActivity</string>
 </resources>

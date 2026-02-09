@@ -1,0 +1,86 @@
+package com.geohunt.presentation.splashScreen.ui
+
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.rememberLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.geohunt.core.navigation.Screen
+import com.geohunt.core.ui.theme.Black1212
+import com.geohunt.core.ui.theme.GeoHuntTheme
+import com.geohunt.core.ui.theme.Green41B
+import com.geohunt.core.ui.theme.Poppins
+import com.geohunt.presentation.splashScreen.vm.SplashVm
+import kotlinx.coroutines.delay
+
+@Composable
+fun SplashScreen(navController: NavController = rememberNavController()) {
+    val viewmodel: SplashVm = viewModel()
+    val isFinished by viewmodel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(isFinished) {
+        if (isFinished) {
+            navController.navigate(Screen.HomeScreen.route) {
+                popUpTo(Screen.SplashScreen.route){
+                    inclusive = true
+                }
+            }
+        }
+
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            style = TextStyle(textAlign = TextAlign.Center),
+            text = buildAnnotatedString {
+                withStyle(style = SpanStyle(
+                    fontFamily = Poppins,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
+                    color = Green41B
+                )) {
+                    append("Geo")
+                }
+
+                withStyle(style = SpanStyle(
+                    fontFamily = Poppins,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
+                    color = Black1212
+                )) {
+                    append("Hunt")
+                }
+            }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashScreenPreview() {
+    GeoHuntTheme {
+        SplashScreen()
+    }
+}
