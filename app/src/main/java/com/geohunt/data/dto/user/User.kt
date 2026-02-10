@@ -1,4 +1,4 @@
-package com.geohunt.domain.model.user
+package com.geohunt.data.dto.user
 
 data class User(
     val username: String,

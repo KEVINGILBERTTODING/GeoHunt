@@ -1,7 +1,7 @@
 package com.geohunt.data.repository.user
 
 import com.geohunt.core.util.PrefHelper
-import com.geohunt.domain.model.user.User
+import com.geohunt.data.dto.user.User
 import com.geohunt.domain.repository.UserRepository
 import javax.inject.Inject
 

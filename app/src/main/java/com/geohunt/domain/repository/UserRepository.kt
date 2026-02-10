@@ -1,6 +1,6 @@
 package com.geohunt.domain.repository
 
-import com.geohunt.domain.model.user.User
+import com.geohunt.data.dto.user.User
 
 interface UserRepository {
     fun saveUserData(user: User)

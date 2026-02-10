@@ -1,6 +1,6 @@
 package com.geohunt.domain.repository
 
-import com.geohunt.domain.model.country.Country
+import com.geohunt.data.dto.country.Country
 
 interface CountryRepository {
     fun getAllCountries() : List<Country>

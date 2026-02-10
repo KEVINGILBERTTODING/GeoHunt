@@ -1,4 +1,4 @@
-package com.geohunt.domain.model.country
+package com.geohunt.data.dto.country
 
 data class Country(
     val name: String,

@@ -3,7 +3,7 @@ package com.geohunt.domain.usecase
 import android.content.Context
 import com.geohunt.R
 import com.geohunt.core.resource.Resource
-import com.geohunt.domain.model.user.User
+import com.geohunt.data.dto.user.User
 import com.geohunt.domain.repository.UserRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject

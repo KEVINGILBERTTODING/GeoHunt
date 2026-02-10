@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -53,9 +54,10 @@ import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
+import com.geohunt.presentation.home.component.CityBottomSheet
 import com.geohunt.presentation.home.event.HomeEvent
-import com.geohunt.presentation.home.component.CountryBottomSheet
 import com.geohunt.presentation.home.vm.HomeVm
+import timber.log.Timber
 
 @Composable
 fun HomeScreen(navController: NavController = rememberNavController()) {
@@ -64,22 +66,22 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         LottieCompositionSpec.RawRes(R.raw.location_marker)
     )
     var showBottomSheet by remember { mutableStateOf(false) }
-    val parentEntry = remember(navController.currentBackStackEntry) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val parentEntry = remember(navBackStackEntry) {
         navController.getBackStackEntry(Screen.HomeGraph.route)
     }
     val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
-    val selectedCountry by singlePlayerVm.selectedCountry.collectAsStateWithLifecycle()
+    val selectedCity by singlePlayerVm.selectedCity.collectAsStateWithLifecycle()
     val homeVm: HomeVm = hiltViewModel()
     var usernameState by remember {
         mutableStateOf(
             homeVm.getUserData().username.ifBlank { "Guest" })
     }
 
-
     if (showBottomSheet) {
-        CountryBottomSheet(
-            onClick = { country ->
-                singlePlayerVm.setSelectedCountry(country)
+        CityBottomSheet(
+            onClick = { city ->
+                singlePlayerVm.setSelectedCity(city)
             },
             onDissmiss = { showBottomSheet = false }
         )
@@ -91,7 +93,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
                 is Resource.Idle -> {}
                 is Resource.Loading -> {}
                 is Resource.Success -> {
-                    navController.navigate(Screen.GameMapSinglePlayerScreen.route)
+                    navController.navigate(Screen.LoadingScreenSinglePlayer.route)
                 }
                 is Resource.Error -> {
                     Toast.makeText(context, resource.message, Toast.LENGTH_SHORT).show()
@@ -106,7 +108,10 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         homeVm.homeEvent.collect { event ->
             when(event) {
                 is HomeEvent.startGame -> {
-                    homeVm.startGame(usernameState, selectedCountry, singlePlayerVm.trueLocation)
+                    homeVm.startGame(usernameState, selectedCity, singlePlayerVm.trueLocation.value)
+                }
+                is HomeEvent.showCityBottomSheet -> {
+                    showBottomSheet = true
                 }
             }
         }
@@ -179,9 +184,9 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         CustomTextField(
             true, stringResource(R.string.pick_a_country), Color.White,
             16.sp, true, Black39, Black1212,
-            Black1212, 10.sp, selectedCountry.name, true,
+            Black1212, 10.sp, selectedCity.name, true,
             1, {
-                showBottomSheet = true
+                homeVm.showCityBottomSheet()
             }, {})
 
         Spacer(Modifier.height(28.dp))

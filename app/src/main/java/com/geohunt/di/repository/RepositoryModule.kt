@@ -1,8 +1,12 @@
 package com.geohunt.di.repository
 
+import com.geohunt.data.repository.city.CityRepositoryImpl
 import com.geohunt.data.repository.country.CountryRepositoryImpl
+import com.geohunt.data.repository.kartaview.KartaViewRepositoryImpl
 import com.geohunt.data.repository.user.UserRepositoryImpl
+import com.geohunt.domain.repository.CityRepository
 import com.geohunt.domain.repository.CountryRepository
+import com.geohunt.domain.repository.KartaViewRepository
 import com.geohunt.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -24,4 +28,16 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         impl: UserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCityRepository(
+        impl: CityRepositoryImpl
+    ): CityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindKartaViewRepository(
+        impl: KartaViewRepositoryImpl
+    ): KartaViewRepository
 }

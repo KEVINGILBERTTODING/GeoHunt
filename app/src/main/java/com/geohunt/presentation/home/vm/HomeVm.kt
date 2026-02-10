@@ -1,13 +1,14 @@
 package com.geohunt.presentation.home.vm
 
 import android.content.Context
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geohunt.R
 import com.geohunt.core.resource.Resource
-import com.geohunt.domain.model.country.Country
-import com.geohunt.domain.model.user.User
+import com.geohunt.data.dto.city.City
+import com.geohunt.data.dto.country.Country
+import com.geohunt.data.dto.user.User
+import com.geohunt.domain.repository.CityRepository
 import com.geohunt.domain.repository.CountryRepository
 import com.geohunt.domain.repository.UserRepository
 import com.geohunt.domain.usecase.SaveUserDataUseCase
@@ -18,7 +19,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,7 +27,8 @@ class HomeVm @Inject constructor(
     private val userRepository: UserRepository,
     private val saveUserDataUseCase: SaveUserDataUseCase,
     private val startGameSinglePlayerUseCase: StartGameSinglePlayerUseCase,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val cityRepository: CityRepository
 ): ViewModel() {
 
     private val _startGameState = MutableSharedFlow<Resource<Unit>>()
@@ -41,6 +42,10 @@ class HomeVm @Inject constructor(
         return countryRepository.getAllCountries()
     }
 
+    fun getAllCity(): List<City> {
+        return cityRepository.getAllCity()
+    }
+
     fun getUserData(): User {
         return userRepository.getUserData()
     }
@@ -51,10 +56,17 @@ class HomeVm @Inject constructor(
         }
     }
 
-    fun startGame(username: String, country: Country, trueLocation: Pair<String, String>) {
+    fun showCityBottomSheet() {
+        viewModelScope.launch {
+            _homeEvent.emit(HomeEvent.showCityBottomSheet)
+        }
+    }
+
+
+    fun startGame(username: String, city: City, trueLocation: Pair<String, String>) {
         val uid = userRepository.getUserData().userId
         val saveUserDate = saveUserDataUseCase(username, uid)
-        val startGame = startGameSinglePlayerUseCase(username, uid, country, trueLocation)
+        val startGame = startGameSinglePlayerUseCase(username, uid, city, trueLocation)
         viewModelScope.launch {
             if (saveUserDate is Resource.Error) {
                 _startGameState.emit(Resource.Error("${saveUserDate.message}", Exception()))

@@ -1,10 +1,9 @@
 package com.geohunt.core.util
 
 import android.content.Context
-import android.content.SharedPreferences
 import javax.inject.Inject
 import androidx.core.content.edit
-import com.geohunt.domain.model.user.User
+import com.geohunt.data.dto.user.User
 
 class PrefHelper @Inject constructor(
     private val context: Context
