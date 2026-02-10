@@ -2,6 +2,7 @@ package com.geohunt.presentation.home.ui
 
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,6 +44,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geohunt.R
 import com.geohunt.core.navigation.Screen
+import com.geohunt.core.resource.Resource
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
@@ -51,6 +53,7 @@ import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
+import com.geohunt.presentation.home.event.HomeEvent
 import com.geohunt.presentation.home.component.CountryBottomSheet
 import com.geohunt.presentation.home.vm.HomeVm
 
@@ -66,26 +69,55 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
     }
     val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
     val selectedCountry by singlePlayerVm.selectedCountry.collectAsStateWithLifecycle()
-    val homeVm: HomeVm = viewModel()
-
-    LaunchedEffect(Unit) {
-        singlePlayerVm.setSelectedCountry(homeVm.countries.first())
+    val homeVm: HomeVm = hiltViewModel()
+    var usernameState by remember {
+        mutableStateOf(
+            homeVm.getUserData().username.ifBlank { "Guest" })
     }
+
 
     if (showBottomSheet) {
         CountryBottomSheet(
             onClick = { country ->
                 singlePlayerVm.setSelectedCountry(country)
-                      },
+            },
             onDissmiss = { showBottomSheet = false }
         )
+    }
+
+    LaunchedEffect(Unit) {
+        homeVm.startGameState.collect { resource ->
+            when(resource) {
+                is Resource.Idle -> {}
+                is Resource.Loading -> {}
+                is Resource.Success -> {
+                    navController.navigate(Screen.GameMapSinglePlayerScreen.route)
+                }
+                is Resource.Error -> {
+                    Toast.makeText(context, resource.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+    }
+
+    // EVENT
+    LaunchedEffect(Unit) {
+        homeVm.homeEvent.collect { event ->
+            when(event) {
+                is HomeEvent.startGame -> {
+                    homeVm.startGame(usernameState, selectedCountry, singlePlayerVm.trueLocation)
+                }
+            }
+        }
     }
 
     Column(
         Modifier
             .padding(16.dp)
             .fillMaxSize(),
-        verticalArrangement = Arrangement.Center) {
+        verticalArrangement = Arrangement.Center
+    ) {
         LottieAnimation(
             modifier = Modifier
                 .size(170.dp)
@@ -98,21 +130,25 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             modifier = Modifier.fillMaxWidth(),
             style = TextStyle(textAlign = TextAlign.Center),
             text = buildAnnotatedString {
-                withStyle(style = SpanStyle(
-                    fontFamily = Poppins,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp,
-                    color = Green41B
-                )) {
+                withStyle(
+                    style = SpanStyle(
+                        fontFamily = Poppins,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 30.sp,
+                        color = Green41B
+                    )
+                ) {
                     append("Geo")
                 }
 
-                withStyle(style = SpanStyle(
-                    fontFamily = Poppins,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp,
-                    color = Black1212
-                )) {
+                withStyle(
+                    style = SpanStyle(
+                        fontFamily = Poppins,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 30.sp,
+                        color = Black1212
+                    )
+                ) {
                     append("Hunt")
                 }
             }
@@ -121,27 +157,45 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         Text(
             text = stringResource(R.string.how_good_is_your_geography),
             modifier = Modifier.fillMaxWidth(),
-            style = TextStyle(textAlign = TextAlign.Center,
+            style = TextStyle(
+                textAlign = TextAlign.Center,
                 fontFamily = Poppins, fontSize = 12.sp, color = Black39
             ),
         )
 
         Spacer(Modifier.height(30.dp))
 
-        CustomTextField(true, stringResource(R.string.pick_a_country), Color.White,
+        CustomTextField(
+            true, stringResource(R.string.username), Color.White,
+            16.sp, false, Black39, Black1212,
+            Black1212, 10.sp, usernameState, false, 1, {
+            }, {
+                usernameState = it
+            }, true
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        CustomTextField(
+            true, stringResource(R.string.pick_a_country), Color.White,
             16.sp, true, Black39, Black1212,
-            Black1212, 10.sp, selectedCountry.name, 1){
-            showBottomSheet = true
-        }
+            Black1212, 10.sp, selectedCountry.name, true,
+            1, {
+                showBottomSheet = true
+            }, {})
 
         Spacer(Modifier.height(28.dp))
 
-        CustomButton(Green41B, 16.sp, Black39,
+        CustomButton(
+            Green41B, 16.sp, Black39,
             FontWeight.Medium, Color.White, "Start", {
-                navController.navigate(Screen.GameMapSinglePlayerScreen.route)
+                homeVm.startGameEvent()
             })
+
     }
+
 }
+
 
 @Preview(showBackground = true)
 @Composable

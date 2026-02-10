@@ -9,4 +9,9 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_splash_screen">SplashScreenActivity</string>
     <string name="title_activity_loading_single_player">LoadingSinglePlayerActivity</string>
+    <string name="username">Username</string>
+    <string name="start_game_failed">Start game failed</string>
+    <string name="username_cannot_be_empty">Username cannot be empty</string>
+    <string name="username_must_be_at_least_3_character">Username must be at least 3 characters</string>
+    <string name="username_must_be_less_than_30_character">Username must be less than 30 characters</string>
 </resources>

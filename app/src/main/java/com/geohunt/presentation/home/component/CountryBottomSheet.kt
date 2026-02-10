@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.geohunt.R
 import com.geohunt.core.ui.theme.Black1212
@@ -32,13 +33,13 @@ import com.geohunt.core.ui.theme.Black39
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
-import com.geohunt.domain.model.Country
+import com.geohunt.domain.model.country.Country
 import com.geohunt.presentation.home.vm.HomeVm
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CountryBottomSheet(onClick: (Country) -> Unit = {}, onDissmiss: () -> Unit) {
-    val homeVm: HomeVm = viewModel()
+    val homeVm: HomeVm = hiltViewModel()
     ModalBottomSheet(
         onDismissRequest = { onDissmiss() },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -66,11 +67,11 @@ fun CountryBottomSheet(onClick: (Country) -> Unit = {}, onDissmiss: () -> Unit) 
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(homeVm.countries) { data ->
+                items(homeVm.getAllCountry()) { country ->
                     ItemCountry(Color.White, 14.sp, Black39,
-                        FontWeight.Normal, Black1212, data.name,
+                        FontWeight.Normal, Black1212, country.name,
                         TextAlign.Start, {
-                            onClick(data)
+                            onClick(country)
                             onDissmiss()
                         })
                 }

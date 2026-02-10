@@ -1,23 +1,72 @@
 package com.geohunt.presentation.home.vm
 
+import android.content.Context
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
-import com.geohunt.domain.model.Country
+import androidx.lifecycle.viewModelScope
+import com.geohunt.R
+import com.geohunt.core.resource.Resource
+import com.geohunt.domain.model.country.Country
+import com.geohunt.domain.model.user.User
+import com.geohunt.domain.repository.CountryRepository
+import com.geohunt.domain.repository.UserRepository
+import com.geohunt.domain.usecase.SaveUserDataUseCase
+import com.geohunt.domain.usecase.StartGameSinglePlayerUseCase
+import com.geohunt.presentation.home.event.HomeEvent
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
 
-class HomeVm: ViewModel() {
-    val countries = listOf(
-        Country("Indonesia", listOf(95.0, -11.0, 141.0, 6.0)),
-//        Country("World", listOf(-180.0, -85.0, 180.0, 85.0)),
-//        Country("United States", listOf(-125.0, 24.0, -66.0, 49.0)),
-//        Country("Japan", listOf(129.0, 31.0, 146.0, 45.0)),
-//        Country("United Kingdom", listOf(-8.0, 49.0, 2.0, 61.0)),
-//        Country("France", listOf(-5.0, 41.0, 9.5, 51.0)),
-//        Country("Germany", listOf(5.5, 47.0, 15.5, 55.0)),
-//        Country("Brazil", listOf(-74.0, -34.0, -34.0, 5.0)),
-//        Country("India", listOf(68.0, 6.0, 97.0, 36.0)),
-//        Country("Australia", listOf(112.0, -44.0, 154.0, -10.0)),
-//        Country("Canada", listOf(-141.0, 42.0, -52.0, 83.0)),
-//        Country("South Korea", listOf(125.0, 33.0, 130.0, 39.0)),
-//        Country("Italy", listOf(6.0, 36.0, 19.0, 47.0))
+@HiltViewModel
+class HomeVm @Inject constructor(
+    private val countryRepository: CountryRepository,
+    private val userRepository: UserRepository,
+    private val saveUserDataUseCase: SaveUserDataUseCase,
+    private val startGameSinglePlayerUseCase: StartGameSinglePlayerUseCase,
+    @ApplicationContext private val context: Context
+): ViewModel() {
 
-    )
+    private val _startGameState = MutableSharedFlow<Resource<Unit>>()
+    val startGameState = _startGameState.asSharedFlow()
+
+    private val _homeEvent = MutableSharedFlow<HomeEvent>()
+    val homeEvent = _homeEvent.asSharedFlow()
+
+
+    fun getAllCountry(): List<Country> {
+        return countryRepository.getAllCountries()
+    }
+
+    fun getUserData(): User {
+        return userRepository.getUserData()
+    }
+
+    fun startGameEvent() {
+        viewModelScope.launch {
+            _homeEvent.emit(HomeEvent.startGame)
+        }
+    }
+
+    fun startGame(username: String, country: Country, trueLocation: Pair<String, String>) {
+        val uid = userRepository.getUserData().userId
+        val saveUserDate = saveUserDataUseCase(username, uid)
+        val startGame = startGameSinglePlayerUseCase(username, uid, country, trueLocation)
+        viewModelScope.launch {
+            if (saveUserDate is Resource.Error) {
+                _startGameState.emit(Resource.Error("${saveUserDate.message}", Exception()))
+                return@launch
+            }
+            if (!startGame) {
+                _startGameState.emit(Resource.Error(context.getString(R.string.start_game_failed), Exception()))
+                return@launch
+            }
+            _startGameState.emit(Resource.Success(Unit))
+        }
+    }
+
+
 }

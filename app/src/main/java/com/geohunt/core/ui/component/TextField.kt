@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -20,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
+import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.GreenE6
 import com.geohunt.core.ui.theme.Poppins
 
@@ -27,7 +30,9 @@ import com.geohunt.core.ui.theme.Poppins
 fun CustomTextField(isEnabled: Boolean = false, label: String = "", bgColor: Color,
                     fontSize: TextUnit, isReadOnly: Boolean, borderColor: Color,
                     fontColor: Color, labelColor: Color, labelSize: TextUnit, value: String,
-                    maxLines: Int, onClick: () -> Unit = {}) {
+                    isClickable: Boolean = false, maxLines: Int, onClick: () -> Unit = {}, onValueChange: (String) -> Unit = {},
+                    isSingleLine: Boolean = false, keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+                    keyboardActions: KeyboardActions = KeyboardActions.Default) {
     Box(Modifier.fillMaxWidth()
         .background(
             color = borderColor,
@@ -44,8 +49,13 @@ fun CustomTextField(isEnabled: Boolean = false, label: String = "", bgColor: Col
                 modifier = Modifier
                     .fillMaxWidth(),
                 value = value,
-                onValueChange = {},
+                onValueChange = {
+                    onValueChange(it)
+                },
                 maxLines = maxLines,
+                keyboardOptions = keyboardOptions,
+                keyboardActions = keyboardActions,
+                singleLine = isSingleLine,
                 enabled = isEnabled,
                 readOnly = isReadOnly,
                 textStyle = TextStyle(fontSize = fontSize, color = fontColor),
@@ -65,15 +75,18 @@ fun CustomTextField(isEnabled: Boolean = false, label: String = "", bgColor: Col
                     unfocusedBorderColor = Color.Transparent,
                     disabledBorderColor = Color.Transparent,
                     focusedBorderColor = Color.Transparent,
-                    errorBorderColor = Color.Transparent
+                    errorBorderColor = Color.Transparent,
+                    cursorColor = Green41B
                 )
             )
 
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .clickable { onClick() }
-            )
+            if (isClickable) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable { onClick() }
+                )
+            }
         }
     }
 }
@@ -84,6 +97,6 @@ fun TextFieldPreview() {
     GeoHuntTheme {
        CustomTextField(true, "Pilih negara", Color.White,
            16.sp, true, GreenE6, Black1212, Black1212, 14.sp,
-           "Indonesia", 1)
+           "Indonesia", false, 1)
     }
 }

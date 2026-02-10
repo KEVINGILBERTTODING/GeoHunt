@@ -42,7 +42,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
         Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)) {
             CustomTextField(true, "Loading", Color.White,
                 16.sp, true, Black39, Black1212,
-                Black1212, 10.sp, "Preparing your adventure…", 1)
+                Black1212, 10.sp, "Preparing your adventure…", true, 1)
 
         }
     }
