@@ -2,21 +2,21 @@ package com.geohunt.data.repository.kartaview
 
 import com.geohunt.core.resource.Resource
 import com.geohunt.data.mapper.toDomain
-import com.geohunt.data.remote.ApiService
+import com.geohunt.data.remote.KartaviewService
 import com.geohunt.domain.model.GamePhoto
 import com.geohunt.domain.repository.KartaViewRepository
 import javax.inject.Inject
 import kotlin.collections.emptyList
 
 class KartaViewRepositoryImpl @Inject constructor(
-    private val apiService: ApiService
+    private val kartaviewService: KartaviewService
 ): KartaViewRepository {
     override suspend fun getPhoto(
         lat: String,
         lng: String
     ): Resource<List<GamePhoto>> {
         return try {
-            val response = apiService.getPhotos(lat.toDouble(), lng.toDouble())
+            val response = kartaviewService.getPhotos(lat.toDouble(), lng.toDouble())
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null && body.status.httpCode == 200 && body.result.data.isNotEmpty()) {

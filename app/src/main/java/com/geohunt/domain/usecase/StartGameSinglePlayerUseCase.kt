@@ -7,6 +7,7 @@ class StartGameSinglePlayerUseCase @Inject constructor() {
     operator fun invoke(username: String, uid: String,
                         city: City, trueLocation: Pair<String, String>): Boolean {
         if (username.isBlank()) return false
+        if (city.id == 0) return false
         if (city.name.isBlank()) return false
         if (city.lng.isEmpty()) return false
         if (city.lat.isEmpty()) return false

@@ -1,8 +1,8 @@
 package com.geohunt.domain.repository
 
+import com.geohunt.core.resource.Resource
 import com.geohunt.data.dto.city.City
 
 interface CityRepository {
-    fun getAllCity(): List<City>
-    fun getCity(name: String): City
+    suspend fun getCities(): Resource<List<City>>
 }

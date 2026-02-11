@@ -54,7 +54,7 @@ import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
-import com.geohunt.presentation.home.component.CityBottomSheet
+import com.geohunt.presentation.home.component.CountryBottomSheet
 import com.geohunt.presentation.home.event.HomeEvent
 import com.geohunt.presentation.home.vm.HomeVm
 import timber.log.Timber
@@ -71,21 +71,31 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         navController.getBackStackEntry(Screen.HomeGraph.route)
     }
     val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
-    val selectedCity by singlePlayerVm.selectedCity.collectAsStateWithLifecycle()
     val homeVm: HomeVm = hiltViewModel()
-    var usernameState by remember {
-        mutableStateOf(
-            homeVm.getUserData().username.ifBlank { "Guest" })
+    val usernameState by homeVm.userNameState.collectAsStateWithLifecycle()
+    val homeState by homeVm.homeState.collectAsStateWithLifecycle()
+    val countryState by homeVm.countryState.collectAsStateWithLifecycle()
+
+    val buttonColor = when(homeState) {
+        is Resource.Success -> Green41B
+        else -> Color.Gray
+    }
+    val buttonText = when(homeState) {
+        is Resource.Loading -> "Loading..."
+        else -> stringResource(R.string.start)
     }
 
     if (showBottomSheet) {
-        CityBottomSheet(
-            onClick = { city ->
-                singlePlayerVm.setSelectedCity(city)
+        CountryBottomSheet(
+            homeVm = homeVm,
+            onClick = { country ->
+                homeVm.setSelectedCountry(country)
+                homeVm.setSelectedCity(country)
             },
             onDissmiss = { showBottomSheet = false }
         )
     }
+
 
     LaunchedEffect(Unit) {
         homeVm.startGameState.collect { resource ->
@@ -93,6 +103,9 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
                 is Resource.Idle -> {}
                 is Resource.Loading -> {}
                 is Resource.Success -> {
+                    singlePlayerVm.setTrueLocation(homeVm.trueLocation.first,
+                        homeVm.trueLocation.second)
+                    singlePlayerVm.setSelectedCity(homeVm.selectedCity)
                     navController.navigate(Screen.LoadingScreenSinglePlayer.route)
                 }
                 is Resource.Error -> {
@@ -108,9 +121,9 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         homeVm.homeEvent.collect { event ->
             when(event) {
                 is HomeEvent.startGame -> {
-                    homeVm.startGame(usernameState, selectedCity, singlePlayerVm.trueLocation.value)
+                    homeVm.startGame()
                 }
-                is HomeEvent.showCityBottomSheet -> {
+                is HomeEvent.showCountryBottomSheet -> {
                     showBottomSheet = true
                 }
             }
@@ -175,7 +188,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             16.sp, false, Black39, Black1212,
             Black1212, 10.sp, usernameState, false, 1, {
             }, {
-                usernameState = it
+                homeVm.setUserName(it)
             }, true
         )
 
@@ -184,16 +197,16 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         CustomTextField(
             true, stringResource(R.string.pick_a_country), Color.White,
             16.sp, true, Black39, Black1212,
-            Black1212, 10.sp, selectedCity.name, true,
+            Black1212, 10.sp, countryState.name, true,
             1, {
-                homeVm.showCityBottomSheet()
+                homeVm.showCountryBottomSheet()
             }, {})
 
         Spacer(Modifier.height(28.dp))
 
         CustomButton(
-            Green41B, 16.sp, Black39,
-            FontWeight.Medium, Color.White, "Start", {
+            buttonColor, 16.sp, Black39,
+            FontWeight.Medium, Color.White, buttonText, {
                 homeVm.startGameEvent()
             })
 

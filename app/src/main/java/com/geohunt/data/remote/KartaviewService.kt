@@ -5,7 +5,7 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface ApiService {
+interface KartaviewService {
     @GET("2.0/photo/")
     suspend fun getPhotos(
         @Query("lat") lat: Double,

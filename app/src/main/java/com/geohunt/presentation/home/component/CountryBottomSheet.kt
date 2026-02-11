@@ -15,6 +15,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -25,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Black39
@@ -32,12 +35,17 @@ import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.data.dto.city.City
+import com.geohunt.data.dto.country.Country
 import com.geohunt.presentation.home.vm.HomeVm
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CityBottomSheet(onClick: (City) -> Unit = {}, onDissmiss: () -> Unit) {
-    val homeVm: HomeVm = hiltViewModel()
+fun CountryBottomSheet(homeVm: HomeVm, onClick: (Country) -> Unit = {}, onDissmiss: () -> Unit) {
+    val countryState by homeVm.countries.collectAsStateWithLifecycle()
+    LaunchedEffect(countryState) {
+        Timber.d("countryState ${countryState.size}")
+    }
     ModalBottomSheet(
         onDismissRequest = { onDissmiss() },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -65,11 +73,11 @@ fun CityBottomSheet(onClick: (City) -> Unit = {}, onDissmiss: () -> Unit) {
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(homeVm.getAllCity()) { city ->
+                items(countryState) { item ->
                     ItemCountry(Color.White, 14.sp, Black39,
-                        FontWeight.Normal, Black1212, city.name,
+                        FontWeight.Normal, Black1212, item.name,
                         TextAlign.Start, {
-                            onClick(city)
+                            onClick(item)
                             onDissmiss()
                         })
                 }
@@ -83,6 +91,6 @@ fun CityBottomSheet(onClick: (City) -> Unit = {}, onDissmiss: () -> Unit) {
 @Composable
 fun CountryBottomSheetPreview() {
     GeoHuntTheme {
-        CityBottomSheet { }
+        CountryBottomSheet(hiltViewModel()) { }
     }
 }

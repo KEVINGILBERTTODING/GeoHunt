@@ -1,6 +1,9 @@
 package com.geohunt.di.network
 
-import com.geohunt.data.remote.ApiService
+import com.geohunt.data.remote.GameService
+import com.geohunt.data.remote.KartaviewService
+import com.geohunt.di.qualifier.GameQualifier
+import com.geohunt.di.qualifier.KartaviewQualifier
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,8 +17,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-    @Provides
-    fun providesBaseUrl() = "https://api.openstreetcam.org/"
+    @Provides @KartaviewQualifier
+    fun providesKartaviewBaseUrl() = "https://api.openstreetcam.org/"
+
+    @Provides @GameQualifier
+    fun provideGameBaseUrl() = "https://raw.githubusercontent.com/"
 
     @Provides
     @Singleton
@@ -33,9 +39,10 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun providesRetrofit(
+    @KartaviewQualifier
+    fun providesKartaViewRetrofit(
         okHttpClient: OkHttpClient,
-        baseUrl: String
+        @KartaviewQualifier baseUrl: String
     ): Retrofit {
         return Retrofit.Builder()
             .client(okHttpClient)
@@ -46,7 +53,27 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun providesApiService(retrofit: Retrofit): ApiService {
-        return retrofit.create(ApiService::class.java)
+    @GameQualifier
+    fun providesGameRetrofit(
+        okHttpClient: OkHttpClient,
+        @GameQualifier baseUrl: String
+    ): Retrofit {
+        return Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun providesKartaviewService(@KartaviewQualifier retrofit: Retrofit): KartaviewService {
+        return retrofit.create(KartaviewService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providesGameService(@GameQualifier retrofit: Retrofit): GameService {
+        return retrofit.create(GameService::class.java)
     }
 }
