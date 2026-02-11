@@ -35,8 +35,6 @@ import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Black39
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
-import kotlin.math.sin
-
 @Composable
 fun LoadingSinglePlayerScreen(navController: NavController = rememberNavController()){
     val context = LocalContext.current

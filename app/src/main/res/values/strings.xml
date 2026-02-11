@@ -14,4 +14,5 @@
     <string name="username_cannot_be_empty">Username cannot be empty</string>
     <string name="username_must_be_at_least_3_character">Username must be at least 3 characters</string>
     <string name="username_must_be_less_than_30_character">Username must be less than 30 characters</string>
+    <string name="gmaps_api_key">AIzaSyBzQKxAvOcRqfM2DynO9YVipqJCpJPNpvA</string>
 </resources>

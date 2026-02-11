@@ -9,7 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.geohunt.presentation.home.ui.HomeScreen
 import com.geohunt.presentation.loadingScreen.singlePlayer.ui.LoadingSinglePlayerScreen
-import com.geohunt.presentation.map.singlePlayer.game.GameMapSinglePlayer
+import com.geohunt.presentation.map.singlePlayer.game.ui.GameMapSinglePlayer
 import com.geohunt.presentation.splashScreen.ui.SplashScreen
 
 @Composable
