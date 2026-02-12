@@ -177,7 +177,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             modifier = Modifier.fillMaxWidth(),
             style = TextStyle(
                 textAlign = TextAlign.Center,
-                fontFamily = Poppins, fontSize = 12.sp, color = Black39
+                fontFamily = Poppins, fontSize = 12.sp, color = Black1212
             ),
         )
 
@@ -185,7 +185,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
 
         CustomTextField(
             true, stringResource(R.string.username), Color.White,
-            16.sp, false, Black39, Black1212,
+            16.sp, false, Black1212, Black1212,
             Black1212, 10.sp, usernameState, false, 1, {
             }, {
                 homeVm.setUserName(it)
@@ -196,7 +196,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
 
         CustomTextField(
             true, stringResource(R.string.pick_a_country), Color.White,
-            16.sp, true, Black39, Black1212,
+            16.sp, true, Black1212, Black1212,
             Black1212, 10.sp, countryState.name, true,
             1, {
                 homeVm.showCountryBottomSheet()
@@ -205,7 +205,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         Spacer(Modifier.height(28.dp))
 
         CustomButton(
-            buttonColor, 16.sp, Black39,
+            buttonColor, 16.sp, Black1212,
             FontWeight.Medium, Color.White, buttonText, {
                 homeVm.startGameEvent()
             })

@@ -3,6 +3,11 @@ import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,13 +28,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.geohunt.R
 import com.geohunt.core.navigation.Screen
-import com.geohunt.core.ui.component.MyFab
+import com.geohunt.core.ui.component.CustomFab
+import com.geohunt.core.ui.theme.Black1212
+import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
 import com.geohunt.presentation.map.singlePlayer.game.component.GameMapPickerBottomSheet
 import com.geohunt.presentation.map.singlePlayer.game.event.GameMapSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
 import timber.log.Timber
+import kotlin.math.sin
 
 @Composable
 fun GameMapSinglePlayer(navController: NavController = rememberNavController()) {
@@ -48,13 +59,13 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
 
     // EVENT
     LaunchedEffect(Unit) {
-        mapGameSinglePlayerVm.mapGameEvent.collect { event -> {
+        mapGameSinglePlayerVm.mapGameEvent.collect { event ->
             when(event) {
-                is GameMapSinglePlayerEvent.showMapPicker -> {
+                is GameMapSinglePlayerEvent.ShowMapPicker -> {
                     showMapPicker = true
                 }
             }
-        } }
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -90,16 +101,26 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
             },
             modifier = Modifier.fillMaxSize()
         )
-        MyFab(modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
-            mapGameSinglePlayerVm.showBottomSheetMapPicker()
-            showMapPicker = true
+
+        Box(modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 40.dp, end = 20.dp)) {
+            CustomFab(painterResource(R.drawable.ic_map_icon), Black1212,
+                Green41B, Color.White) {
+                mapGameSinglePlayerVm.showBottomSheetMapPicker()
+            }
         }
 
-
-        if (showMapPicker){
-            GameMapPickerScreen({
-                showMapPicker = false
-            }, {})
+        AnimatedVisibility(
+            visible = showMapPicker,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut()
+        ) {
+            GameMapPickerScreen(mapGameSinglePlayerVm,{
+                showMapPicker = !showMapPicker
+            }, { latLng ->
+                singlePlayerVm.setTrueLocation(latLng.first, latLng.second)
+                showMapPicker = !showMapPicker
+            })
         }
+
     }
 }

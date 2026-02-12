@@ -20,4 +20,9 @@
     <string name="start">Start</string>
     <string name="loading_game">Loading…</string>
     <string name="tips_game">Tips</string>
+    <string name="confirm">Confirm</string>
+    <string name="street_view">Street View</string>
+    <string name="tap_on_the_map_to_choose">Tap on the map to choose</string>
+    <string name="no_location_selected">No location selected</string>
+    <string name="coordinate">Coordinate</string>
 </resources>

@@ -122,7 +122,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                     fontSize = 12.sp,
                     fontFamily = Poppins,
                     fontWeight = FontWeight.Medium,
-                    color = Black39
+                    color = Black1212
                 )
             }
 
@@ -130,7 +130,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                 Modifier.padding(bottom = 20.dp)
             ) {
                 CustomTextField(true, stringResource(R.string.tips_game), Color.White,
-                    14.sp, true, Black39, Black1212,
+                    14.sp, true, Black1212, Black1212,
                     Black1212, 10.sp, tipsMsg, false, 3)
             }
 
