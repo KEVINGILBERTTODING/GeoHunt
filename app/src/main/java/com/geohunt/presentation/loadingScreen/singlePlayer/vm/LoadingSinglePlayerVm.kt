@@ -53,7 +53,7 @@ class LoadingSinglePlayerVm @Inject constructor(
         viewModelScope.launch {
             tipsMsg.forEach {
                 _tipsMessage.value = it
-                delay(3000)
+                delay(5000)
             }
         }
     }
