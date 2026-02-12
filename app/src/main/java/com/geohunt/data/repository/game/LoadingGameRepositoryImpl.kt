@@ -60,4 +60,44 @@ class LoadingGameRepositoryImpl @Inject constructor(): LoadingGameRepository {
         )
 
     }
+
+    override fun getTipsMessage(): List<String> {
+        return listOf(
+            "Observe the road markings carefully.",
+            "Check which side of the road cars are driving on.",
+            "Look for language on signs or billboards.",
+            "Pay attention to the architecture.",
+            "Notice the types of vehicles around you.",
+            "Watch the vegetation and climate.",
+            "Look at what people are wearing.",
+            "License plates can reveal a lot.",
+            "Flags or national symbols are big clues.",
+            "Traffic signs often have regional styles.",
+
+            "Big cities often have unique public transport.",
+            "Store names might reveal the country.",
+            "Look for famous skylines or tall buildings.",
+            "Street lights and bus stops can be clues.",
+            "Company logos may indicate the region.",
+
+            "Trees and soil color can hint the area.",
+            "Mountains can help narrow it down.",
+            "Farms and fences differ by country.",
+            "Is the road paved or dirt?",
+
+            "Driving on the left? Think UK, Japan, Thailand.",
+            "Driving on the right? Think Europe or the Americas.",
+
+            "The sun position can help you find direction.",
+            "Utility poles are surprisingly useful.",
+            "Road edge line colors vary by country.",
+            "Website domains on signs are powerful hints.",
+
+            "Trust your instincts.",
+            "Wild guesses sometimes win.",
+            "Don’t stay in one spot too long.",
+            "Small details make big differences.",
+            "Zoom in and explore."
+        )
+    }
 }

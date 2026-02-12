@@ -19,4 +19,5 @@
     <string name="unable_to_load_data">Unable to load data.</string>
     <string name="start">Start</string>
     <string name="loading_game">Loading…</string>
+    <string name="tips_game">Tips</string>
 </resources>

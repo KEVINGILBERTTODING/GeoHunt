@@ -2,11 +2,17 @@ package com.geohunt.presentation.loadingScreen.singlePlayer.ui
 
 import android.R.attr.resource
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,6 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,6 +43,7 @@ import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Black39
 import com.geohunt.core.ui.theme.GeoHuntTheme
+import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
 import com.geohunt.presentation.loadingScreen.singlePlayer.event.LoadingSinglePlayerEvent
 import com.geohunt.presentation.loadingScreen.singlePlayer.vm.LoadingSinglePlayerVm
@@ -53,6 +63,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
 
     val loadingSinglePlayerVm: LoadingSinglePlayerVm =  hiltViewModel()
     val loadingMsg by loadingSinglePlayerVm.loadingMsg.collectAsStateWithLifecycle()
+    val tipsMsg by loadingSinglePlayerVm.tipsMessage.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         singlePlayerVm.getPhotos()
@@ -89,18 +100,44 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
     }
 
     Box(Modifier.fillMaxSize().padding(16.dp)) {
-        LottieAnimation(
-            modifier = Modifier.size(200.dp).align(Alignment.Center),
-            composition = composition,
-            iterations = LottieConstants.IterateForever,
-            alignment = Alignment.Center
-        )
+        Column(
+            verticalArrangement = Arrangement.Bottom,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center) {
+                LottieAnimation(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                        .size(200.dp),
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever,
+                    alignment = Alignment.Center
+                )
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .fillMaxWidth(),
+                    text = loadingMsg,
+                    textAlign = TextAlign.Center,
+                    fontSize = 12.sp,
+                    fontFamily = Poppins,
+                    fontWeight = FontWeight.Medium,
+                    color = Black39
+                )
+            }
 
-        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)) {
-            CustomTextField(true, "Loading", Color.White,
-                16.sp, true, Black39, Black1212,
-                Black1212, 10.sp, loadingMsg, false, 2)
+            Box(
+                Modifier.padding(bottom = 20.dp)
+            ) {
+                CustomTextField(true, stringResource(R.string.tips_game), Color.White,
+                    14.sp, true, Black39, Black1212,
+                    Black1212, 10.sp, tipsMsg, false, 3)
+            }
+
         }
+
+
+
     }
 }
 
