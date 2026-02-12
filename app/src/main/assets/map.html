@@ -52,6 +52,18 @@
                             minHfov: 20,
                             maxHfov: 90
                         });
+
+                        viewer.on('load', function() {
+                            if (window.AndroidCallback) {
+                                window.AndroidCallback.onPanoramaLoaded();
+                            }
+                        });
+
+                        viewer.on('error', function(err) {
+                            if (window.AndroidCallback) {
+                                window.AndroidCallback.onPanoramaError(err ? err.toString() : "Unknown error");
+                            }
+                        });
                     }
                 </script>
                 </body>

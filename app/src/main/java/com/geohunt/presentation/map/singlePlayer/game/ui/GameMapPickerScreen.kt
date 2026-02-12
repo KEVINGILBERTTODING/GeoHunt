@@ -95,9 +95,10 @@ fun GameMapPickerScreen(
                 .fillMaxWidth()
                 .padding(bottom = 25.dp, start = 16.dp, end = 16.dp, top = 25.dp)) {
 
-                CustomTextField(true, stringResource(R.string.coordinate), Color.White,
-                    14.sp, true, Black1212, Black1212,
-                    Black1212, 10.sp, textLatLng, false, 3)
+                CustomTextField(true, stringResource(R.string.coordinate),
+                    Color.White,14.sp, true, Black1212,
+                    Black1212,Black1212, 10.sp, textLatLng,
+                    false, 3)
 
                 Spacer(Modifier.height(20.dp))
 
@@ -121,8 +122,9 @@ fun GameMapPickerScreen(
                                     onClick(Pair(markerLocationState!!.latitude.toString(),
                                         markerLocationState!!.longitude.toString()))
                                 }else {
-                                    Toast.makeText(context, context.getString(R.string.no_location_selected), Toast.LENGTH_SHORT).show()
-
+                                    Toast.makeText(context,
+                                        context.getString(R.string.no_location_selected),
+                                        Toast.LENGTH_SHORT).show()
                                 }
                             })
                     }

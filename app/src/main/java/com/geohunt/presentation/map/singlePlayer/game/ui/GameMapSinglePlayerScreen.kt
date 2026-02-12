@@ -1,8 +1,10 @@
 package com.geohunt.presentation.map.singlePlayer.game.ui
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -55,6 +57,8 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
 
     val mapGameSinglePlayerVm: GameMapSinglePlayerVm = hiltViewModel()
 
+    var isSuccessLoadStreetView by remember { mutableStateOf(false) }
+
 
 
     // EVENT
@@ -63,6 +67,16 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
             when(event) {
                 is GameMapSinglePlayerEvent.ShowMapPicker -> {
                     showMapPicker = true
+                }
+                is GameMapSinglePlayerEvent.HideMapPicker -> {
+                    showMapPicker = false
+                }
+                is GameMapSinglePlayerEvent.ErrorLoadStreetView -> {
+                    navController.navigate(Screen.LoadingScreenSinglePlayer.route) {
+                        popUpTo(Screen.GameMapSinglePlayerScreen.route) {
+                            inclusive = true
+                        }
+                    }
                 }
             }
         }
@@ -87,6 +101,21 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
                         }
                     }
 
+                    // callback from panorama html
+                    addJavascriptInterface(object {
+                        @JavascriptInterface
+                        fun onPanoramaLoaded() {
+                            isSuccessLoadStreetView = true
+                        }
+
+                        @JavascriptInterface
+                        fun onPanoramaError(errorMsg: String) {
+                            Toast.makeText(context, context.getString(R.string.try_to_load_again),
+                                Toast.LENGTH_SHORT).show()
+                            mapGameSinglePlayerVm.errorLoadStreetViewEvent()
+                        }
+                    }, "AndroidCallback")
+
                     loadUrl("file:///android_asset/map.html")
                 }
             },
@@ -102,10 +131,14 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
             modifier = Modifier.fillMaxSize()
         )
 
-        Box(modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 40.dp, end = 20.dp)) {
-            CustomFab(painterResource(R.drawable.ic_map_icon), Black1212,
-                Green41B, Color.White) {
-                mapGameSinglePlayerVm.showBottomSheetMapPicker()
+        if (isSuccessLoadStreetView) {
+            Box(modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 40.dp, end = 20.dp)) {
+                CustomFab(painterResource(R.drawable.ic_map_icon), Black1212,
+                    Green41B, Color.White) {
+                    mapGameSinglePlayerVm.showBottomSheetMapPickerEvent()
+                }
             }
         }
 
@@ -115,10 +148,10 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
             exit = slideOutVertically { it } + fadeOut()
         ) {
             GameMapPickerScreen(mapGameSinglePlayerVm,{
-                showMapPicker = !showMapPicker
+                mapGameSinglePlayerVm.hideBottomSheetMapPickerEvent()
             }, { latLng ->
                 singlePlayerVm.setTrueLocation(latLng.first, latLng.second)
-                showMapPicker = !showMapPicker
+                mapGameSinglePlayerVm.hideBottomSheetMapPickerEvent()
             })
         }
 

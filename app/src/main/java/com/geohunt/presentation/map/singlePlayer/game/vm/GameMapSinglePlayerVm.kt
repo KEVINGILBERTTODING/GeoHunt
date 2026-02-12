@@ -24,11 +24,24 @@ class GameMapSinglePlayerVm @Inject constructor() : ViewModel() {
     private val _cameraPositionState = MutableStateFlow<CameraPositionState>(CameraPositionState())
     val cameraPositionState = _cameraPositionState.asStateFlow()
 
-    fun showBottomSheetMapPicker() {
+    fun showBottomSheetMapPickerEvent() {
         viewModelScope.launch {
             _mapGameEvent.emit(GameMapSinglePlayerEvent.ShowMapPicker)
         }
     }
+
+    fun hideBottomSheetMapPickerEvent() {
+        viewModelScope.launch {
+            _mapGameEvent.emit(GameMapSinglePlayerEvent.HideMapPicker)
+        }
+    }
+
+    fun errorLoadStreetViewEvent() {
+        viewModelScope.launch {
+            _mapGameEvent.emit(GameMapSinglePlayerEvent.ErrorLoadStreetView)
+        }
+    }
+
 
     fun setMarkerPositionState(latLng: LatLng) {
         _markerPositionState.value = latLng
