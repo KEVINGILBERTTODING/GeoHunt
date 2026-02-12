@@ -30,7 +30,7 @@ import com.geohunt.core.ui.theme.Poppins
 fun CustomTextField(isEnabled: Boolean = false, label: String = "", bgColor: Color,
                     fontSize: TextUnit, isReadOnly: Boolean, borderColor: Color,
                     fontColor: Color, labelColor: Color, labelSize: TextUnit, value: String,
-                    isClickable: Boolean = false, maxLines: Int, onClick: () -> Unit = {}, onValueChange: (String) -> Unit = {},
+                    isClickable: Boolean = false, maxLines: Int = 1, onClick: () -> Unit = {}, onValueChange: (String) -> Unit = {},
                     isSingleLine: Boolean = false, keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
                     keyboardActions: KeyboardActions = KeyboardActions.Default) {
     Box(Modifier.fillMaxWidth()

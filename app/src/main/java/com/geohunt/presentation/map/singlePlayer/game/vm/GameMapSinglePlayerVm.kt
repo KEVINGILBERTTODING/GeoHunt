@@ -16,7 +16,7 @@ class GameMapSinglePlayerVm @Inject constructor() : ViewModel() {
 
     fun showBottomSheetMapPicker() {
         viewModelScope.launch {
-            _mapGameEvent.emit(GameMapSinglePlayerEvent.showGameMapSinglePlayerPickerBottomSheet)
+            _mapGameEvent.emit(GameMapSinglePlayerEvent.showMapPicker)
         }
     }
 }

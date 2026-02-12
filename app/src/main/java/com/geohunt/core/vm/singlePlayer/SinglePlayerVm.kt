@@ -42,6 +42,8 @@ class SinglePlayerVm @Inject constructor(
     private val _imageUrl = MutableStateFlow("")
     val imageUrl = _imageUrl.asStateFlow()
 
+    private var reloadTime = 1 // max 10
+
     fun getPhotos() {
         viewModelScope.launch {
             _loadingState.emit(Resource.Loading)
@@ -56,6 +58,7 @@ class SinglePlayerVm @Inject constructor(
                     val latLng = Pair(data.lat, data.lng)
                     if (photoUrl.isNotBlank() && latLng.first.isNotBlank()
                         && latLng.second.isNotBlank()) {
+                        reloadTime = 1
                         setImageUrl(photoUrl)
                         setTrueLocation(data.lat, data.lng)
                         _loadingState.emit(Resource.Success(Unit))
@@ -66,14 +69,22 @@ class SinglePlayerVm @Inject constructor(
                     reloadPhotos()
                 }
             }else {
-                _loadingState.emit(Resource.Error(
-                    context.getString(R.string.something_went_wrong),
-                    Exception()))
+                reloadPhotos()
             }
         }
     }
 
     fun reloadPhotos() {
+        // MAX 10 times reload
+        reloadTime++
+        viewModelScope.launch {
+            if (reloadTime > 10) {
+                _loadingState.emit(Resource.Error(
+                    context.getString(R.string.something_went_wrong),
+                    Exception()))
+                return@launch
+            }
+        }
         _trueLocation.value = getRandomCityLatLngUseCase(selectedCity.value)
         getPhotos()
     }

@@ -26,7 +26,8 @@ import com.geohunt.core.ui.theme.Poppins
 @Composable
 fun TextContainer(bgColor: Color, fontSize: TextUnit, borderColor: Color,
                  fontWeight: FontWeight, fontColor: Color, value: String, textAlign: TextAlign,
-                 onClick: () -> Unit = {}) {
+                 onClick: () -> Unit = {}, align: TextAlign = TextAlign.Start
+) {
     Box(Modifier.fillMaxWidth()
         .background(
             color = borderColor,

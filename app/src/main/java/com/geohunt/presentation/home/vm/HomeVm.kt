@@ -87,6 +87,8 @@ class HomeVm @Inject constructor(
                     _countryState.value = responseCountries.data.first()
                     _countries.value = responseCountries.data.toMutableList()
                     _cities.value = responseCities.data.toMutableList()
+                    setSelectedCity(countries.value.first())
+                    setSelectedCity(countryState.value)
                     _homeState.value = Resource.Success(Unit)
                 }else {
                     _countryState.value = Country(0, "Error", "", "")

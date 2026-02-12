@@ -40,7 +40,7 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
     val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
     val urlImage by singlePlayerVm.imageUrl.collectAsStateWithLifecycle()
 
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showMapPicker by remember { mutableStateOf(false) }
 
     val mapGameSinglePlayerVm: GameMapSinglePlayerVm = hiltViewModel()
 
@@ -50,16 +50,11 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
     LaunchedEffect(Unit) {
         mapGameSinglePlayerVm.mapGameEvent.collect { event -> {
             when(event) {
-                is GameMapSinglePlayerEvent.showGameMapSinglePlayerPickerBottomSheet -> {
-                    Timber.d("showGameMapSinglePlayerPickerBottomSheet")
-                    showBottomSheet = true
+                is GameMapSinglePlayerEvent.showMapPicker -> {
+                    showMapPicker = true
                 }
             }
         } }
-    }
-
-    if (showBottomSheet){
-        GameMapPickerBottomSheet{showBottomSheet = false}
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -97,7 +92,14 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
         )
         MyFab(modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
             mapGameSinglePlayerVm.showBottomSheetMapPicker()
-            showBottomSheet = true
+            showMapPicker = true
+        }
+
+
+        if (showMapPicker){
+            GameMapPickerScreen({
+                showMapPicker = false
+            }, {})
         }
     }
 }

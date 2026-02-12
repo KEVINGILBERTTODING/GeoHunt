@@ -35,6 +35,9 @@ import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Black39
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
+import com.geohunt.presentation.loadingScreen.singlePlayer.event.LoadingSinglePlayerEvent
+import com.geohunt.presentation.loadingScreen.singlePlayer.vm.LoadingSinglePlayerVm
+
 @Composable
 fun LoadingSinglePlayerScreen(navController: NavController = rememberNavController()){
     val context = LocalContext.current
@@ -48,8 +51,25 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
     }
     val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
 
+    val loadingSinglePlayerVm: LoadingSinglePlayerVm =  hiltViewModel()
+    val loadingMsg by loadingSinglePlayerVm.loadingMsg.collectAsStateWithLifecycle()
+
     LaunchedEffect(Unit) {
         singlePlayerVm.getPhotos()
+    }
+
+    LaunchedEffect(Unit) {
+        loadingSinglePlayerVm.loadingSinglePlayerEvent.collect { event ->
+            when(event) {
+                is LoadingSinglePlayerEvent.navigateToMap -> {
+                    navController.navigate(Screen.GameMapSinglePlayerScreen.route) {
+                        popUpTo(Screen.LoadingScreenSinglePlayer.route){
+                            inclusive = true
+                        }
+                    }
+                }
+            }
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -58,11 +78,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                 is Resource.Idle -> {}
                 is Resource.Loading -> {}
                 is Resource.Success -> {
-                    navController.navigate(Screen.GameMapSinglePlayerScreen.route) {
-                        popUpTo(Screen.LoadingScreenSinglePlayer.route){
-                            inclusive = true
-                        }
-                    }
+                    loadingSinglePlayerVm.navigateToMap()
                 }
                 is Resource.Error -> {
                     Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
@@ -83,8 +99,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
         Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)) {
             CustomTextField(true, "Loading", Color.White,
                 16.sp, true, Black39, Black1212,
-                Black1212, 10.sp, "Preparing your adventure…", true, 1)
-
+                Black1212, 10.sp, loadingMsg, false, 2)
         }
     }
 }
