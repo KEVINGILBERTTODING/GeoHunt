@@ -1,8 +1,11 @@
 package com.geohunt.presentation.home.ui
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,6 +49,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geohunt.R
 import com.geohunt.core.navigation.Screen
 import com.geohunt.core.resource.Resource
+import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
@@ -59,6 +63,7 @@ import com.geohunt.presentation.home.event.HomeEvent
 import com.geohunt.presentation.home.vm.HomeVm
 import timber.log.Timber
 
+@SuppressLint("ContextCastToActivity")
 @Composable
 fun HomeScreen(navController: NavController = rememberNavController()) {
     val context = LocalContext.current
@@ -75,6 +80,8 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
     val usernameState by homeVm.userNameState.collectAsStateWithLifecycle()
     val homeState by homeVm.homeState.collectAsStateWithLifecycle()
     val countryState by homeVm.countryState.collectAsStateWithLifecycle()
+    var showDialogBackPressed by remember { mutableStateOf(false) }
+    val activity = LocalContext.current as? Activity
 
     val buttonColor = when(homeState) {
         is Resource.Success -> Green41B
@@ -94,6 +101,21 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             },
             onDissmiss = { showBottomSheet = false }
         )
+    }
+
+    if (showDialogBackPressed) {
+        ConfirmationBottomSheet(stringResource(R.string.confirm_exit),
+            stringResource(R.string.are_you_sure_you_want_to_exit_the_game),
+            stringResource(R.string.keep_playing),
+            stringResource(R.string.yes_exit),
+            {
+                showDialogBackPressed = false
+            },
+            {
+                showDialogBackPressed = false
+            }) {
+            activity?.finish()
+        }
     }
 
 
@@ -120,14 +142,21 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
     LaunchedEffect(Unit) {
         homeVm.homeEvent.collect { event ->
             when(event) {
-                is HomeEvent.startGame -> {
+                is HomeEvent.StartGame -> {
                     homeVm.startGame()
                 }
-                is HomeEvent.showCountryBottomSheet -> {
+                is HomeEvent.ShowCountryBottomSheet -> {
                     showBottomSheet = true
+                }
+                is HomeEvent.BackPressed -> {
+                    showDialogBackPressed = true
                 }
             }
         }
+    }
+
+    BackHandler {
+        homeVm.onBackPressedEvent()
     }
 
     Column(
@@ -211,6 +240,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             })
 
     }
+
 
 }
 

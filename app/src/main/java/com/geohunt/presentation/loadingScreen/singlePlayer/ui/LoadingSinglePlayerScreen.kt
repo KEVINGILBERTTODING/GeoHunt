@@ -2,6 +2,7 @@ package com.geohunt.presentation.loadingScreen.singlePlayer.ui
 
 import android.R.attr.resource
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +42,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geohunt.R
 import com.geohunt.core.navigation.Screen
 import com.geohunt.core.resource.Resource
+import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Black39
@@ -64,6 +68,8 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
     val loadingSinglePlayerVm: LoadingSinglePlayerVm =  hiltViewModel()
     val loadingMsg by loadingSinglePlayerVm.loadingMsg.collectAsStateWithLifecycle()
     val tipsMsg by loadingSinglePlayerVm.tipsMessage.collectAsStateWithLifecycle()
+    var showDialogBackPressed by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(Unit) {
         singlePlayerVm.getPhotos()
@@ -78,6 +84,9 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                             inclusive = true
                         }
                     }
+                }
+                is LoadingSinglePlayerEvent.NavigateToHome -> {
+                    showDialogBackPressed = true
                 }
             }
         }
@@ -97,6 +106,25 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                 }
             }
         }
+    }
+
+    if (showDialogBackPressed) {
+        ConfirmationBottomSheet(stringResource(R.string.return_to_home),
+            stringResource(R.string.are_you_sure_you_want_to_return_to_home),
+            stringResource(R.string.yes_return_to_home),
+            stringResource(R.string.cancel),
+            {
+                showDialogBackPressed = false
+            },
+            {
+                showDialogBackPressed = true
+            }) {
+            navController.popBackStack()
+        }
+    }
+
+    BackHandler {
+        loadingSinglePlayerVm.navigateToHome()
     }
 
     Box(Modifier.fillMaxSize().padding(16.dp)) {
@@ -121,7 +149,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                     textAlign = TextAlign.Center,
                     fontSize = 12.sp,
                     fontFamily = Poppins,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Normal,
                     color = Black1212
                 )
             }

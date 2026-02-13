@@ -110,8 +110,6 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
 
                         @JavascriptInterface
                         fun onPanoramaError(errorMsg: String) {
-                            Toast.makeText(context, context.getString(R.string.try_to_load_again),
-                                Toast.LENGTH_SHORT).show()
                             mapGameSinglePlayerVm.errorLoadStreetViewEvent()
                         }
                     }, "AndroidCallback")

@@ -108,7 +108,7 @@ fun GameMapPickerScreen(
                 ) {
                     Box(Modifier.weight(1f)) {
                         CustomButton(
-                            Color.White, 16.sp, Black1212,
+                            Color.White, 12.sp, Black1212,
                             FontWeight.Medium, Black1212, stringResource(R.string.street_view), {
                                 onDismiss()
                             })
@@ -116,7 +116,7 @@ fun GameMapPickerScreen(
 
                     Box(Modifier.weight(1f)) {
                         CustomButton(
-                            buttonColor, 16.sp, Black1212,
+                            buttonColor, 12.sp, Black1212,
                             FontWeight.Medium, Color.White, stringResource(R.string.confirm), {
                                 if (isUserHasSelectedLocation) {
                                     onClick(Pair(markerLocationState!!.latitude.toString(),

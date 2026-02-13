@@ -48,6 +48,12 @@ class LoadingSinglePlayerVm @Inject constructor(
         }
     }
 
+    fun navigateToHome() {
+        viewModelScope.launch {
+            loadingSinglePlayerEvent.emit(LoadingSinglePlayerEvent.NavigateToHome)
+        }
+    }
+
     private fun getTipsMsg() {
         val tipsMsg = getTipsUseCase()
         viewModelScope.launch {

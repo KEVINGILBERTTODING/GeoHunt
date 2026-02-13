@@ -122,15 +122,22 @@ class HomeVm @Inject constructor(
 
     fun startGameEvent() {
         viewModelScope.launch {
-            _homeEvent.emit(HomeEvent.startGame)
+            _homeEvent.emit(HomeEvent.StartGame)
         }
     }
 
     fun showCountryBottomSheet() {
         viewModelScope.launch {
-            _homeEvent.emit(HomeEvent.showCountryBottomSheet)
+            _homeEvent.emit(HomeEvent.ShowCountryBottomSheet)
         }
     }
+
+    fun onBackPressedEvent() {
+        viewModelScope.launch {
+            _homeEvent.emit(HomeEvent.BackPressed)
+        }
+    }
+
 
     fun setUserName(username: String) {
         _userNameState.value = username
