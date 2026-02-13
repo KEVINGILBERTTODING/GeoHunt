@@ -6,15 +6,20 @@ import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -91,6 +97,8 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         is Resource.Loading -> "Loading..."
         else -> stringResource(R.string.start)
     }
+
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     if (showBottomSheet) {
         CountryBottomSheet(
@@ -162,83 +170,86 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
     Column(
         Modifier
             .padding(16.dp)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center
+            .verticalScroll(rememberScrollState())
+            .fillMaxSize()
     ) {
-        LottieAnimation(
-            modifier = Modifier
-                .size(170.dp)
-                .align(Alignment.CenterHorizontally),
-            composition = composition,
-            iterations = LottieConstants.IterateForever,
-            alignment = Alignment.Center
-        )
-        Text(
-            modifier = Modifier.fillMaxWidth(),
-            style = TextStyle(textAlign = TextAlign.Center),
-            text = buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        fontFamily = Poppins,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 30.sp,
-                        color = Green41B
-                    )
-                ) {
-                    append("Geo")
+        Column(modifier = Modifier.fillMaxWidth().heightIn(min = screenHeight),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            LottieAnimation(
+                modifier = Modifier
+                    .size(170.dp)
+                    .align(Alignment.CenterHorizontally),
+                composition = composition,
+                iterations = LottieConstants.IterateForever,
+                alignment = Alignment.Center
+            )
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                style = TextStyle(textAlign = TextAlign.Center),
+                text = buildAnnotatedString {
+                    withStyle(
+                        style = SpanStyle(
+                            fontFamily = Poppins,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 30.sp,
+                            color = Green41B
+                        )
+                    ) {
+                        append("Geo")
+                    }
+
+                    withStyle(
+                        style = SpanStyle(
+                            fontFamily = Poppins,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 30.sp,
+                            color = Black1212
+                        )
+                    ) {
+                        append("Hunt")
+                    }
                 }
+            )
 
-                withStyle(
-                    style = SpanStyle(
-                        fontFamily = Poppins,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 30.sp,
-                        color = Black1212
-                    )
-                ) {
-                    append("Hunt")
-                }
-            }
-        )
+            Text(
+                text = stringResource(R.string.how_good_is_your_geography),
+                modifier = Modifier.fillMaxWidth(),
+                style = TextStyle(
+                    textAlign = TextAlign.Center,
+                    fontFamily = Poppins, fontSize = 12.sp, color = Black1212
+                ),
+            )
 
-        Text(
-            text = stringResource(R.string.how_good_is_your_geography),
-            modifier = Modifier.fillMaxWidth(),
-            style = TextStyle(
-                textAlign = TextAlign.Center,
-                fontFamily = Poppins, fontSize = 12.sp, color = Black1212
-            ),
-        )
+            Spacer(Modifier.height(30.dp))
 
-        Spacer(Modifier.height(30.dp))
+            CustomTextField(
+                true, stringResource(R.string.username), Color.White,
+                16.sp, false, Black1212, Black1212,
+                Black1212, 10.sp, usernameState, false, 1, {
+                }, {
+                    homeVm.setUserName(it)
+                }, true
+            )
 
-        CustomTextField(
-            true, stringResource(R.string.username), Color.White,
-            16.sp, false, Black1212, Black1212,
-            Black1212, 10.sp, usernameState, false, 1, {
-            }, {
-                homeVm.setUserName(it)
-            }, true
-        )
+            Spacer(Modifier.height(12.dp))
 
-        Spacer(Modifier.height(12.dp))
+            CustomTextField(
+                true, stringResource(R.string.pick_a_country), Color.White,
+                16.sp, true, Black1212, Black1212,
+                Black1212, 10.sp, countryState.name, true,
+                1, {
+                    homeVm.showCountryBottomSheet()
+                }, {})
 
-        CustomTextField(
-            true, stringResource(R.string.pick_a_country), Color.White,
-            16.sp, true, Black1212, Black1212,
-            Black1212, 10.sp, countryState.name, true,
-            1, {
-                homeVm.showCountryBottomSheet()
-            }, {})
+            Spacer(Modifier.height(28.dp))
 
-        Spacer(Modifier.height(28.dp))
-
-        CustomButton(
-            buttonColor, 16.sp, Black1212,
-            FontWeight.Medium, Color.White, buttonText, {
-                homeVm.startGameEvent()
-            })
-
+            CustomButton(
+                buttonColor, 16.sp, Black1212,
+                FontWeight.Medium, Color.White, buttonText, {
+                    homeVm.startGameEvent()
+                })
+        }
     }
 
 
