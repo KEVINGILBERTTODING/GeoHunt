@@ -5,6 +5,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,15 +34,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.geohunt.R
 import com.geohunt.core.navigation.Screen
+import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomFab
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
-import com.geohunt.presentation.map.singlePlayer.game.component.GameMapPickerBottomSheet
 import com.geohunt.presentation.map.singlePlayer.game.event.GameMapSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
-import timber.log.Timber
-import kotlin.math.sin
 
 @Composable
 fun GameMapSinglePlayer(navController: NavController = rememberNavController()) {
@@ -58,6 +58,8 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
     val mapGameSinglePlayerVm: GameMapSinglePlayerVm = hiltViewModel()
 
     var isSuccessLoadStreetView by remember { mutableStateOf(false) }
+
+    var showBottomSheetBack by remember { mutableStateOf(false) }
 
 
 
@@ -78,7 +80,30 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
                         }
                     }
                 }
+                is GameMapSinglePlayerEvent.OnBackPressedEvent -> {
+                    showBottomSheetBack = true
+                }
             }
+        }
+    }
+
+    BackHandler {
+        mapGameSinglePlayerVm.setOnBackPressedEvent()
+    }
+
+    if (showBottomSheetBack) {
+        ConfirmationBottomSheet(stringResource(R.string.return_to_home),
+            stringResource(R.string.are_you_sure_you_want_to_return_to_home),
+            stringResource(R.string.yes_return_to_home),
+            stringResource(R.string.cancel),
+            {
+                showBottomSheetBack = false
+            },
+            {
+                showBottomSheetBack = false
+                navController.popBackStack()
+            }) {
+            showBottomSheetBack = false
         }
     }
 

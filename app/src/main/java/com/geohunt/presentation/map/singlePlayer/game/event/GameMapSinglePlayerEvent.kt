@@ -4,4 +4,5 @@ sealed class GameMapSinglePlayerEvent {
     object ShowMapPicker: GameMapSinglePlayerEvent()
     object HideMapPicker: GameMapSinglePlayerEvent()
     object ErrorLoadStreetView: GameMapSinglePlayerEvent()
+    object OnBackPressedEvent: GameMapSinglePlayerEvent()
 }

@@ -26,7 +26,7 @@ class SinglePlayerVm @Inject constructor(
     private val getSinglePhotoUseCase: GetSinglePhotoUseCase,
     @ApplicationContext private val context: Context
 ): ViewModel() {
-    val _trueLocation = MutableStateFlow(Pair("", ""))
+    private val _trueLocation = MutableStateFlow(Pair("", ""))
     val trueLocation = _trueLocation.asStateFlow()
 
     private val _guessedLocation = MutableStateFlow(Pair("", ""))
@@ -46,7 +46,16 @@ class SinglePlayerVm @Inject constructor(
 
     fun getPhotos() {
         viewModelScope.launch {
-            _loadingState.emit(Resource.Loading)
+            setLoadingState(Resource.Loading)
+            if (trueLocation.value.first.isBlank()
+                || trueLocation.value.second.isBlank()) {
+                setLoadingState(
+                    Resource.Error(context.getString(R.string.something_went_wrong),
+                        Exception())
+                )
+                return@launch
+            }
+
             val responseSinglePhotos = getSinglePhotoUseCase(
                 trueLocation.value.first,
                 trueLocation.value.second
@@ -61,7 +70,7 @@ class SinglePlayerVm @Inject constructor(
                         reloadTime = 1
                         setImageUrl(photoUrl)
                         setTrueLocation(data.lat, data.lng)
-                        _loadingState.emit(Resource.Success(Unit))
+                        setLoadingState(Resource.Success(Unit))
                     }else {
                         reloadPhotos()
                     }
@@ -85,7 +94,10 @@ class SinglePlayerVm @Inject constructor(
                 return@launch
             }
         }
-        _trueLocation.value = getRandomCityLatLngUseCase(selectedCity.value)
+        setTrueLocation(
+            getRandomCityLatLngUseCase(selectedCity.value).first,
+            getRandomCityLatLngUseCase(selectedCity.value).second
+        )
         getPhotos()
     }
 
@@ -109,6 +121,12 @@ class SinglePlayerVm @Inject constructor(
 
     fun setImageUrl(url: String) {
         _imageUrl.value = url
+    }
+
+    fun setLoadingState(resource: Resource<Unit>) {
+        viewModelScope.launch {
+            _loadingState.emit(resource)
+        }
     }
 
 

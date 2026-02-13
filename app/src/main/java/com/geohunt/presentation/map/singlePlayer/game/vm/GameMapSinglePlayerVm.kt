@@ -50,4 +50,10 @@ class GameMapSinglePlayerVm @Inject constructor() : ViewModel() {
     fun setCameraPositionState(cameraPositionState: CameraPositionState) {
         _cameraPositionState.value = cameraPositionState
     }
+
+    fun setOnBackPressedEvent() {
+        viewModelScope.launch {
+            _mapGameEvent.emit(GameMapSinglePlayerEvent.OnBackPressedEvent)
+        }
+    }
 }

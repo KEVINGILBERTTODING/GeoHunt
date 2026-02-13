@@ -126,6 +126,14 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         }
     }
 
+    LaunchedEffect(homeState) {
+        when(homeState) {
+            is Resource.Error -> {
+                Toast.makeText(context, (homeState as Resource.Error).message, Toast.LENGTH_SHORT).show()
+            }else -> {}
+        }
+    }
+
 
     LaunchedEffect(Unit) {
         homeVm.startGameState.collect { resource ->

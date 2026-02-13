@@ -102,7 +102,12 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                 }
                 is Resource.Error -> {
                     Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                    navController.popBackStack()
+                    val currentRoute = navController.currentDestination?.route
+                    if (currentRoute != null) {
+                        navController.popBackStack(Screen.HomeGraph.route, false)
+                    } else {
+                        navController.navigate(Screen.HomeGraph.route)
+                    }
                 }
             }
         }
@@ -117,9 +122,10 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                 showDialogBackPressed = false
             },
             {
-                showDialogBackPressed = true
+                showDialogBackPressed = false
+                navController.popBackStack()
             }) {
-            navController.popBackStack()
+            showDialogBackPressed = false
         }
     }
 
@@ -163,9 +169,6 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
             }
 
         }
-
-
-
     }
 }
 
