@@ -3,6 +3,7 @@ package com.geohunt.presentation.home.ui
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -69,7 +70,7 @@ import com.geohunt.presentation.home.event.HomeEvent
 import com.geohunt.presentation.home.vm.HomeVm
 import timber.log.Timber
 
-@SuppressLint("ContextCastToActivity")
+@SuppressLint("ContextCastToActivity", "UnrememberedGetBackStackEntry")
 @Composable
 fun HomeScreen(navController: NavController = rememberNavController()) {
     val context = LocalContext.current
@@ -77,10 +78,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         LottieCompositionSpec.RawRes(R.raw.location_marker)
     )
     var showBottomSheet by remember { mutableStateOf(false) }
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val parentEntry = remember(navBackStackEntry) {
-        navController.getBackStackEntry(Screen.HomeGraph.route)
-    }
+    val parentEntry = navController.getBackStackEntry(Screen.HomeGraph.route)
     val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
     val homeVm: HomeVm = hiltViewModel()
     val usernameState by homeVm.userNameState.collectAsStateWithLifecycle()
@@ -98,7 +96,9 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         else -> stringResource(R.string.start)
     }
 
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     if (showBottomSheet) {
         CountryBottomSheet(
@@ -184,14 +184,16 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         Column(modifier = Modifier.fillMaxWidth().heightIn(min = screenHeight),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            LottieAnimation(
-                modifier = Modifier
-                    .size(170.dp)
-                    .align(Alignment.CenterHorizontally),
-                composition = composition,
-                iterations = LottieConstants.IterateForever,
-                alignment = Alignment.Center
-            )
+            if (!isLandscape) {
+                LottieAnimation(
+                    modifier = Modifier
+                        .size(170.dp)
+                        .align(Alignment.CenterHorizontally),
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever,
+                    alignment = Alignment.Center
+                )
+            }
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 style = TextStyle(textAlign = TextAlign.Center),

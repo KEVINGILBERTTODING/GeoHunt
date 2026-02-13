@@ -19,7 +19,7 @@
         android:theme="@style/Theme.GeoHunt">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/gmaps_api_key" />
+            android:value="${gmapsApiKey}" />
         <activity
             android:name=".core.base.BaseActivity"
             android:exported="false"

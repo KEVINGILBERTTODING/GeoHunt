@@ -14,7 +14,6 @@
     <string name="username_cannot_be_empty">Username cannot be empty</string>
     <string name="username_must_be_at_least_3_character">Username must be at least 3 characters</string>
     <string name="username_must_be_less_than_30_character">Username must be less than 30 characters</string>
-    <string name="gmaps_api_key">AIzaSyBzQKxAvOcRqfM2DynO9YVipqJCpJPNpvA</string>
     <string name="something_went_wrong">Something went wrong, please try again later</string>
     <string name="unable_to_load_data">Unable to load data.</string>
     <string name="start">Start</string>
