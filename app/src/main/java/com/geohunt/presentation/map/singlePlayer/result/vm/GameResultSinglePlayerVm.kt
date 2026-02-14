@@ -2,23 +2,18 @@ package com.geohunt.presentation.map.singlePlayer.result.vm
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geohunt.domain.usecase.CountDistanceUseCase
 import com.geohunt.presentation.map.singlePlayer.result.event.GameResultSinglePlayerEvent
-import com.google.maps.android.compose.CameraPositionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class GameResultSinglePlayerVm @Inject constructor(
+    private val countDistanceUseCase: CountDistanceUseCase
 ): ViewModel() {
     val gameEvent = MutableSharedFlow<GameResultSinglePlayerEvent>()
-    val cameraPositionState = MutableStateFlow(CameraPositionState())
-
-
-
 
     fun navigateToHome() {
         viewModelScope.launch {
@@ -26,8 +21,16 @@ class GameResultSinglePlayerVm @Inject constructor(
         }
     }
 
-    fun setCameraState(state: CameraPositionState) {
-        cameraPositionState.value = state
+    fun getLevelZoom(trueLocation: Pair<String, String>, guessedLocation: Pair<String, String>): Float {
+        val distance = countDistanceUseCase(trueLocation,  guessedLocation)
+        val zoomLevel = when {
+            distance < 500 -> 18f
+            distance < 2000 -> 15f
+            distance < 10000 -> 12f
+            distance < 50000 -> 10f
+            else -> 2f
+        }
+        return zoomLevel
     }
 
 }

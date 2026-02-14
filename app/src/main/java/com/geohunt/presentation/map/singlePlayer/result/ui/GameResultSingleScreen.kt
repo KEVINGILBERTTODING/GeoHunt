@@ -27,6 +27,7 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -67,8 +68,7 @@ import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
 import com.geohunt.presentation.map.singlePlayer.result.component.ItemGameHistorySinglePlayer
 import com.geohunt.presentation.map.singlePlayer.result.event.GameResultSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.result.vm.GameResultSinglePlayerVm
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
@@ -86,16 +86,19 @@ fun GameResultSingleScreen(navController: NavHostController) {
 
     val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
     val trueLocationState by singlePlayerVm.trueLocation.collectAsStateWithLifecycle()
-    val trueLocationMarkerState = rememberMarkerState(position = LatLng(
-        trueLocationState.first.toDouble(),
-        trueLocationState.second.toDouble())
-        )
 
     val guessedLocationState by singlePlayerVm.guessedLocation.collectAsStateWithLifecycle()
     val gameHistory by singlePlayerVm.gameHistory.collectAsStateWithLifecycle()
     val resultVm: GameResultSinglePlayerVm = hiltViewModel()
 
     var showBottomSheetBack by remember { mutableStateOf(false) }
+    val trueLocationMarkerState = rememberMarkerState()
+    val guessedLocationMarkerState = rememberMarkerState()
+
+    // Camera State
+    val cameraPositionState = rememberCameraPositionState()
+    val listMarker = remember { mutableStateListOf<LatLng>() }
+
 
 
     // EVENT
@@ -109,25 +112,34 @@ fun GameResultSingleScreen(navController: NavHostController) {
         }
     }
 
-
-    val guessedLocationMarkerState = rememberMarkerState(position = LatLng(
-        guessedLocationState.first.toDouble(),
-        guessedLocationState.second.toDouble())
-    )
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(
-            LatLng(
-                trueLocationState.first.toDouble(),
-                trueLocationState.second.toDouble()), 18f)
-    }
-    val listMarker = mutableListOf(
-        LatLng(
+    LaunchedEffect(trueLocationState) {
+        trueLocationMarkerState.position = LatLng(
             trueLocationState.first.toDouble(),
-            trueLocationState.second.toDouble()),
-        LatLng(
+            trueLocationState.second.toDouble()
+        )
+
+        cameraPositionState.animate(
+            update = CameraUpdateFactory.newLatLngZoom(
+                LatLng(trueLocationState.first.toDouble(), trueLocationState.second.toDouble()),
+                resultVm.getLevelZoom(trueLocationState, guessedLocationState)
+            )
+        )
+    }
+
+    LaunchedEffect(guessedLocationState) {
+        guessedLocationMarkerState.position = LatLng(
             guessedLocationState.first.toDouble(),
-            guessedLocationState.second.toDouble())
-    )
+            guessedLocationState.second.toDouble()
+        )
+        listMarker.clear()
+        listMarker.add(LatLng(
+            trueLocationState.first.toDouble(),
+            trueLocationState.second.toDouble()))
+        listMarker.add(LatLng(
+            guessedLocationState.first.toDouble(),
+            guessedLocationState.second.toDouble()))
+    }
+
 
     val context = LocalContext.current
     val scaffoldState = rememberBottomSheetScaffoldState()
