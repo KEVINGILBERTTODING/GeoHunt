@@ -83,6 +83,13 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
                 is GameMapSinglePlayerEvent.OnBackPressedEvent -> {
                     showBottomSheetBack = true
                 }
+                is GameMapSinglePlayerEvent.NavigateToGameResult -> {
+                    navController.navigate(Screen.GameResultSinglePlayerScreen.route) {
+                        popUpTo(Screen.GameMapSinglePlayerScreen.route) {
+                            inclusive = true
+                        }
+                    }
+                }
             }
         }
     }
@@ -158,8 +165,8 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
             Box(modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 40.dp, end = 20.dp)) {
-                CustomFab(painterResource(R.drawable.ic_map_icon), Black1212,
-                    Green41B, Color.White) {
+                CustomFab(painterResource(R.drawable.ic_eye), Black1212,
+                    Green41B, Black1212) {
                     mapGameSinglePlayerVm.showBottomSheetMapPickerEvent()
                 }
             }
@@ -173,8 +180,9 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
             GameMapPickerScreen(mapGameSinglePlayerVm,{
                 mapGameSinglePlayerVm.hideBottomSheetMapPickerEvent()
             }, { latLng ->
-                singlePlayerVm.setTrueLocation(latLng.first, latLng.second)
+                singlePlayerVm.setGuessedLocation(latLng.first, latLng.second)
                 mapGameSinglePlayerVm.hideBottomSheetMapPickerEvent()
+                mapGameSinglePlayerVm.navigateToGameResult()
             })
         }
 

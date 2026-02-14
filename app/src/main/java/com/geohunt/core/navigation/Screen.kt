@@ -6,4 +6,5 @@ sealed class Screen(val route: String) {
     object LoadingScreenSinglePlayer : Screen("loading_single_player")
     object HomeGraph : Screen("home_graph")
     object GameMapSinglePlayerScreen : Screen("game_map_single_player")
+    object GameResultSinglePlayerScreen : Screen("game_result_single_player")
 }

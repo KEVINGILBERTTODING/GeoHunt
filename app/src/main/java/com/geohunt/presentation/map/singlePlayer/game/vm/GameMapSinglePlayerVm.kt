@@ -56,4 +56,10 @@ class GameMapSinglePlayerVm @Inject constructor() : ViewModel() {
             _mapGameEvent.emit(GameMapSinglePlayerEvent.OnBackPressedEvent)
         }
     }
+
+    fun navigateToGameResult() {
+        viewModelScope.launch {
+            _mapGameEvent.emit(GameMapSinglePlayerEvent.NavigateToGameResult)
+        }
+    }
 }

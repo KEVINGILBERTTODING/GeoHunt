@@ -7,6 +7,9 @@ import com.geohunt.R
 import com.geohunt.core.resource.Resource
 import com.geohunt.data.dto.city.City
 import com.geohunt.domain.repository.CityRepository
+import com.geohunt.domain.usecase.CalculateScorelUseCase
+import com.geohunt.domain.usecase.CountDistanceUseCase
+import com.geohunt.domain.usecase.DistancePrettierUseCase
 import com.geohunt.domain.usecase.GetRandomCityLatLngUseCase
 import com.geohunt.domain.usecase.GetSinglePhotoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +24,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SinglePlayerVm @Inject constructor(
-    private val cityRepository: CityRepository,
     private val getRandomCityLatLngUseCase: GetRandomCityLatLngUseCase,
     private val getSinglePhotoUseCase: GetSinglePhotoUseCase,
     @ApplicationContext private val context: Context
@@ -43,6 +45,8 @@ class SinglePlayerVm @Inject constructor(
     val imageUrl = _imageUrl.asStateFlow()
 
     private var reloadTime = 1 // max 10
+
+
 
     fun getPhotos() {
         viewModelScope.launch {
@@ -104,7 +108,6 @@ class SinglePlayerVm @Inject constructor(
     fun setGuessedLocation(lat: String, lng: String) {
         _guessedLocation.value = Pair(lat, lng)
     }
-
     fun setSelectedCity(city: City) {
         _selectedCity.value = city
         setSelectedTrueLocation(city)

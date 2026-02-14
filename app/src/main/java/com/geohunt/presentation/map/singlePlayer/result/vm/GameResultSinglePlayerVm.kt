@@ -1,0 +1,45 @@
+package com.geohunt.presentation.map.singlePlayer.result.vm
+
+import androidx.lifecycle.ViewModel
+import com.geohunt.core.resource.Resource
+import com.geohunt.domain.usecase.CalculateScorelUseCase
+import com.geohunt.domain.usecase.CountDistanceUseCase
+import com.geohunt.domain.usecase.DistancePrettierUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+
+@HiltViewModel
+class GameResultSinglePlayerVm @Inject constructor(
+    private val countDistanceUseCase: CountDistanceUseCase,
+    private val calculateScorelUseCase: CalculateScorelUseCase,
+    private val prettierUseCase: DistancePrettierUseCase
+): ViewModel() {
+    val totalScore = MutableStateFlow(0)
+    val totalDistance = MutableStateFlow(0f)
+    val totalDistancePrettier = MutableStateFlow("")
+    val resultState = MutableStateFlow<Resource<Unit>>(Resource.Idle)
+
+    fun setResultState(resource: Resource<Unit>) {
+        resultState.value = resource
+    }
+
+    fun countDistanceAndScore(trueLoc: Pair<String, String>,
+                              guessedLoc: Pair<String, String>) {
+        setTotalDistance(trueLoc, guessedLoc)
+        setTotalScore()
+    }
+
+    fun setTotalDistance(trueLoc: Pair<String, String>,
+                         guessedLoc: Pair<String, String>) {
+        totalDistance.value = countDistanceUseCase(trueLoc, guessedLoc)
+        totalDistancePrettier.value = prettierUseCase(totalDistance.value)
+    }
+
+    fun setTotalScore() {
+        totalScore.value = calculateScorelUseCase(totalDistance.value)
+    }
+
+}

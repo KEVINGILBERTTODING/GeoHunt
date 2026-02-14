@@ -102,12 +102,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                 }
                 is Resource.Error -> {
                     Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                    val currentRoute = navController.currentDestination?.route
-                    if (currentRoute != null) {
-                        navController.popBackStack(Screen.HomeGraph.route, false)
-                    } else {
-                        navController.navigate(Screen.HomeGraph.route)
-                    }
+                    navController.navigate(Screen.HomeScreen.route)
                 }
             }
         }

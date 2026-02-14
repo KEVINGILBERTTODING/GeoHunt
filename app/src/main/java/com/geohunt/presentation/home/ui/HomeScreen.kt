@@ -70,7 +70,9 @@ import com.geohunt.presentation.home.event.HomeEvent
 import com.geohunt.presentation.home.vm.HomeVm
 import timber.log.Timber
 
-@SuppressLint("ContextCastToActivity", "UnrememberedGetBackStackEntry")
+@SuppressLint("ContextCastToActivity", "UnrememberedGetBackStackEntry",
+    "ConfigurationScreenWidthHeight"
+)
 @Composable
 fun HomeScreen(navController: NavController = rememberNavController()) {
     val context = LocalContext.current
@@ -92,7 +94,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         else -> Color.Gray
     }
     val buttonText = when(homeState) {
-        is Resource.Loading -> "Loading..."
+        is Resource.Loading -> stringResource(R.string.loading_game)
         else -> stringResource(R.string.start)
     }
 

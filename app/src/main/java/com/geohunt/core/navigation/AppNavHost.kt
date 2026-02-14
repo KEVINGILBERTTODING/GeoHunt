@@ -10,6 +10,7 @@ import androidx.navigation.navigation
 import com.geohunt.presentation.home.ui.HomeScreen
 import com.geohunt.presentation.loadingScreen.singlePlayer.ui.LoadingSinglePlayerScreen
 import com.geohunt.presentation.map.singlePlayer.game.ui.GameMapSinglePlayer
+import com.geohunt.presentation.map.singlePlayer.result.ui.GameResultSingleScreen
 import com.geohunt.presentation.splashScreen.ui.SplashScreen
 
 @Composable
@@ -30,6 +31,9 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
             }
             composable(Screen.GameMapSinglePlayerScreen.route) {
                 GameMapSinglePlayer(navController)
+            }
+            composable(Screen.GameResultSinglePlayerScreen.route) {
+                GameResultSingleScreen(navController)
             }
         }
 
