@@ -6,6 +6,7 @@ import com.geohunt.domain.usecase.CountDistanceUseCase
 import com.geohunt.presentation.map.singlePlayer.result.event.GameResultSinglePlayerEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -14,6 +15,8 @@ class GameResultSinglePlayerVm @Inject constructor(
     private val countDistanceUseCase: CountDistanceUseCase
 ): ViewModel() {
     val gameEvent = MutableSharedFlow<GameResultSinglePlayerEvent>()
+    val trueLocationState = MutableStateFlow(Pair("", ""))
+    val guessedLocationState = MutableStateFlow(Pair("", ""))
 
     fun navigateToHome() {
         viewModelScope.launch {
@@ -31,6 +34,20 @@ class GameResultSinglePlayerVm @Inject constructor(
             else -> 2f
         }
         return zoomLevel
+    }
+
+    fun setTrueLocationState(data: Pair<String, String>) {
+        trueLocationState.value = data
+    }
+
+    fun setGuessedLocationState(data: Pair<String, String>) {
+        guessedLocationState.value = data
+    }
+
+    fun changeMarkerStateEvent(trueLoc: Pair<String, String>, guessLoc: Pair<String, String>) {
+        viewModelScope.launch {
+            gameEvent.emit(GameResultSinglePlayerEvent.ChangeMarkerState(trueLoc, guessLoc))
+        }
     }
 
 }

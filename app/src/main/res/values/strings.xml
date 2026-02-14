@@ -38,4 +38,6 @@
     <string name="game_history">Game History</string>
     <string name="game_result">Game Result</string>
     <string name="show_map">Show Map</string>
+    <string name="home">Home</string>
+    <string name="next">Next</string>
 </resources>

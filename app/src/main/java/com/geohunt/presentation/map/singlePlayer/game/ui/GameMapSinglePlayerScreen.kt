@@ -43,7 +43,7 @@ import com.geohunt.presentation.map.singlePlayer.game.event.GameMapSinglePlayerE
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
 
 @Composable
-fun GameMapSinglePlayer(navController: NavController = rememberNavController()) {
+fun GameMapSinglePlayerScreen(navController: NavController = rememberNavController()) {
     var isPageLoaded by remember { mutableStateOf(false) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()

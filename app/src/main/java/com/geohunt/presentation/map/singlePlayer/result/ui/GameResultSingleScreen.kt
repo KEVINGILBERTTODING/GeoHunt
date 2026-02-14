@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +66,9 @@ import com.geohunt.core.ui.theme.Orange
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
+import com.geohunt.data.dto.city.City
+import com.geohunt.data.dto.country.Country
+import com.geohunt.domain.model.GameHistorySinglePlayer
 import com.geohunt.presentation.map.singlePlayer.result.component.ItemGameHistorySinglePlayer
 import com.geohunt.presentation.map.singlePlayer.result.event.GameResultSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.result.vm.GameResultSinglePlayerVm
@@ -75,6 +79,7 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,21 +88,22 @@ fun GameResultSingleScreen(navController: NavHostController) {
     val parentEntry = remember(navBackStackEntry) {
         navController.getBackStackEntry(Screen.HomeGraph.route)
     }
-
     val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
-    val trueLocationState by singlePlayerVm.trueLocation.collectAsStateWithLifecycle()
-
-    val guessedLocationState by singlePlayerVm.guessedLocation.collectAsStateWithLifecycle()
+    val trueLocationSingleVmState by singlePlayerVm.trueLocation.collectAsStateWithLifecycle()
+    val guessedLocationSingleVmState by singlePlayerVm.guessedLocation.collectAsStateWithLifecycle()
     val gameHistory by singlePlayerVm.gameHistory.collectAsStateWithLifecycle()
     val resultVm: GameResultSinglePlayerVm = hiltViewModel()
-
+    val trueLocationState by resultVm.trueLocationState.collectAsStateWithLifecycle()
+    val guessedLocationState by resultVm.guessedLocationState.collectAsStateWithLifecycle()
     var showBottomSheetBack by remember { mutableStateOf(false) }
     val trueLocationMarkerState = rememberMarkerState()
     val guessedLocationMarkerState = rememberMarkerState()
-
-    // Camera State
     val cameraPositionState = rememberCameraPositionState()
     val listMarker = remember { mutableStateListOf<LatLng>() }
+    val context = LocalContext.current
+    var scaffoldState = rememberBottomSheetScaffoldState()
+    val totalPoint = gameHistory.sumOf { it.point }
+    val scope = rememberCoroutineScope()
 
 
 
@@ -108,42 +114,57 @@ fun GameResultSingleScreen(navController: NavHostController) {
                 is GameResultSinglePlayerEvent.NavigateToHome -> {
                     navigateToHome(navController)
                 }
+                is GameResultSinglePlayerEvent.ChangeMarkerState -> {
+                    scope.launch {
+                        scaffoldState.bottomSheetState.partialExpand()
+                    }
+                    resultVm.setTrueLocationState(event.trueLoc)
+                    resultVm.setGuessedLocationState(event.guessLoc)
+                }
             }
         }
     }
 
-    LaunchedEffect(trueLocationState) {
-        trueLocationMarkerState.position = LatLng(
-            trueLocationState.first.toDouble(),
-            trueLocationState.second.toDouble()
-        )
+    LaunchedEffect(trueLocationSingleVmState) {
+        resultVm.setTrueLocationState(trueLocationSingleVmState)
+    }
 
-        cameraPositionState.animate(
-            update = CameraUpdateFactory.newLatLngZoom(
-                LatLng(trueLocationState.first.toDouble(), trueLocationState.second.toDouble()),
-                resultVm.getLevelZoom(trueLocationState, guessedLocationState)
+    LaunchedEffect(guessedLocationSingleVmState) {
+        resultVm.setGuessedLocationState(guessedLocationSingleVmState)
+    }
+
+    LaunchedEffect(trueLocationState) {
+        if (trueLocationState.first.isNotBlank() && trueLocationState.second.isNotBlank()) {
+            trueLocationMarkerState.position = LatLng(
+                trueLocationState.first.toDouble(),
+                trueLocationState.second.toDouble()
             )
-        )
+
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(trueLocationState.first.toDouble(), trueLocationState.second.toDouble()),
+                    resultVm.getLevelZoom(trueLocationState, guessedLocationState)
+                )
+            )
+        }
     }
 
     LaunchedEffect(guessedLocationState) {
-        guessedLocationMarkerState.position = LatLng(
-            guessedLocationState.first.toDouble(),
-            guessedLocationState.second.toDouble()
-        )
-        listMarker.clear()
-        listMarker.add(LatLng(
-            trueLocationState.first.toDouble(),
-            trueLocationState.second.toDouble()))
-        listMarker.add(LatLng(
-            guessedLocationState.first.toDouble(),
-            guessedLocationState.second.toDouble()))
+        if(guessedLocationState.first.isNotBlank() && guessedLocationState.second.isNotBlank()) {
+            guessedLocationMarkerState.position = LatLng(
+                guessedLocationState.first.toDouble(),
+                guessedLocationState.second.toDouble()
+            )
+            listMarker.clear()
+            listMarker.add(LatLng(
+                trueLocationState.first.toDouble(),
+                trueLocationState.second.toDouble()))
+            listMarker.add(LatLng(
+                guessedLocationState.first.toDouble(),
+                guessedLocationState.second.toDouble()))
+        }
     }
 
-
-    val context = LocalContext.current
-    val scaffoldState = rememberBottomSheetScaffoldState()
-    val totalPoint = gameHistory.sumOf { it.point }
 
     BackHandler {
         showBottomSheetBack = true
@@ -256,8 +277,11 @@ fun GameResultSingleScreen(navController: NavHostController) {
                         Spacer(Modifier.height(10.dp))
                     }
 
+
                     items(gameHistory.asReversed()) { item ->
-                        ItemGameHistorySinglePlayer(item.no, item)
+                        ItemGameHistorySinglePlayer(item.no, item) {
+                           resultVm.changeMarkerStateEvent(item.trueLocation, item.guessedLocation)
+                        }
                         Spacer(Modifier.height(15.dp))
                     }
 
@@ -272,15 +296,15 @@ fun GameResultSingleScreen(navController: NavHostController) {
                     Box(Modifier.weight(1f)) {
                         CustomButton(
                             androidx.compose.ui.graphics.Color.White, 14.sp, Black1212,
-                            FontWeight.Medium, Black1212, stringResource(R.string.street_view), {
-
+                            FontWeight.Medium, Black1212, stringResource(R.string.home), {
+                                resultVm.navigateToHome()
                             })
                     }
 
                     Box(Modifier.weight(1f)) {
                         CustomButton(
                             Green41B, 14.sp, Black1212,
-                            FontWeight.Medium, androidx.compose.ui.graphics.Color.White, stringResource(R.string.confirm), {
+                            FontWeight.Medium, androidx.compose.ui.graphics.Color.White, stringResource(R.string.next), {
 
                             })
                     }
@@ -315,14 +339,14 @@ fun GameResultSingleScreen(navController: NavHostController) {
                     )
 
                 Polyline(
-                    points = listMarker,
+                    points = listMarker.toList(),
                     color = White,
                     width = 14f
                 )
 
 
                 Polyline(
-                    points = listMarker,
+                    points = listMarker.toList(),
                     color = Black1212,
                     width = 8f
                 )

@@ -3,6 +3,7 @@ package com.geohunt.presentation.map.singlePlayer.result.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,7 +44,8 @@ import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.domain.model.GameHistorySinglePlayer
 
 @Composable
-fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistorySinglePlayer) {
+fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistorySinglePlayer,
+                                onClick: (gameHistorySinglePlayer: GameHistorySinglePlayer) -> Unit) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .border(
@@ -135,7 +137,10 @@ fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistory
                         }
                     }
                     Spacer(Modifier.width(10.dp))
-                    Box(Modifier.align(Alignment.CenterVertically)) {
+                    Box(Modifier.align(Alignment.CenterVertically)
+                        .clickable(onClick = {
+                            onClick(gameHistorySinglePlayer)
+                        })) {
                         Text(
                             text = stringResource(R.string.show_map),
                             fontSize = 12.sp,
