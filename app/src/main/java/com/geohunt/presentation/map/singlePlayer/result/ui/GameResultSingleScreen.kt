@@ -1,10 +1,24 @@
 package com.geohunt.presentation.map.singlePlayer.result.ui
 
 import android.graphics.Color
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,24 +30,37 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.geohunt.R
+import com.geohunt.core.extension.bitmapDescriptorFromVector
 import com.geohunt.core.navigation.Screen
-import com.geohunt.core.resource.Resource
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
+import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.theme.Black1212
+import com.geohunt.core.ui.theme.BlueE6
 import com.geohunt.core.ui.theme.GeoHuntTheme
+import com.geohunt.core.ui.theme.GrayE0
 import com.geohunt.core.ui.theme.Green41B
+import com.geohunt.core.ui.theme.Orange
+import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
+import com.geohunt.presentation.map.singlePlayer.result.component.ItemGameHistorySinglePlayer
 import com.geohunt.presentation.map.singlePlayer.result.event.GameResultSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.result.vm.GameResultSinglePlayerVm
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -61,22 +88,11 @@ fun GameResultSingleScreen(navController: NavHostController) {
         )
 
     val guessedLocationState by singlePlayerVm.guessedLocation.collectAsStateWithLifecycle()
+    val gameHistory by singlePlayerVm.gameHistory.collectAsStateWithLifecycle()
     val resultVm: GameResultSinglePlayerVm = hiltViewModel()
-    val scoreState by resultVm.totalScore.collectAsStateWithLifecycle()
-    val distanceState by resultVm.totalDistancePrettier.collectAsStateWithLifecycle()
-    val gameResultState by resultVm.resultState.collectAsStateWithLifecycle()
+
     var showBottomSheetBack by remember { mutableStateOf(false) }
 
-
-    LaunchedEffect(Unit) {
-        resultVm.countDistanceAndScore(trueLocationState, guessedLocationState)
-    }
-
-    LaunchedEffect(gameResultState) {
-        if (gameResultState is Resource.Error) {
-            resultVm.navigateToHome()
-        }
-    }
 
     // EVENT
     LaunchedEffect(Unit) {
@@ -109,12 +125,9 @@ fun GameResultSingleScreen(navController: NavHostController) {
             guessedLocationState.second.toDouble())
     )
 
-
+    val context = LocalContext.current
     val scaffoldState = rememberBottomSheetScaffoldState()
-
-    LaunchedEffect(trueLocationState) {
-
-    }
+    val totalPoint = gameHistory.sumOf { it.point }
 
     BackHandler {
         showBottomSheetBack = true
@@ -138,19 +151,137 @@ fun GameResultSingleScreen(navController: NavHostController) {
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
-        sheetPeekHeight = 120.dp,
+        sheetPeekHeight = 200.dp,
         sheetContainerColor = White,
         sheetDragHandle = {
             BottomSheetDefaults.DragHandle(
-                color = Green41B
+                color = GrayE0
             )
         },
         sheetContent = {
-            Column() {
-                Text("Hasil akhir")
-                Text("Score: $scoreState")
-                Text("Distance: $distanceState")
+            Box(
+                modifier = Modifier
+                    .background(White)
+            ) {
+                LazyColumn(Modifier
+                    .padding(start = 16.dp, end = 16.dp, bottom = 80.dp, top = 10.dp)) {
+                    item {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(R.string.game_result),
+                            fontSize = 14.sp,
+                            fontFamily = Poppins,
+                            color = Black1212,
+                            fontWeight = FontWeight.Medium,
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Box(modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = GrayE0,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                        ) {
+                            Column(Modifier.fillMaxWidth().padding(12.dp)) {
+                                Spacer(Modifier.height(10.dp))
+                                Row(Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text(
+                                        text = stringResource(R.string.points),
+                                        fontSize = 12.sp,
+                                        fontFamily = Poppins,
+                                        color = Black1212,
+                                        textAlign = TextAlign.Start,
+                                        fontWeight = FontWeight.Normal,
+                                    )
+                                    Text(
+                                        text = "+${gameHistory.last().point}",
+                                        fontSize = 14.sp,
+                                        fontFamily = Poppins,
+                                        color = Green41B,
+                                        textAlign = TextAlign.End,
+                                        fontWeight = FontWeight.Medium,
+                                    )
+                                }
+                                Spacer(Modifier.height(8.dp))
+
+                                Box(Modifier.fillMaxWidth()
+                                    .background(
+                                        color = GrayE0
+                                    )
+                                    .height(1.dp)
+                                )
+                                Spacer(Modifier.height(8.dp))
+
+                                Row(Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text(
+                                        text = stringResource(R.string.total_points),
+                                        fontSize = 12.sp,
+                                        fontFamily = Poppins,
+                                        color = Black1212,
+                                        textAlign = TextAlign.Start,
+                                        fontWeight = FontWeight.Normal,
+                                    )
+                                    Spacer(Modifier.width(20.dp))
+                                    Text(
+                                        text = totalPoint.toString(),
+                                        fontSize = 14.sp,
+                                        fontFamily = Poppins,
+                                        color = Black1212,
+                                        textAlign = TextAlign.End,
+                                        fontWeight = FontWeight.Medium,
+                                    )
+                                }
+
+                            }
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(R.string.game_history),
+                            fontSize = 14.sp,
+                            fontFamily = Poppins,
+                            color = Black1212,
+                            fontWeight = FontWeight.Medium,
+                        )
+                        Spacer(Modifier.height(10.dp))
+                    }
+
+                    items(gameHistory.asReversed()) { item ->
+                        ItemGameHistorySinglePlayer(item.no, item)
+                        Spacer(Modifier.height(15.dp))
+                    }
+
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(bottom = 25.dp, end = 16.dp, start = 16.dp)
+                ) {
+                    Box(Modifier.weight(1f)) {
+                        CustomButton(
+                            androidx.compose.ui.graphics.Color.White, 14.sp, Black1212,
+                            FontWeight.Medium, Black1212, stringResource(R.string.street_view), {
+
+                            })
+                    }
+
+                    Box(Modifier.weight(1f)) {
+                        CustomButton(
+                            Green41B, 14.sp, Black1212,
+                            FontWeight.Medium, androidx.compose.ui.graphics.Color.White, stringResource(R.string.confirm), {
+
+                            })
+                    }
+                }
             }
+
         }
     ) {
         Box(Modifier.fillMaxSize()) {
@@ -166,15 +297,16 @@ fun GameResultSingleScreen(navController: NavHostController) {
                     state = trueLocationMarkerState,
                     title = "True Location",
                     tag = "trueLocation",
-                    icon = BitmapDescriptorFactory
-                        .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
+                    icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
+                        BlueE6.toArgb(), 56)
                 )
 
                 Marker(
                     state = guessedLocationMarkerState,
                     title = "Guessed Location",
                     tag = "guessedLocation",
-
+                    icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
+                        Orange.toArgb(), 56)
                     )
 
                 Polyline(
@@ -207,6 +339,6 @@ private fun navigateToHome(navController: NavController) {
 @Composable
 fun ResultMapSingleScreenPreview() {
     GeoHuntTheme {
-
+        GameResultSingleScreen(rememberNavController())
     }
 }

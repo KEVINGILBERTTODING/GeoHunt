@@ -69,6 +69,7 @@ import com.geohunt.presentation.home.component.CountryBottomSheet
 import com.geohunt.presentation.home.event.HomeEvent
 import com.geohunt.presentation.home.vm.HomeVm
 import timber.log.Timber
+import kotlin.math.sin
 
 @SuppressLint("ContextCastToActivity", "UnrememberedGetBackStackEntry",
     "ConfigurationScreenWidthHeight"
@@ -143,9 +144,11 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
                 is Resource.Idle -> {}
                 is Resource.Loading -> {}
                 is Resource.Success -> {
+                    singlePlayerVm.setSelectedCountry(homeVm.countryState.value)
                     singlePlayerVm.setTrueLocation(homeVm.trueLocation.first,
                         homeVm.trueLocation.second)
                     singlePlayerVm.setSelectedCity(homeVm.selectedCity)
+                    singlePlayerVm.clearGameHistory()
                     navController.navigate(Screen.LoadingScreenSinglePlayer.route)
                 }
                 is Resource.Error -> {

@@ -32,6 +32,7 @@ import com.geohunt.R
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Black39
 import com.geohunt.core.ui.theme.GeoHuntTheme
+import com.geohunt.core.ui.theme.GrayE0
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.data.dto.city.City
@@ -52,7 +53,7 @@ fun CountryBottomSheet(homeVm: HomeVm, onClick: (Country) -> Unit = {}, onDissmi
         containerColor = Color.White,
         dragHandle = {
             BottomSheetDefaults.DragHandle(
-                color = Green41B
+                color = GrayE0
             )
         }
     ) {

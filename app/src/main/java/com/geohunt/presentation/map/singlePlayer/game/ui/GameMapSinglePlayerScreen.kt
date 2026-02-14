@@ -84,6 +84,7 @@ fun GameMapSinglePlayer(navController: NavController = rememberNavController()) 
                     showBottomSheetBack = true
                 }
                 is GameMapSinglePlayerEvent.NavigateToGameResult -> {
+                    singlePlayerVm.calculateDistanceAndPoint()
                     navController.navigate(Screen.GameResultSinglePlayerScreen.route) {
                         popUpTo(Screen.GameMapSinglePlayerScreen.route) {
                             inclusive = true

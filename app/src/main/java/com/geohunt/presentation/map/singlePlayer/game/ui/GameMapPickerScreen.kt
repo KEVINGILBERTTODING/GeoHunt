@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -38,14 +39,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
+import com.geohunt.core.extension.bitmapDescriptorFromVector
 import com.geohunt.core.resource.Resource
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.component.CustomFab
 import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Black39
+import com.geohunt.core.ui.theme.BlueE6
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
+import com.geohunt.core.ui.theme.Orange
+import com.geohunt.core.util.MapGraphicUtil
 import com.geohunt.presentation.home.ui.HomeScreen
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
 import com.google.android.gms.maps.model.LatLng
@@ -102,6 +107,8 @@ fun GameMapPickerScreen(
 
             markerLocationState?.let {
                 Marker(
+                    icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
+                        Orange.toArgb(), 56),
                     state = MarkerState(position = it),
                     title = "Selected location"
                 )

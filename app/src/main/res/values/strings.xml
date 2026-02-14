@@ -33,5 +33,9 @@
     <string name="are_you_sure_you_want_to_return_to_home">Are you sure you want to return to the home screen?</string>
     <string name="yes_return_to_home">Yes, Return to Home</string>
     <string name="cancel">Cancel</string>
-
+    <string name="total_points">Total Points</string>
+    <string name="points">Points</string>
+    <string name="game_history">Game History</string>
+    <string name="game_result">Game Result</string>
+    <string name="show_map">Show Map</string>
 </resources>

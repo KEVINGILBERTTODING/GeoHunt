@@ -5,7 +5,7 @@ import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.max
 
-class CalculateScoreUseCase @Inject constructor() {
+class CalculatePointUseCase @Inject constructor() {
     operator fun invoke(distanceInMeters: Float, radius: Float = 100f): Int {
         val maxScore = 5000f
         val minScore = 10f
