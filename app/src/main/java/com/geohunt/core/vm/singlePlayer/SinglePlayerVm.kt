@@ -12,6 +12,7 @@ import com.geohunt.domain.model.GameHistorySinglePlayer
 import com.geohunt.domain.usecase.CalculatePointUseCase
 import com.geohunt.domain.usecase.CountDistanceUseCase
 import com.geohunt.domain.usecase.GetRandomCityLatLngUseCase
+import com.geohunt.domain.usecase.GetRandomCityUseCase
 import com.geohunt.domain.usecase.GetSinglePhotoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,6 +30,7 @@ class SinglePlayerVm @Inject constructor(
     private val getSinglePhotoUseCase: GetSinglePhotoUseCase,
     private val countDistanceUseCase: CountDistanceUseCase,
     private val calculatePointUseCase: CalculatePointUseCase,
+    private val getRandomCityUseCase: GetRandomCityUseCase,
     @ApplicationContext private val context: Context
 ): ViewModel() {
     val selectedCountry = MutableStateFlow(Country(0, "Random", "", ""))
@@ -50,6 +52,7 @@ class SinglePlayerVm @Inject constructor(
 
     private var reloadTime = 1 // max 10
     val gameHistory = MutableStateFlow<MutableList<GameHistorySinglePlayer>>(mutableListOf())
+    var cityList = mutableListOf<City>()
 
 
     fun getPhotos() {
@@ -111,6 +114,10 @@ class SinglePlayerVm @Inject constructor(
 
     @SuppressLint("DefaultLocale")
     fun setGuessedLocation(lat: String, lng: String) {
+        if (lat.isBlank() || lat.isBlank()) {
+            _guessedLocation.value = Pair("", "")
+            return
+        }
         val roundedLat = String.format("%.6f", lat.toDouble())
         val roundedLng = String.format("%.6f", lng.toDouble())
         _guessedLocation.value = Pair(roundedLat, roundedLng)
@@ -174,5 +181,16 @@ class SinglePlayerVm @Inject constructor(
         }
     }
 
+    fun setDataCityList(dataCity: List<City>) {
+        cityList = dataCity.toMutableList()
+    }
+
+    fun nextRound() {
+        setTrueLocation("", "")
+        setGuessedLocation("", "")
+        setSelectedCity(getRandomCityUseCase(selectedCountry.value.id, cityList))
+        val latLngCity = getRandomCityLatLngUseCase(selectedCity.value)
+        setTrueLocation(latLngCity.first, latLngCity.second)
+    }
 
 }

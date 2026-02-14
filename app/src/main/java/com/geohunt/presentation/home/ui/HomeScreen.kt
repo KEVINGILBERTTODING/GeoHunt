@@ -147,6 +147,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
                     singlePlayerVm.setTrueLocation(homeVm.trueLocation.first,
                         homeVm.trueLocation.second)
                     singlePlayerVm.setSelectedCity(homeVm.selectedCity)
+                    singlePlayerVm.setDataCityList(homeVm.cities.value)
                     singlePlayerVm.clearGameHistory()
                     navController.navigate(Screen.LoadingScreenSinglePlayer.route)
                 }

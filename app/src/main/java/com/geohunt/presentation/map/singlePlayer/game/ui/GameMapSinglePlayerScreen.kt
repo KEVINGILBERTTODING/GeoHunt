@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -61,6 +62,8 @@ fun GameMapSinglePlayerScreen(navController: NavController = rememberNavControll
 
     var showBottomSheetBack by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+
 
 
     // EVENT
@@ -74,11 +77,8 @@ fun GameMapSinglePlayerScreen(navController: NavController = rememberNavControll
                     showMapPicker = false
                 }
                 is GameMapSinglePlayerEvent.ErrorLoadStreetView -> {
-                    navController.navigate(Screen.LoadingScreenSinglePlayer.route) {
-                        popUpTo(Screen.GameMapSinglePlayerScreen.route) {
-                            inclusive = true
-                        }
-                    }
+                    Toast.makeText(context, context.getString(R.string.something_went_wrong), Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
                 }
                 is GameMapSinglePlayerEvent.OnBackPressedEvent -> {
                     showBottomSheetBack = true

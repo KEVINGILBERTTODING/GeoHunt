@@ -102,7 +102,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                 }
                 is Resource.Error -> {
                     Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                    navController.navigate(Screen.HomeScreen.route)
+                    navController.popBackStack()
                 }
             }
         }

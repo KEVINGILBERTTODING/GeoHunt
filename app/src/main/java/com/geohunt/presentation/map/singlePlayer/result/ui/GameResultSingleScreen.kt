@@ -121,6 +121,10 @@ fun GameResultSingleScreen(navController: NavHostController) {
                     resultVm.setTrueLocationState(event.trueLoc)
                     resultVm.setGuessedLocationState(event.guessLoc)
                 }
+                is GameResultSinglePlayerEvent.NextRound -> {
+                    singlePlayerVm.nextRound()
+                    navController.navigate(Screen.LoadingScreenSinglePlayer.route)
+                }
             }
         }
     }
@@ -133,24 +137,13 @@ fun GameResultSingleScreen(navController: NavHostController) {
         resultVm.setGuessedLocationState(guessedLocationSingleVmState)
     }
 
-    LaunchedEffect(trueLocationState) {
-        if (trueLocationState.first.isNotBlank() && trueLocationState.second.isNotBlank()) {
+    LaunchedEffect(trueLocationState, guessedLocationState) {
+        if (trueLocationState.first.isNotBlank() && trueLocationState.second.isNotBlank()
+            && guessedLocationState.first.isNotBlank() && guessedLocationState.second.isNotBlank()) {
             trueLocationMarkerState.position = LatLng(
                 trueLocationState.first.toDouble(),
                 trueLocationState.second.toDouble()
             )
-
-            cameraPositionState.animate(
-                update = CameraUpdateFactory.newLatLngZoom(
-                    LatLng(trueLocationState.first.toDouble(), trueLocationState.second.toDouble()),
-                    resultVm.getLevelZoom(trueLocationState, guessedLocationState)
-                )
-            )
-        }
-    }
-
-    LaunchedEffect(guessedLocationState) {
-        if(guessedLocationState.first.isNotBlank() && guessedLocationState.second.isNotBlank()) {
             guessedLocationMarkerState.position = LatLng(
                 guessedLocationState.first.toDouble(),
                 guessedLocationState.second.toDouble()
@@ -162,8 +155,16 @@ fun GameResultSingleScreen(navController: NavHostController) {
             listMarker.add(LatLng(
                 guessedLocationState.first.toDouble(),
                 guessedLocationState.second.toDouble()))
+
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(trueLocationState.first.toDouble(), trueLocationState.second.toDouble()),
+                    resultVm.getLevelZoom(trueLocationState, guessedLocationState)
+                )
+            )
         }
     }
+
 
 
     BackHandler {
@@ -216,7 +217,7 @@ fun GameResultSingleScreen(navController: NavHostController) {
                                             color = Green41B,
                                         )
                                     ) {
-                                        append("+$totalPoint")
+                                        append("+${gameHistory.last().point}")
                                     }
                                     withStyle(
                                         style = SpanStyle(
@@ -305,7 +306,7 @@ fun GameResultSingleScreen(navController: NavHostController) {
                         CustomButton(
                             Green41B, 14.sp, Black1212,
                             FontWeight.Medium, androidx.compose.ui.graphics.Color.White, stringResource(R.string.next), {
-
+                                resultVm.nextRound()
                             })
                     }
                 }

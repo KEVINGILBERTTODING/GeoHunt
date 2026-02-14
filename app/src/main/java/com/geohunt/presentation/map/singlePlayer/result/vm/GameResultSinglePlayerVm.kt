@@ -50,4 +50,10 @@ class GameResultSinglePlayerVm @Inject constructor(
         }
     }
 
+    fun nextRound() {
+        viewModelScope.launch {
+            gameEvent.emit(GameResultSinglePlayerEvent.NextRound)
+        }
+    }
+
 }
