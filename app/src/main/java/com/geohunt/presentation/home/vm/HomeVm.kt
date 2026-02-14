@@ -26,13 +26,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeVm @Inject constructor(
     private val getCountriesUseCase: GetCountriesUseCase,
-    private val userRepository: UserRepository,
     private val saveUserDataUseCase: SaveUserDataUseCase,
     private val startGameSinglePlayerUseCase: StartGameSinglePlayerUseCase,
     @ApplicationContext private val context: Context,
@@ -68,9 +66,6 @@ class HomeVm @Inject constructor(
     private val  _countryState = MutableStateFlow(Country(0,"Loading","",""))
     val countryState = _countryState.asStateFlow()
 
-
-
-
     init {
         loadUserData()
         loadGameData()
@@ -84,11 +79,9 @@ class HomeVm @Inject constructor(
                 && responseCities is Resource.Success) {
                 if (responseCountries.data.isNotEmpty()
                     && responseCities.data.isNotEmpty()){
-                    _countryState.value = responseCountries.data.first()
                     _countries.value = responseCountries.data.toMutableList()
                     _cities.value = responseCities.data.toMutableList()
-                    setSelectedCity(countries.value.first())
-                    setSelectedCity(countryState.value)
+                    setSelectedCountry(countries.value.first())
                     _homeState.value = Resource.Success(Unit)
                 }else {
                     _countryState.value = Country(0, "Error", "", "")
@@ -143,15 +136,17 @@ class HomeVm @Inject constructor(
         _userNameState.value = username
     }
 
-    fun setSelectedCity(country: Country) {
-        selectedCity = getRandomCityUseCase(country.id, cities.value)
+    fun setSelectedCity() {
+        selectedCity = getRandomCityUseCase(countryState.value.id, cities.value)
         trueLocation = getRandomCityLatLngUseCase(selectedCity)
     }
 
 
     fun startGame() {
+        setSelectedCity()
         val saveUserDate = saveUserDataUseCase(userNameState.value, uid)
-        val startGame = startGameSinglePlayerUseCase(userNameState.value, uid, selectedCity, trueLocation)
+        val startGame = startGameSinglePlayerUseCase(userNameState.value, uid, selectedCity,
+            trueLocation, countryState.value)
         viewModelScope.launch {
             if (saveUserDate is Resource.Error) {
                 _startGameState.emit(Resource.Error("${saveUserDate.message}", Exception()))

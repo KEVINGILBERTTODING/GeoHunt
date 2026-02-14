@@ -108,7 +108,6 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             homeVm = homeVm,
             onClick = { country ->
                 homeVm.setSelectedCountry(country)
-                homeVm.setSelectedCity(country)
             },
             onDissmiss = { showBottomSheet = false }
         )

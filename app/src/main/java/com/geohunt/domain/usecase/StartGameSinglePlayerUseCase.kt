@@ -1,11 +1,17 @@
 package com.geohunt.domain.usecase
 
 import com.geohunt.data.dto.city.City
+import com.geohunt.data.dto.country.Country
 import javax.inject.Inject
 
 class StartGameSinglePlayerUseCase @Inject constructor() {
     operator fun invoke(username: String, uid: String,
-                        city: City, trueLocation: Pair<String, String>): Boolean {
+                        city: City, trueLocation: Pair<String, String>, country: Country): Boolean {
+        if (country.id == 0) return false
+        if (country.name.isBlank()) return false
+        if (country.lng.isBlank()) return false
+        if (country.lat.isBlank()) return false
+        if (uid.isBlank()) return false
         if (username.isBlank()) return false
         if (city.id == 0) return false
         if (city.name.isBlank()) return false
