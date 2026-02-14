@@ -64,6 +64,6 @@ fun CustomFab(image: Painter, borderColor: Color = Black1212, bgColor: Color = C
 @Composable
 fun FabPreview() {
     GeoHuntTheme {
-        CustomFab(painterResource(R.drawable.ic_map_icon), Green41B, Color.White, Green41B) { }
+        CustomFab(painterResource(R.drawable.ic_eye), Green41B, Color.White, Green41B) { }
     }
 }

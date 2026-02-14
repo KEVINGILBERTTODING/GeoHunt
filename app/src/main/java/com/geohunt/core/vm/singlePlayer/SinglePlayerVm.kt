@@ -6,10 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.geohunt.R
 import com.geohunt.core.resource.Resource
 import com.geohunt.data.dto.city.City
-import com.geohunt.domain.repository.CityRepository
-import com.geohunt.domain.usecase.CalculateScorelUseCase
-import com.geohunt.domain.usecase.CountDistanceUseCase
-import com.geohunt.domain.usecase.DistancePrettierUseCase
 import com.geohunt.domain.usecase.GetRandomCityLatLngUseCase
 import com.geohunt.domain.usecase.GetSinglePhotoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
