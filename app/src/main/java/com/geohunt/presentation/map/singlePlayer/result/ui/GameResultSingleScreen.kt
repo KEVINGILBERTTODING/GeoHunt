@@ -35,8 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -168,11 +172,30 @@ fun GameResultSingleScreen(navController: NavHostController) {
                     item {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.game_result),
-                            fontSize = 14.sp,
-                            fontFamily = Poppins,
-                            color = Black1212,
-                            fontWeight = FontWeight.Medium,
+                            style = TextStyle(textAlign = TextAlign.Center),
+                            text =
+                                buildAnnotatedString {
+                                    withStyle(
+                                        style = SpanStyle(
+                                            fontFamily = Poppins,
+                                            fontWeight = FontWeight.Medium,
+                                            fontSize = 40.sp,
+                                            color = Green41B,
+                                        )
+                                    ) {
+                                        append("+$totalPoint")
+                                    }
+                                    withStyle(
+                                        style = SpanStyle(
+                                            fontFamily = Poppins,
+                                            fontWeight = FontWeight.Normal,
+                                            fontSize = 14.sp,
+                                            color = Black1212,
+                                        )
+                                    ) {
+                                        append(" ${stringResource(R.string.points)}")
+                                    }
+                                }
                         )
                         Spacer(Modifier.height(10.dp))
                         Box(modifier = Modifier
@@ -184,36 +207,6 @@ fun GameResultSingleScreen(navController: NavHostController) {
                             )
                         ) {
                             Column(Modifier.fillMaxWidth().padding(12.dp)) {
-                                Spacer(Modifier.height(10.dp))
-                                Row(Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(
-                                        text = stringResource(R.string.points),
-                                        fontSize = 12.sp,
-                                        fontFamily = Poppins,
-                                        color = Black1212,
-                                        textAlign = TextAlign.Start,
-                                        fontWeight = FontWeight.Normal,
-                                    )
-                                    Text(
-                                        text = "+${gameHistory.last().point}",
-                                        fontSize = 14.sp,
-                                        fontFamily = Poppins,
-                                        color = Green41B,
-                                        textAlign = TextAlign.End,
-                                        fontWeight = FontWeight.Medium,
-                                    )
-                                }
-                                Spacer(Modifier.height(8.dp))
-
-                                Box(Modifier.fillMaxWidth()
-                                    .background(
-                                        color = GrayE0
-                                    )
-                                    .height(1.dp)
-                                )
-                                Spacer(Modifier.height(8.dp))
-
                                 Row(Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween) {
                                     Text(
@@ -238,7 +231,7 @@ fun GameResultSingleScreen(navController: NavHostController) {
                             }
                         }
 
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(22.dp))
 
                         Text(
                             modifier = Modifier.fillMaxWidth(),
