@@ -25,6 +25,10 @@ jobs:
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore.jks
 
+      - name: Create local.properties
+        run: |
+          echo "GMAPS_API_KEY=${{ secrets.GMAPS_API_KEY }}" >> local.properties
+
       - name: Grant permission
         run: chmod +x gradlew
 
