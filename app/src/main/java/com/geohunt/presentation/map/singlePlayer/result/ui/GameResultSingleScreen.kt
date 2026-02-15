@@ -202,7 +202,7 @@ fun GameResultSingleScreen(navController: NavHostController) {
                     .background(White)
             ) {
                 LazyColumn(Modifier
-                    .padding(start = 16.dp, end = 16.dp, bottom = 80.dp, top = 10.dp)) {
+                    .padding(start = 16.dp, end = 16.dp, bottom = 90.dp, top = 10.dp)) {
                     item {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
