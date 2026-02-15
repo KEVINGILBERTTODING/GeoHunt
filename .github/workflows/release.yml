@@ -1,46 +1,38 @@
-name: Android Release
+- name: Checkout
+  uses: actions/checkout@v4
+  with:
+    clean: true
 
-on:
-  push:
-    branches:
-      - master
+- name: Set up JDK
+  uses: actions/setup-java@v4
+  with:
+    distribution: 'temurin'
+    java-version: '17'
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+- name: Decode Keystore
+  run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+- name: Grant permission
+  run: chmod +x gradlew
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+- name: Auto version increment
+  run: |
+    VERSION_CODE=$(grep -Eo "versionCode = [0-9]+" app/build.gradle.kts | awk '{print $3}')
+    NEW_VERSION_CODE=$((VERSION_CODE+1))
+    sed -i "s/versionCode = $VERSION_CODE/versionCode = $NEW_VERSION_CODE/" app/build.gradle.kts
 
-      - name: Decode Keystore
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+- name: Build Release APK
+  run: ./gradlew assembleRelease
+  env:
+    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+    KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Grant permission
-        run: chmod +x gradlew
+- name: List APK
+  run: ls -lah app/build/outputs/apk/release/
 
-      - name: Auto version increment
-        run: |
-          VERSION_CODE=$(grep versionCode app/build.gradle.kts | head -1 | awk '{print $2}')
-          NEW_VERSION_CODE=$((VERSION_CODE+1))
-          sed -i "s/versionCode $VERSION_CODE/versionCode $NEW_VERSION_CODE/" app/build.gradle.kts
-
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ github.run_number }}
-          files: app/build/outputs/apk/release/app-release.apk
+- name: Create Release
+  uses: softprops/action-gh-release@v2
+  with:
+    tag_name: v${{ github.run_number }}
+    files: app/build/outputs/apk/release/app-release.apk
