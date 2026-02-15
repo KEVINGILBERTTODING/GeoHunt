@@ -1,9 +1,10 @@
 name: Android Release
 
+# Trigger workflow hanya saat ada tag yang dipush
 on:
   push:
-    branches:
-      - master
+    tags:
+      - 'v*'  # semua tag yang dimulai dengan 'v', misal v8, v8.1.0
 
 jobs:
   build:
@@ -46,5 +47,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
+          tag_name: ${{ github.ref_name }}   # ambil tag dari push manual
           files: app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # token default GitHub
