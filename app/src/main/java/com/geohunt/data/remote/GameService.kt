@@ -6,8 +6,8 @@ import retrofit2.Response
 import retrofit2.http.GET
 
 interface GameService {
-    @GET("KEVINGILBERTTODING/KEVINGILBERTTODING/refs/heads/master/country.json")
+    @GET("KEVINGILBERTTODING/GeoHunt/refs/heads/dev/app/src/main/assets/country.json")
     suspend fun getCountries(): Response<List<Country>>
-    @GET("KEVINGILBERTTODING/KEVINGILBERTTODING/refs/heads/master/cities.json")
+    @GET("KEVINGILBERTTODING/GeoHunt/refs/heads/dev/app/src/main/assets/cities.json")
     suspend fun getCities(): Response<List<City>>
 }
