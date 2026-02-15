@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -102,6 +103,7 @@ class HomeVm @Inject constructor(
         val dataUser = getUserData()
         setUserName(dataUser.username.ifEmpty { "Guest" })
         uid = dataUser.userId
+        Timber.d("uid password $uid")
     }
 
     fun setSelectedCountry(country: Country) {
@@ -145,6 +147,8 @@ class HomeVm @Inject constructor(
     fun startGame() {
         setSelectedCity()
         val saveUserDate = saveUserDataUseCase(userNameState.value, uid)
+        _userNameState.value = getUserData().username
+        uid = getUserData().userId
         val startGame = startGameSinglePlayerUseCase(userNameState.value, uid, selectedCity,
             trueLocation, countryState.value)
         viewModelScope.launch {
