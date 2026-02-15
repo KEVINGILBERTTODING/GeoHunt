@@ -77,8 +77,17 @@ fun GameMapSinglePlayerScreen(navController: NavController = rememberNavControll
                     showMapPicker = false
                 }
                 is GameMapSinglePlayerEvent.ErrorLoadStreetView -> {
-                    Toast.makeText(context, context.getString(R.string.something_went_wrong), Toast.LENGTH_SHORT).show()
-                    navController.popBackStack()
+                    if (singlePlayerVm.reloadTime > 5) {
+                        Toast.makeText(context, context.getString(R.string.something_went_wrong), Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    }else {
+                        singlePlayerVm.getNewLatLng()
+                        navController.navigate(Screen.LoadingScreenSinglePlayer.route) {
+                            popUpTo(Screen.GameMapSinglePlayerScreen.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
                 }
                 is GameMapSinglePlayerEvent.OnBackPressedEvent -> {
                     showBottomSheetBack = true

@@ -50,7 +50,7 @@ class SinglePlayerVm @Inject constructor(
     private val _imageUrl = MutableStateFlow("")
     val imageUrl = _imageUrl.asStateFlow()
 
-    private var reloadTime = 1 // max 10
+    var reloadTime = 1 // max 5
     val gameHistory = MutableStateFlow<MutableList<GameHistorySinglePlayer>>(mutableListOf())
     var cityList = mutableListOf<City>()
 
@@ -185,7 +185,7 @@ class SinglePlayerVm @Inject constructor(
         cityList = dataCity.toMutableList()
     }
 
-    fun nextRound() {
+    fun getNewLatLng() {
         setTrueLocation("", "")
         setGuessedLocation("", "")
         setSelectedCity(getRandomCityUseCase(selectedCountry.value.id, cityList))

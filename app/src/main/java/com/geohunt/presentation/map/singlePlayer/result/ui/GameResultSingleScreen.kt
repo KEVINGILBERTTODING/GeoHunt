@@ -122,7 +122,7 @@ fun GameResultSingleScreen(navController: NavHostController) {
                     resultVm.setGuessedLocationState(event.guessLoc)
                 }
                 is GameResultSinglePlayerEvent.NextRound -> {
-                    singlePlayerVm.nextRound()
+                    singlePlayerVm.getNewLatLng()
                     navController.navigate(Screen.LoadingScreenSinglePlayer.route)
                 }
             }
