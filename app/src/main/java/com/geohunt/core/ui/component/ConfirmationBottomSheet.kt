@@ -29,6 +29,7 @@ import com.geohunt.R
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Black39
 import com.geohunt.core.ui.theme.GeoHuntTheme
+import com.geohunt.core.ui.theme.GrayE0
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.GreenE6
 import com.geohunt.core.ui.theme.Poppins
@@ -45,7 +46,7 @@ fun ConfirmationBottomSheet(title: String, message: String,
         containerColor = Color.White,
         dragHandle = {
             BottomSheetDefaults.DragHandle(
-                color = Green41B
+                color = GrayE0
             )
         }
     ) {
