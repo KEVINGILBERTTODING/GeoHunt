@@ -11,33 +11,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repo
       - name: Checkout
         uses: actions/checkout@v4
         with:
           clean: true
 
+      # 2️⃣ Setup JDK
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      # 3️⃣ Decode keystore release dari secret
       - name: Decode Keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore.jks
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore.jks
 
+      # 4️⃣ Buat local.properties dengan GMAPS API Key
       - name: Create local.properties
         run: |
           echo "GMAPS_API_KEY=${{ secrets.GMAPS_API_KEY }}" >> local.properties
 
+      # 5️⃣ Grant permission ke gradlew
       - name: Grant permission
         run: chmod +x gradlew
 
+      # 6️⃣ Clean build untuk pastikan semua fresh
+      - name: Clean build
+        run: ./gradlew clean
+
+      # 7️⃣ Auto version increment (optional)
       - name: Auto version increment
         run: |
           VERSION_CODE=$(grep -Eo "versionCode = [0-9]+" app/build.gradle.kts | awk '{print $3}')
           NEW_VERSION_CODE=$((VERSION_CODE+1))
           sed -i "s/versionCode = $VERSION_CODE/versionCode = $NEW_VERSION_CODE/" app/build.gradle.kts
 
+      # 8️⃣ Build signed release APK
       - name: Build Release APK
         run: ./gradlew assembleRelease
         env:
@@ -45,13 +57,15 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      # 9️⃣ List APK untuk verifikasi
       - name: List APK
         run: ls -lah app/build/outputs/apk/release/
 
+      # 🔟 Create GitHub Release dan upload APK
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}   # ambil tag dari push manual
+          tag_name: ${{ github.ref_name }}
           files: app/build/outputs/apk/release/app-release.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # token default GitHub
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
