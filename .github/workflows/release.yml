@@ -1,38 +1,50 @@
-- name: Checkout
-  uses: actions/checkout@v4
-  with:
-    clean: true
+name: Android Release
 
-- name: Set up JDK
-  uses: actions/setup-java@v4
-  with:
-    distribution: 'temurin'
-    java-version: '17'
+on:
+  push:
+    branches:
+      - master
 
-- name: Decode Keystore
-  run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-- name: Grant permission
-  run: chmod +x gradlew
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          clean: true
 
-- name: Auto version increment
-  run: |
-    VERSION_CODE=$(grep -Eo "versionCode = [0-9]+" app/build.gradle.kts | awk '{print $3}')
-    NEW_VERSION_CODE=$((VERSION_CODE+1))
-    sed -i "s/versionCode = $VERSION_CODE/versionCode = $NEW_VERSION_CODE/" app/build.gradle.kts
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-- name: Build Release APK
-  run: ./gradlew assembleRelease
-  env:
-    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-    KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
 
-- name: List APK
-  run: ls -lah app/build/outputs/apk/release/
+      - name: Grant permission
+        run: chmod +x gradlew
 
-- name: Create Release
-  uses: softprops/action-gh-release@v2
-  with:
-    tag_name: v${{ github.run_number }}
-    files: app/build/outputs/apk/release/app-release.apk
+      - name: Auto version increment
+        run: |
+          VERSION_CODE=$(grep -Eo "versionCode = [0-9]+" app/build.gradle.kts | awk '{print $3}')
+          NEW_VERSION_CODE=$((VERSION_CODE+1))
+          sed -i "s/versionCode = $VERSION_CODE/versionCode = $NEW_VERSION_CODE/" app/build.gradle.kts
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: List APK
+        run: ls -lah app/build/outputs/apk/release/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          files: app/build/outputs/apk/release/app-release.apk
