@@ -14,6 +14,16 @@
 
 <hr/>
 
+<h2>📸 Screenshots / Demo</h2>
+
+<p align="center">
+  <i>
+    <img width="1600" height="800" alt="Group 66 (1)" src="https://github.com/user-attachments/assets/a6bd4176-361c-4622-bfbc-ef32fb1ac1d7" />
+  </i>
+</p>
+
+<hr/>
+
 <h2>🎯 About The Project</h2>
 
 <p>
@@ -24,16 +34,6 @@
 <p>
   The closer the guess to the actual location, the higher the score.
   This project focuses on modern Android development practices and scalable architecture.
-</p>
-
-<hr/>
-
-<h2>📸 Screenshots / Demo</h2>
-
-<p align="center">
-  <i>
-    <img width="1600" height="800" alt="Group 66 (1)" src="https://github.com/user-attachments/assets/a6bd4176-361c-4622-bfbc-ef32fb1ac1d7" />
-  </i>
 </p>
 
 <hr/>
