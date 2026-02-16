@@ -28,6 +28,16 @@
 
 <hr/>
 
+<h2>📸 Screenshots / Demo</h2>
+
+<p align="center">
+  <i>
+    <img width="1600" height="800" alt="Group 66 (1)" src="https://github.com/user-attachments/assets/a6bd4176-361c-4622-bfbc-ef32fb1ac1d7" />
+  </i>
+</p>
+
+<hr/>
+
 <h2>✨ Features</h2>
 
 <ul>
@@ -103,7 +113,7 @@ git clone https://github.com/KEVINGILBERTTODING/GeoHunt.git
 </pre>
 
 <p>
-  Open the project using Android Studio, configure API keys if required,
+  Open the project using Android Studio, configure Gmap API keys at local.properties,
   then build and run the app.
 </p>
 
@@ -121,25 +131,9 @@ git clone https://github.com/KEVINGILBERTTODING/GeoHunt.git
 
 <hr/>
 
-<h2>📸 Screenshots / Demo</h2>
-
-<p align="center">
-  <i>Add screenshots or GIF previews here</i>
-</p>
-
-<hr/>
-
 <h2>🤝 Contribution</h2>
 
 <p>
   Contributions, issues, and feature requests are welcome.
   Feel free to fork the repository and submit a pull request.
-</p>
-
-<hr/>
-
-<h2>📄 License</h2>
-
-<p>
-  Add your license information here.
 </p>
