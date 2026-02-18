@@ -3,7 +3,7 @@
   "data": {
     "app_status": {
       "is_health" : false,
-      "is_maintenance": false,
+      "is_maintenance": true,
       "maintenance_message": "Kami sedang merapikan peta, tunggu sebentar ya!",
       "update_message": "Buruan update yok",
       "min_version": 2,
