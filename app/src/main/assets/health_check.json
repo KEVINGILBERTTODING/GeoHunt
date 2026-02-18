@@ -1,0 +1,17 @@
+{
+  "status": "success",
+  "data": {
+    "app_status": {
+      "is_maintenance": false,
+      "maintenance_message": "Kami sedang merapikan peta, tunggu sebentar ya!",
+      "min_version": "1.0",
+      "latest_version": "1.1",
+      "force_update": false
+    },
+    "game_config": {
+      "base_distance_meters": 2000,
+      "max_reload_attempts": 5,
+      "default_timer_seconds": 60
+    }
+  }
+}

@@ -62,4 +62,24 @@ class GameMapSinglePlayerVm @Inject constructor() : ViewModel() {
             _mapGameEvent.emit(GameMapSinglePlayerEvent.NavigateToGameResult)
         }
     }
+
+    private var endTime: Long = 0
+
+    fun startTimer() {
+        // Tentukan kapan timer ini HARUS berakhir
+        // Jam Sekarang + 60 Detik
+        endTime = System.currentTimeMillis() + 60_000
+
+        viewModelScope.launch {
+            while (System.currentTimeMillis() < endTime) {
+                // Hitung sisa waktu berdasarkan selisih jam sistem
+                val remaining = (endTime - System.currentTimeMillis()) / 1000
+//                _timeLeft.value = remaining.toInt()
+//
+//                delay(500) // Update UI (lebih sering lebih mulus)
+            }
+//            _timeLeft.value = 0
+//            onTimeUp()
+        }
+    }
 }
