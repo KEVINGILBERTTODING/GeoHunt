@@ -27,6 +27,7 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -104,6 +105,11 @@ fun GameResultSingleScreen(navController: NavHostController) {
     var scaffoldState = rememberBottomSheetScaffoldState()
     val totalPoint = gameHistory.sumOf { it.point }
     val scope = rememberCoroutineScope()
+    val pointState = remember { mutableIntStateOf (0) }
+
+    LaunchedEffect(gameHistory) {
+        pointState.intValue = gameHistory.last().point
+    }
 
 
 
@@ -217,7 +223,7 @@ fun GameResultSingleScreen(navController: NavHostController) {
                                             color = Green41B,
                                         )
                                     ) {
-                                        append("+${gameHistory.last().point}")
+                                        append("+${pointState.intValue}")
                                     }
                                     withStyle(
                                         style = SpanStyle(
@@ -281,6 +287,7 @@ fun GameResultSingleScreen(navController: NavHostController) {
 
                     items(gameHistory.asReversed()) { item ->
                         ItemGameHistorySinglePlayer(item.no, item) {
+                            pointState.intValue = item.point
                            resultVm.changeMarkerStateEvent(item.trueLocation, item.guessedLocation)
                         }
                         Spacer(Modifier.height(15.dp))
