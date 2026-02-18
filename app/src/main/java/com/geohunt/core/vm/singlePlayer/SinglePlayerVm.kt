@@ -58,59 +58,42 @@ class SinglePlayerVm @Inject constructor(
     fun getPhotos() {
         viewModelScope.launch {
             setLoadingState(Resource.Loading)
-            if (trueLocation.value.first.isBlank()
-                || trueLocation.value.second.isBlank()) {
-                setLoadingState(
-                    Resource.Error(context.getString(R.string.something_went_wrong),
-                        Exception())
+            // looping reload time
+            while (reloadTime <= 5) {
+                if (trueLocation.value.first.isBlank() || trueLocation.value.second.isBlank()) {
+                    getNewLatLng()
+                }
+                val response = getSinglePhotoUseCase(
+                    trueLocation.value.first,
+                    trueLocation.value.second
                 )
-                return@launch
-            }
-
-            val responseSinglePhotos = getSinglePhotoUseCase(
-                trueLocation.value.first,
-                trueLocation.value.second
-            )
-            if (responseSinglePhotos is Resource.Success) {
-                val data = responseSinglePhotos.data
-                if (data != null) {
-                    val photoUrl = data.photoUrl
-                    val latLng = Pair(data.lat, data.lng)
-                    if (photoUrl.isNotBlank() && latLng.first.isNotBlank()
-                        && latLng.second.isNotBlank()) {
+                if (response is Resource.Success && response.data != null) {
+                    val data = response.data
+                    if (data.photoUrl.isNotBlank()) {
                         reloadTime = 1
-                        setImageUrl(photoUrl)
+                        setImageUrl(data.photoUrl)
                         setTrueLocation(data.lat, data.lng)
                         setLoadingState(Resource.Success(Unit))
-                    }else {
-                        reloadPhotos()
+                        return@launch
                     }
-                }else {
-                    reloadPhotos()
                 }
-            }else {
-                reloadPhotos()
+
+                reloadTime++
+                if (reloadTime <= 5) {
+                    val randomLoc = getRandomCityLatLngUseCase(selectedCity.value)
+                    setTrueLocation(randomLoc.first, randomLoc.second)
+                }
             }
+
+            Timber.d("Max reload reached")
+            reloadTime = 1
+            _loadingState.emit(Resource.Error(
+                context.getString(R.string.something_went_wrong),
+                Exception()
+            ))
         }
     }
 
-    fun reloadPhotos() {
-        // MAX 5 times reload
-        reloadTime++
-        if (reloadTime > 5) {
-            viewModelScope.launch {
-                _loadingState.emit(Resource.Error(
-                    context.getString(R.string.something_went_wrong),
-                    Exception()))
-            }
-            return
-        }
-        setTrueLocation(
-            getRandomCityLatLngUseCase(selectedCity.value).first,
-            getRandomCityLatLngUseCase(selectedCity.value).second
-        )
-        getPhotos()
-    }
 
     @SuppressLint("DefaultLocale")
     fun setGuessedLocation(lat: String, lng: String) {
