@@ -66,11 +66,7 @@ fun SplashScreen(navController: NavController = rememberNavController()) {
                     showBottomSheetMaintenance.value = true
                 }
                 is SplashEvent.onSuccess -> {
-                    navController.navigate(Screen.HomeScreen.route) {
-                        popUpTo(Screen.SplashScreen.route) {
-                            inclusive = true
-                        }
-                    }
+                    navigateToHome(navController)
                 }
                 is SplashEvent.onUpdate -> {
                     isForceUpdate.value = event.isForceUpdate
@@ -90,30 +86,33 @@ fun SplashScreen(navController: NavController = rememberNavController()) {
             "",
             false, false,
             {
-                showBottomSheetMaintenance.value = false
+
             },
             {
                 val activity = context as? Activity
                 activity?.finish()
             }) {
+            showBottomSheetMaintenance.value = false
         }
     }
 
     if (showBottomSheetUpdate.value) {
-        ConfirmationBottomSheet(stringResource(R.string.maintenance),
+        ConfirmationBottomSheet(stringResource(R.string.confirm_update),
             updateMsg.value,
             stringResource(R.string.update_now),
             stringResource(R.string.skip),
             isForceUpdate.value.not(), false,
             {
-                showBottomSheetUpdate.value = false
+
             },
             {
-                val intent = Intent(Intent.ACTION_VIEW, )
+                val intent = Intent(Intent.ACTION_VIEW, updateUrl.value.toUri())
                 context.startActivity(intent)
                 val activity = context as? Activity
                 activity?.finish()
             }) {
+            showBottomSheetUpdate.value = false
+            navigateToHome(navController)
         }
     }
 
@@ -145,6 +144,14 @@ fun SplashScreen(navController: NavController = rememberNavController()) {
                 }
             }
         )
+    }
+}
+
+private fun navigateToHome(navController: NavController) {
+    navController.navigate(Screen.HomeScreen.route) {
+        popUpTo(Screen.SplashScreen.route) {
+            inclusive = true
+        }
     }
 }
 
