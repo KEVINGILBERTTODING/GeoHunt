@@ -3,10 +3,10 @@
   "data": {
     "app_status": {
       "is_health" : false,
-      "is_maintenance": true,
+      "is_maintenance": false,
       "maintenance_message": "Kami sedang merapikan peta, tunggu sebentar ya!",
       "update_message": "Buruan update yok",
-      "min_version": 1,
+      "min_version": 2,
       "latest_version": 2,
       "force_update": false,
       "update_url": "https://github.com/KEVINGILBERTTODING/GeoHunt/releases"
