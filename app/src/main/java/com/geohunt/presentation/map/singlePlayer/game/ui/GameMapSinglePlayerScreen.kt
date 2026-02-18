@@ -118,7 +118,11 @@ fun GameMapSinglePlayerScreen(navController: NavController = rememberNavControll
             },
             {
                 showBottomSheetBack = false
-                navController.popBackStack()
+                navController.navigate(Screen.HomeScreen.route) {
+                    popUpTo(Screen.GameMapSinglePlayerScreen.route) {
+                        inclusive = true
+                    }
+                }
             }) {
             showBottomSheetBack = false
         }
