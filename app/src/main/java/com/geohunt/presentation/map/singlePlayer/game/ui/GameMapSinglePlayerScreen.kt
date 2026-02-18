@@ -113,6 +113,7 @@ fun GameMapSinglePlayerScreen(navController: NavController = rememberNavControll
             stringResource(R.string.are_you_sure_you_want_to_return_to_home),
             stringResource(R.string.yes_return_to_home),
             stringResource(R.string.cancel),
+            true, true,
             {
                 showBottomSheetBack = false
             },

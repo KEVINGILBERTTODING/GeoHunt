@@ -1,10 +1,12 @@
 package com.geohunt.di.repository
 
+import com.geohunt.data.repository.app.AppHealthRepositoryImpl
 import com.geohunt.data.repository.city.CityRepositoryImpl
 import com.geohunt.data.repository.country.CountryRepositoryImpl
 import com.geohunt.data.repository.game.LoadingGameRepositoryImpl
 import com.geohunt.data.repository.kartaview.KartaViewRepositoryImpl
 import com.geohunt.data.repository.user.UserRepositoryImpl
+import com.geohunt.domain.repository.AppHealthRepository
 import com.geohunt.domain.repository.CityRepository
 import com.geohunt.domain.repository.CountryRepository
 import com.geohunt.domain.repository.KartaViewRepository
@@ -48,4 +50,10 @@ abstract class RepositoryModule {
     abstract fun bindLoadingGameRepository(
         impl: LoadingGameRepositoryImpl
     ): LoadingGameRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAppHealthRepository(
+        impl: AppHealthRepositoryImpl
+    ): AppHealthRepository
 }

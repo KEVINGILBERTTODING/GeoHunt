@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -38,11 +39,21 @@ import com.geohunt.core.ui.theme.Poppins
 @Composable
 fun ConfirmationBottomSheet(title: String, message: String,
                             titlePositiveBtn: String, titleNegativeBtn: String,
+                            showNegativeBtn: Boolean = true, isCanDissmiss: Boolean = true,
                             onDissmiss: () -> Unit, onPositiveClick: () -> Unit,
                              onNegativeClick: () -> Unit) {
     ModalBottomSheet(
         onDismissRequest = { onDissmiss() },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+            confirmValueChange = { intentValue ->
+                    if (isCanDissmiss) {
+                        intentValue != SheetValue.Hidden
+                    } else {
+                        true
+                    }
+                }
+            ),
         containerColor = Color.White,
         dragHandle = {
             BottomSheetDefaults.DragHandle(
@@ -82,14 +93,16 @@ fun ConfirmationBottomSheet(title: String, message: String,
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Box(Modifier.weight(1f)) {
-                    CustomButton(
-                        Color.White, 12.sp, Black1212,
-                        FontWeight.Medium, Black1212, titleNegativeBtn, {
-                            onNegativeClick()
-                        })
-                }
+                if (showNegativeBtn) {
+                    Box(Modifier.weight(1f)) {
+                        CustomButton(
+                            Color.White, 12.sp, Black1212,
+                            FontWeight.Medium, Black1212, titleNegativeBtn, {
+                                onNegativeClick()
+                            })
+                    }
 
+                }
                 Box(Modifier.weight(1f)) {
                     CustomButton(
                         Green41B, 12.sp, Black1212,
@@ -110,6 +123,8 @@ fun ConfirmationBottomSheetPreview() {
             stringResource(R.string.are_you_sure_you_want_to_exit_the_game),
             stringResource(R.string.keep_playing),
             stringResource(R.string.yes_exit),
+            true,
+            true,
             {},
             {}) { }
     }

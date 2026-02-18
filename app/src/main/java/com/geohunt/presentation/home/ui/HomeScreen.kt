@@ -118,6 +118,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             stringResource(R.string.are_you_sure_you_want_to_exit_the_game),
             stringResource(R.string.keep_playing),
             stringResource(R.string.yes_exit),
+            true, true,
             {
                 showDialogBackPressed = false
             },

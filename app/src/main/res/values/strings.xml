@@ -40,4 +40,8 @@
     <string name="show_map">Show Map</string>
     <string name="home">Home</string>
     <string name="next">Next</string>
+    <string name="ok">OK</string>
+    <string name="maintenance">Maintenance</string>
+    <string name="update_now">Update Now</string>
+    <string name="skip">Skip</string>
 </resources>
