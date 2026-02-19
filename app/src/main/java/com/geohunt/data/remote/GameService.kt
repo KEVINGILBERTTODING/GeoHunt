@@ -8,10 +8,10 @@ import retrofit2.Response
 import retrofit2.http.GET
 
 interface GameService {
-    @GET("KEVINGILBERTTODING/GeoHunt/refs/heads/dev/app/src/main/assets/country.json")
+    @GET("KEVINGILBERTTODING/GeoHunt/refs/heads/master/app/src/main/assets/country.json")
     suspend fun getCountries(): Response<List<Country>>
-    @GET("KEVINGILBERTTODING/GeoHunt/refs/heads/dev/app/src/main/assets/cities.json")
+    @GET("KEVINGILBERTTODING/GeoHunt/refs/heads/master/app/src/main/assets/cities.json")
     suspend fun getCities(): Response<List<City>>
-    @GET("KEVINGILBERTTODING/GeoHunt/refs/heads/v1.1/app/src/main/assets/health_check.json")
+    @GET("KEVINGILBERTTODING/GeoHunt/refs/heads/master/app/src/main/assets/health_check.json")
     suspend fun getAppHealthCheck(): Response<ResponseApiDto<AppHealthResponseDto>>
 }
