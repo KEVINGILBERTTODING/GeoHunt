@@ -5,10 +5,10 @@
       "is_health" : true,
       "is_maintenance": false,
       "maintenance_message": "Kami sedang merapikan peta, tunggu sebentar ya!",
-      "update_message": "We’ve added some cool new features and polished things up to make your experience even better. Don’t miss out on the latest version.",
-      "min_version": 2,
+      "update_message": "Buruan update yok",
+      "min_version": 1,
       "latest_version": 2,
-      "force_update": true,
+      "force_update": false,
       "update_url": "https://github.com/KEVINGILBERTTODING/GeoHunt/releases"
     },
     "game_config": {

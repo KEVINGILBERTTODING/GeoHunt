@@ -42,13 +42,6 @@ jobs:
       - name: Clean build
         run: ./gradlew clean
 
-      # 7️⃣ Auto version increment (optional)
-      - name: Auto version increment
-        run: |
-          VERSION_CODE=$(grep -Eo "versionCode = [0-9]+" app/build.gradle.kts | awk '{print $3}')
-          NEW_VERSION_CODE=$((VERSION_CODE+1))
-          sed -i "s/versionCode = $VERSION_CODE/versionCode = $NEW_VERSION_CODE/" app/build.gradle.kts
-
       # 8️⃣ Build signed release APK
       - name: Build Release APK
         run: ./gradlew assembleRelease
