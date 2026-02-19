@@ -47,7 +47,7 @@ fun ConfirmationBottomSheet(title: String, message: String,
         sheetState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
             confirmValueChange = { intentValue ->
-                    if (isCanDissmiss) {
+                    if (!isCanDissmiss) {
                         intentValue != SheetValue.Hidden
                     } else {
                         true
