@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.geohunt" />
+                  <option name="mobileSdkAppId" value="1:578091081760:android:78b931fb8366d01f82dc45" />
+                  <option name="projectId" value="gen-lang-client-0274608453" />
+                  <option name="projectNumber" value="578091081760" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
