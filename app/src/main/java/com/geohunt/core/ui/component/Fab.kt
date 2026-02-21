@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
@@ -42,6 +43,7 @@ fun CustomFab(image: Painter, borderColor: Color = Black1212, bgColor: Color = C
             modifier = Modifier
                 .size(56.dp)
                 .padding(bottom = 8.dp, top = 1.dp, end = 1.dp, start = 1.dp)
+                .clip(RoundedCornerShape(16.dp))
                 .background(
                     color = bgColor,
                     shape = RoundedCornerShape(16.dp))
