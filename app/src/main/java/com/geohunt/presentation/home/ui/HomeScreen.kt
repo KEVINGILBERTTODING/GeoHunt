@@ -66,6 +66,9 @@ import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
 import com.geohunt.presentation.home.component.CountryBottomSheet
+import com.geohunt.presentation.home.component.CreateRoomBottomSheet
+import com.geohunt.presentation.home.component.GameModeBottomSheet
+import com.geohunt.presentation.home.component.JoinRoomFormBottomSheet
 import com.geohunt.presentation.home.event.HomeEvent
 import com.geohunt.presentation.home.vm.HomeVm
 import timber.log.Timber
@@ -75,20 +78,24 @@ import kotlin.math.sin
     "ConfigurationScreenWidthHeight"
 )
 @Composable
-fun HomeScreen(navController: NavController = rememberNavController()) {
+fun HomeScreen(
+    singlePlayerVm: SinglePlayerVm,
+    navigateToRoom: (String) -> Unit,
+    homeVm: HomeVm = hiltViewModel()
+) {
     val context = LocalContext.current
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.location_marker)
     )
     var showBottomSheet by remember { mutableStateOf(false) }
-    val parentEntry = navController.getBackStackEntry(Screen.HomeGraph.route)
-    val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
-    val homeVm: HomeVm = hiltViewModel()
     val usernameState by homeVm.userNameState.collectAsStateWithLifecycle()
     val homeState by homeVm.homeState.collectAsStateWithLifecycle()
     val countryState by homeVm.countryState.collectAsStateWithLifecycle()
     var showDialogBackPressed by remember { mutableStateOf(false) }
     val activity = LocalContext.current as? Activity
+    var showGameModeBottomSheet by remember { mutableStateOf(false) }
+    var showCreateRoomFormBottomSheet by remember { mutableStateOf(false) }
+    var showJoinRoomFormBottomSheet by remember { mutableStateOf(false) }
 
     val buttonColor = when(homeState) {
         is Resource.Success -> Green41B
@@ -102,6 +109,64 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+
+    LaunchedEffect(homeState) {
+        when(homeState) {
+            is Resource.Error -> {
+                Toast.makeText(context, (homeState as Resource.Error).message, Toast.LENGTH_SHORT).show()
+            }else -> {}
+        }
+    }
+
+
+    LaunchedEffect(Unit) {
+        homeVm.startGameState.collect { resource ->
+            when(resource) {
+                is Resource.Idle -> {}
+                is Resource.Loading -> {}
+                is Resource.Success -> {
+                    showGameModeBottomSheet = true
+                }
+                is Resource.Error -> {
+                    Toast.makeText(context, resource.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+    }
+
+    // EVENT
+    LaunchedEffect(Unit) {
+        homeVm.homeEvent.collect { event ->
+            when(event) {
+                is HomeEvent.StartGame -> {
+                    homeVm.startGame()
+                }
+                is HomeEvent.ShowCountryBottomSheet -> {
+                    showBottomSheet = true
+                }
+                is HomeEvent.BackPressed -> {
+                    showDialogBackPressed = true
+                }
+                is HomeEvent.GameModeSelected -> {
+                    if (homeVm.selectedGameMode == "Single Player") {
+                        singlePlayerVm.setSelectedCountry(homeVm.countryState.value)
+                        singlePlayerVm.setTrueLocation(homeVm.trueLocation.first,
+                            homeVm.trueLocation.second)
+                        singlePlayerVm.setSelectedCity(homeVm.selectedCity)
+                        singlePlayerVm.setDataCityList(homeVm.cities.value)
+                        singlePlayerVm.clearGameHistory()
+                        navController.navigate(Screen.LoadingScreenSinglePlayer.route)
+                    }else if (homeVm.selectedGameMode == "Create Room") {
+                       showCreateRoomFormBottomSheet = true
+                    }else {
+                        showJoinRoomFormBottomSheet = true
+                    }
+                }
+            }
+        }
+    }
 
     if (showBottomSheet) {
         CountryBottomSheet(
@@ -129,56 +194,29 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
         }
     }
 
-    LaunchedEffect(homeState) {
-        when(homeState) {
-            is Resource.Error -> {
-                Toast.makeText(context, (homeState as Resource.Error).message, Toast.LENGTH_SHORT).show()
-            }else -> {}
-        }
+    if (showGameModeBottomSheet) {
+        GameModeBottomSheet(homeVm, {
+            homeVm.setEvent(HomeEvent.GameModeSelected)
+            showGameModeBottomSheet = false
+        }, {
+            showGameModeBottomSheet = false
+        })
     }
 
-
-    LaunchedEffect(Unit) {
-        homeVm.startGameState.collect { resource ->
-            when(resource) {
-                is Resource.Idle -> {}
-                is Resource.Loading -> {}
-                is Resource.Success -> {
-                    singlePlayerVm.setSelectedCountry(homeVm.countryState.value)
-                    singlePlayerVm.setTrueLocation(homeVm.trueLocation.first,
-                        homeVm.trueLocation.second)
-                    singlePlayerVm.setSelectedCity(homeVm.selectedCity)
-                    singlePlayerVm.setDataCityList(homeVm.cities.value)
-                    singlePlayerVm.clearGameHistory()
-                    navController.navigate(Screen.LoadingScreenSinglePlayer.route)
-                }
-                is Resource.Error -> {
-                    Toast.makeText(context, resource.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
+    if (showCreateRoomFormBottomSheet) {
+        CreateRoomBottomSheet({
+            showCreateRoomFormBottomSheet = false
+        })
     }
 
-    // EVENT
-    LaunchedEffect(Unit) {
-        homeVm.homeEvent.collect { event ->
-            when(event) {
-                is HomeEvent.StartGame -> {
-                    homeVm.startGame()
-                }
-                is HomeEvent.ShowCountryBottomSheet -> {
-                    showBottomSheet = true
-                }
-                is HomeEvent.BackPressed -> {
-                    showDialogBackPressed = true
-                }
-            }
+    if (showJoinRoomFormBottomSheet) {
+        JoinRoomFormBottomSheet() {
+            showJoinRoomFormBottomSheet = false
         }
     }
 
     BackHandler {
-        homeVm.onBackPressedEvent()
+        homeVm.setEvent(HomeEvent.BackPressed)
     }
 
     Column(
@@ -255,7 +293,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
                 16.sp, true, Black1212, Black1212,
                 Black1212, 10.sp, countryState.name, true,
                 1, {
-                    homeVm.showCountryBottomSheet()
+                    homeVm.setEvent(HomeEvent.ShowCountryBottomSheet)
                 }, {})
 
             Spacer(Modifier.height(28.dp))
@@ -263,7 +301,7 @@ fun HomeScreen(navController: NavController = rememberNavController()) {
             CustomButton(
                 buttonColor, 16.sp, Black1212,
                 FontWeight.Medium, Color.White, buttonText, {
-                    homeVm.startGameEvent()
+                    homeVm.setEvent(HomeEvent.StartGame)
                 })
         }
     }

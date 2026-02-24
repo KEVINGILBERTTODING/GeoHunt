@@ -45,4 +45,11 @@
     <string name="update_now">Update Now</string>
     <string name="skip">Skip</string>
     <string name="confirm_update">Confirm Update</string>
+    <string name="select_game_mode">Select Game Mode</string>
+    <string name="create_room">Create Room</string>
+    <string name="room_code">Room Code</string>
+    <string name="total_round">Total Round</string>
+    <string name="duration_per_round">Duration Per Round (seconds)</string>
+    <string name="join_room">Join Room</string>
+    <string name="data_not_found">Data not found!</string>
 </resources>

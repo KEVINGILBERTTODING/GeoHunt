@@ -4,6 +4,8 @@ import com.geohunt.data.remote.GameService
 import com.geohunt.data.remote.KartaviewService
 import com.geohunt.di.qualifier.GameQualifier
 import com.geohunt.di.qualifier.KartaviewQualifier
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -76,4 +78,5 @@ object NetworkModule {
     fun providesGameService(@GameQualifier retrofit: Retrofit): GameService {
         return retrofit.create(GameService::class.java)
     }
+
 }

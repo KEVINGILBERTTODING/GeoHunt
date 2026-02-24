@@ -5,12 +5,14 @@ import com.geohunt.data.repository.city.CityRepositoryImpl
 import com.geohunt.data.repository.country.CountryRepositoryImpl
 import com.geohunt.data.repository.game.LoadingGameRepositoryImpl
 import com.geohunt.data.repository.kartaview.KartaViewRepositoryImpl
+import com.geohunt.data.repository.room.RoomRepositoryImpl
 import com.geohunt.data.repository.user.UserRepositoryImpl
 import com.geohunt.domain.repository.AppHealthRepository
 import com.geohunt.domain.repository.CityRepository
 import com.geohunt.domain.repository.CountryRepository
 import com.geohunt.domain.repository.KartaViewRepository
 import com.geohunt.domain.repository.LoadingGameRepository
+import com.geohunt.domain.repository.RoomRepository
 import com.geohunt.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -56,4 +58,10 @@ abstract class RepositoryModule {
     abstract fun bindAppHealthRepository(
         impl: AppHealthRepositoryImpl
     ): AppHealthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRoomRepository (
+        impl: RoomRepositoryImpl
+    ): RoomRepository
 }

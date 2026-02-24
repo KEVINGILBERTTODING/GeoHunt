@@ -11,6 +11,8 @@ import com.geohunt.data.dto.user.User
 import com.geohunt.domain.repository.CityRepository
 import com.geohunt.domain.repository.CountryRepository
 import com.geohunt.domain.repository.UserRepository
+import com.geohunt.domain.usecase.CreateRoomUseCase
+import com.geohunt.domain.usecase.GenerateRoomCode
 import com.geohunt.domain.usecase.GetCitiesUseCase
 import com.geohunt.domain.usecase.GetCountriesUseCase
 import com.geohunt.domain.usecase.GetRandomCityLatLngUseCase
@@ -67,6 +69,12 @@ class HomeVm @Inject constructor(
     private val  _countryState = MutableStateFlow(Country(0,"Loading","",""))
     val countryState = _countryState.asStateFlow()
 
+    val gameModeState = listOf(
+        "Single Player", "Create Room", "Join Room"
+    )
+
+    var selectedGameMode = gameModeState[0]
+
     init {
         loadUserData()
         loadGameData()
@@ -115,25 +123,6 @@ class HomeVm @Inject constructor(
         return getUserDataUseCase()
     }
 
-    fun startGameEvent() {
-        viewModelScope.launch {
-            _homeEvent.emit(HomeEvent.StartGame)
-        }
-    }
-
-    fun showCountryBottomSheet() {
-        viewModelScope.launch {
-            _homeEvent.emit(HomeEvent.ShowCountryBottomSheet)
-        }
-    }
-
-    fun onBackPressedEvent() {
-        viewModelScope.launch {
-            _homeEvent.emit(HomeEvent.BackPressed)
-        }
-    }
-
-
     fun setUserName(username: String) {
         _userNameState.value = username
     }
@@ -161,6 +150,12 @@ class HomeVm @Inject constructor(
                 return@launch
             }
             _startGameState.emit(Resource.Success(Unit))
+        }
+    }
+
+    fun setEvent(homeEvent: HomeEvent) {
+        viewModelScope.launch {
+            _homeEvent.emit(homeEvent)
         }
     }
 

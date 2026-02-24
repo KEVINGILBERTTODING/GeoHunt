@@ -4,4 +4,5 @@ sealed class HomeEvent {
     object StartGame : HomeEvent()
     object ShowCountryBottomSheet: HomeEvent()
     object BackPressed: HomeEvent()
+    object GameModeSelected : HomeEvent()
 }
