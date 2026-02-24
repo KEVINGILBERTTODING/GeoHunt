@@ -3,13 +3,19 @@ package com.geohunt.presentation.home.vm
 import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.geohunt.core.base.BaseViewModel
 import com.geohunt.core.resource.Resource
 import com.geohunt.domain.usecase.CreateRoomUseCase
+import com.geohunt.presentation.home.contract.CreateRoomEffect
+import com.geohunt.presentation.home.contract.CreateRoomIntent
+import com.geohunt.presentation.home.contract.CreateRoomUiState
 import com.geohunt.presentation.home.event.RoomFormEvent
 import com.geohunt.presentation.home.state.RoomFormState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,21 +23,25 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateRoomVm @Inject constructor(
     private val createRoomUseCase: CreateRoomUseCase
-): ViewModel() {
-    val formState = MutableStateFlow(RoomFormState().copy(
-        totalRounds = "5", durationPerRound = "120"
-    ))
-    val uiState = MutableStateFlow<Resource<Unit>>(Resource.Idle)
-    val event = MutableSharedFlow<RoomFormEvent>()
+): BaseViewModel<CreateRoomIntent, CreateRoomUiState, CreateRoomEffect>(
+    initialState = CreateRoomUiState(durationPerRound = "300", totalRounds = "5")
+) {
 
-    fun onRoomRoundChange(value: String) {
-        formState.update {
-            it.copy(
-                totalRounds = value,
-                totalRoundsError = validateRound(value)
-            )
+    override suspend fun handleIntent(intent: CreateRoomIntent) {
+        when(intent) {
+            is CreateRoomIntent.OnSubmit -> {
+                submit()
+            }
+
+            is CreateRoomIntent.OnDurationRoundChanged -> {
+                updateState { copy(durationPerRound = intent.value) }
+            }
+            is CreateRoomIntent.OnTotalRoundChanged -> {
+                updateState { copy(totalRounds = intent.value) }
+            }
         }
     }
+
 
     fun validateRound(value: String): String? {
         val round = value.toIntOrNull()
@@ -43,14 +53,6 @@ class CreateRoomVm @Inject constructor(
         }
     }
 
-    fun onRoomDurationChange(value: String) {
-        formState.update {
-            it.copy(
-                durationPerRound = value,
-                durationPerRoundError = validateDurationRound(value)
-            )
-        }
-    }
 
     fun validateDurationRound(value: String): String? {
         val round = value.toIntOrNull()
@@ -62,39 +64,49 @@ class CreateRoomVm @Inject constructor(
         }
     }
 
+    override fun onShowLoading() {
+        super.onShowLoading()
+        updateState { copy(isLoading = true, errorMsg = null) }
+    }
+
+    override fun onHideLoading() {
+        super.onHideLoading()
+        updateState { copy(isLoading = false) }
+    }
+
+    override fun onHandleErrorMessage(message: String) {
+        super.onHandleErrorMessage(message)
+        updateState { copy(errorMsg = message) }
+        sendEffect(CreateRoomEffect.ShowToast(message))
+    }
+
     fun submit() {
         viewModelScope.launch {
-            uiState.value = Resource.Loading
-            val totalRoundError = formState.value.totalRoundsError
-            val durationRoundError = formState.value.durationPerRoundError
+            val totalRoundError = validateRound(state.value.totalRounds)
+            val durationRoundError = validateDurationRound(state.value.durationPerRound)
 
             if (totalRoundError != null) {
-                event.emit(RoomFormEvent.ShowToastEvent(totalRoundError))
-                uiState.value = Resource.Idle
+                sendEffect(CreateRoomEffect.ShowToast(totalRoundError))
+                updateState { copy(isLoading = false, errorMsg = totalRoundError) }
                 return@launch
             }
             if (durationRoundError != null) {
-                event.emit(RoomFormEvent.ShowToastEvent(durationRoundError))
-                uiState.value = Resource.Idle
+                sendEffect(CreateRoomEffect.ShowToast(durationRoundError))
+                updateState { copy(isLoading = false, errorMsg = durationRoundError) }
                 return@launch
             }
 
-            val createRoom = createRoomUseCase(formState.value.totalRounds.toInt(),
-                formState.value.durationPerRound.toInt())
-
-            if (createRoom.isSuccess) {
-                uiState.value = Resource.Idle
-                event.emit(RoomFormEvent.NavigateToRoom)
-            }else {
-                uiState.value = Resource.Idle
-                event.emit(RoomFormEvent.ShowToastEvent(
-                    createRoom.exceptionOrNull()?.message ?: "Something went wrong"))
-            }
+            launchWithResult(
+                request = {
+                    createRoomUseCase(state.value.totalRounds.toInt(),
+                        state.value.durationPerRound.toInt())
+                },
+                onSuccess = { roomId ->
+                    sendEffect(CreateRoomEffect.NavigateToRoom(roomId))
+                }
+            )
 
         }
     }
 
-    fun setEvent(formEvent: RoomFormEvent) {
-        viewModelScope.launch { event.emit(formEvent) }
-    }
 }

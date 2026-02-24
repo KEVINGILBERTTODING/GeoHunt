@@ -8,7 +8,7 @@ class CreateRoomUseCase @Inject constructor(
     private val getUserDataUseCase: GetUserDataUseCase,
     private val generateRoomCode: GenerateRoomCode
 ) {
-    suspend operator fun invoke(totalRounds: Int, durationPerRound: Int): Result<Unit> {
+    suspend operator fun invoke(totalRounds: Int, durationPerRound: Int): Result<String> {
         val uid = getUserDataUseCase().userId
         val username = getUserDataUseCase().username
         val roomCode = generateRoomCode()

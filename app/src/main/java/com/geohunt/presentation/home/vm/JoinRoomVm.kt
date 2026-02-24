@@ -3,8 +3,12 @@ package com.geohunt.presentation.home.vm
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.geohunt.core.base.BaseViewModel
 import com.geohunt.core.resource.Resource
 import com.geohunt.domain.usecase.JoinRoomUseCase
+import com.geohunt.presentation.home.contract.JoinRoomEffect
+import com.geohunt.presentation.home.contract.JoinRoomIntent
+import com.geohunt.presentation.home.contract.JoinRoomUiState
 import com.geohunt.presentation.home.event.JoinRoomEvent
 import com.geohunt.presentation.home.state.JoinRoomState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,22 +22,9 @@ import javax.inject.Inject
 @HiltViewModel
 class JoinRoomVm @Inject constructor(
     private val joinRoomUseCase: JoinRoomUseCase
-): ViewModel() {
-    val formState = MutableStateFlow(JoinRoomState(roomCode = ""))
-    val event = MutableSharedFlow<JoinRoomEvent>()
-    val uiState = MutableStateFlow<Resource<Unit>>(Resource.Idle)
-
-    fun setEvent(eventVal: JoinRoomEvent) {
-       viewModelScope.launch {
-           event.emit(eventVal)
-       }
-    }
-
-    fun onRoomCodeChanged(roomCode: String) {
-        formState.update {
-            it.copy(roomCode = roomCode)
-        }
-    }
+): BaseViewModel<JoinRoomIntent, JoinRoomUiState, JoinRoomEffect>(
+    initialState = JoinRoomUiState()
+) {
 
     fun validationRoomCode(roomCode: String?): String? {
         return when {
@@ -44,26 +35,46 @@ class JoinRoomVm @Inject constructor(
     }
 
     fun submit() {
-        val roomCodeError = validationRoomCode(formState.value.roomCode)
+        val roomCodeError = validationRoomCode(state.value.roomCode)
         if (roomCodeError != null){
-            setEvent(JoinRoomEvent.ShowToast(roomCodeError))
-            uiState.value = Resource.Idle
+            sendEffect(JoinRoomEffect.ShowToast(roomCodeError))
+            updateState { copy(errorMsg = roomCodeError) }
             return
         }
 
-        uiState.value = Resource.Loading
-
-        viewModelScope.launch {
-            val joinRoomResponse = joinRoomUseCase(formState.value.roomCode)
-            if (joinRoomResponse.isSuccess) {
-                setEvent(JoinRoomEvent.NavigateToRoom)
-                uiState.value = Resource.Idle
-            }else {
-                setEvent(JoinRoomEvent.ShowToast(joinRoomResponse.exceptionOrNull()?.message ?: "Something went wrong"))
-                uiState.value = Resource.Idle
+        launchWithResult(
+            request = { joinRoomUseCase(state.value.roomCode) },
+            onSuccess = {
+                sendEffect(JoinRoomEffect.NavigateToRoom(state.value.roomCode))
             }
-        }
+        )
 
     }
 
+    override suspend fun handleIntent(intent: JoinRoomIntent) {
+        when(intent) {
+            is JoinRoomIntent.OnRoomCodeChanged -> {
+                updateState { copy(roomCode = intent.value) }
+            }
+            is JoinRoomIntent.OnSubmit -> {
+                submit()
+            }
+        }
+    }
+
+    override fun onShowLoading() {
+        super.onShowLoading()
+        updateState { copy(isLoading = true, errorMsg = null) }
+    }
+
+    override fun onHideLoading() {
+        super.onHideLoading()
+        updateState { copy(isLoading = true) }
+    }
+
+    override fun onHandleErrorMessage(message: String) {
+        super.onHandleErrorMessage(message)
+        updateState { copy(errorMsg = message) }
+        sendEffect(JoinRoomEffect.ShowToast(message))
+    }
 }

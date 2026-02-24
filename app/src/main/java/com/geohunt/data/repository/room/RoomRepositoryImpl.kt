@@ -28,7 +28,7 @@ class RoomRepositoryImpl @Inject constructor(
         totalRounds: Int,
         durationPerRound: Int,
         username: String
-    ): Result<Unit> {
+    ): Result<String> {
          return try {
             val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
             val roomInfo = RoomInfoDto(
@@ -49,7 +49,7 @@ class RoomRepositoryImpl @Inject constructor(
             roomRef.onDisconnect().removeValue()
             roomRef.child("info").setValue(roomInfo).await()
             roomRef.child("players").child(hostId).setValue(roomPlayersDto).await()
-             Result.success(Unit)
+             Result.success(roomCode)
         }catch (e: Exception) {
             Timber.d(e)
             Result.failure(Exception("Something went wrong"))

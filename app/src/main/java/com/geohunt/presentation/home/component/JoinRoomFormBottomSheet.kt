@@ -44,6 +44,8 @@ import com.geohunt.core.ui.theme.GrayE0
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
+import com.geohunt.presentation.home.contract.JoinRoomEffect
+import com.geohunt.presentation.home.contract.JoinRoomIntent
 import com.geohunt.presentation.home.event.JoinRoomEvent
 import com.geohunt.presentation.home.event.RoomFormEvent
 import com.geohunt.presentation.home.vm.CreateRoomVm
@@ -52,40 +54,35 @@ import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JoinRoomFormBottomSheet(onDissmiss: () -> Unit) {
-
-    val joinRoomVm: JoinRoomVm = hiltViewModel()
-    val formState by joinRoomVm.formState.collectAsStateWithLifecycle()
-    val uiState by joinRoomVm.uiState.collectAsStateWithLifecycle()
+fun JoinRoomFormBottomSheet(
+    navigateToRoom: (String) -> Unit,
+    onDissmiss: () -> Unit,
+    joinRoomVm: JoinRoomVm = hiltViewModel(),) {
+    val state by joinRoomVm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    val buttonColor = when(uiState) {
-        is Resource.Idle -> Green41B
+    val buttonColor = when {
+        state.isLoading.not() -> Green41B
         else -> Color.Gray
     }
-    val buttonText = when(uiState) {
-        is Resource.Loading -> stringResource(R.string.loading_game)
+    val buttonText = when {
+        state.isLoading -> stringResource(R.string.loading_game)
         else -> stringResource(R.string.join_room)
     }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
         confirmValueChange = {
-            uiState is Resource.Idle
+            state.isLoading.not()
         }
     )
 
 
     LaunchedEffect(Unit) {
-        joinRoomVm.event.collect { event ->
-            when(event) {
-                is JoinRoomEvent.NavigateToRoom -> {
-                    navController.navigate(Screen.RoomScreen.route)
-                }
-                is JoinRoomEvent.ShowToast -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
-                }
-                is JoinRoomEvent.Submit -> {
-                    joinRoomVm.submit()
+        joinRoomVm.effect.collect { effect ->
+            when(effect) {
+                is JoinRoomEffect.NavigateToRoom ->{navigateToRoom(effect.id)}
+                is JoinRoomEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -93,7 +90,7 @@ fun JoinRoomFormBottomSheet(onDissmiss: () -> Unit) {
 
 
     ModalBottomSheet(
-        onDismissRequest = { if (uiState is Resource.Idle) onDissmiss() },
+        onDismissRequest = { if (state.isLoading.not()) onDissmiss() },
         sheetState = sheetState,
         containerColor = Color.White,
         dragHandle = {
@@ -127,12 +124,13 @@ fun JoinRoomFormBottomSheet(onDissmiss: () -> Unit) {
                 Black1212,
                 Black1212,
                 10.sp,
-                formState.roomCode,
+                state.roomCode,
                 false,
                 1,
                 {},
                 {
-                    if (it.length <= 6) joinRoomVm.onRoomCodeChanged(it.uppercase())
+                    if (it.length <= 6) joinRoomVm.onIntent(
+                        JoinRoomIntent.OnRoomCodeChanged(it.uppercase()))
                 },
                 true,
                 KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text, capitalization = KeyboardCapitalization.Characters),
@@ -143,8 +141,8 @@ fun JoinRoomFormBottomSheet(onDissmiss: () -> Unit) {
             CustomButton(
                 buttonColor, 14.sp, Black1212,
                 FontWeight.Medium, White, buttonText, {
-                    if (uiState is Resource.Idle) {
-                        joinRoomVm.setEvent(JoinRoomEvent.Submit)
+                    if (state.isLoading.not()) {
+                        joinRoomVm.onIntent(JoinRoomIntent.OnSubmit)
                     }
                 })
         }
@@ -155,6 +153,6 @@ fun JoinRoomFormBottomSheet(onDissmiss: () -> Unit) {
 @Composable
 fun JoinRoomFormBottomSheetPreview() {
     GeoHuntTheme {
-        JoinRoomFormBottomSheet (rememberNavController(), hiltViewModel())
+        JoinRoomFormBottomSheet ({}, {})
     }
 }

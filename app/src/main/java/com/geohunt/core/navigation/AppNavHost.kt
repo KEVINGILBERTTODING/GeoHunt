@@ -36,6 +36,8 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 val sharedVm = hiltViewModel<SinglePlayerVm>(parentEntry)
                 HomeScreen(sharedVm, { id ->
                     navController.navigate(Screen.RoomScreen.createRoute(id))
+                }, {
+                    navController.navigate(Screen.LoadingScreenSinglePlayer.route)
                 })
             }
             composable(Screen.LoadingScreenSinglePlayer.route) {

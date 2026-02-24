@@ -51,52 +51,54 @@ import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
 import com.geohunt.data.dto.city.City
 import com.geohunt.data.dto.country.Country
+import com.geohunt.presentation.home.contract.CreateRoomEffect
+import com.geohunt.presentation.home.contract.CreateRoomIntent
+import com.geohunt.presentation.home.contract.CreateRoomUiState
 import com.geohunt.presentation.home.event.RoomFormEvent
 import com.geohunt.presentation.home.vm.CreateRoomVm
 import com.geohunt.presentation.home.vm.HomeVm
+import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateRoomBottomSheet(onDissmiss: () -> Unit) {
+fun CreateRoomBottomSheet(onDissmiss: () -> Unit, navigateToRoom: (String) -> Unit,
+                          vm: CreateRoomVm = hiltViewModel()) {
 
-    val createRoomVm: CreateRoomVm = hiltViewModel()
-    val formState by createRoomVm.formState.collectAsStateWithLifecycle()
+    val state by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val uiState by createRoomVm.uiState.collectAsStateWithLifecycle()
-    val buttonColor = when(uiState) {
-        is Resource.Idle -> Green41B
+    val buttonColor = when {
+        state.isLoading.not() -> Green41B
         else -> Color.Gray
     }
-    val buttonText = when(uiState) {
-        is Resource.Loading -> stringResource(R.string.loading_game)
+    val buttonText = when {
+        state.isLoading -> stringResource(R.string.loading_game)
         else -> stringResource(R.string.create_room)
     }
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
         confirmValueChange = {
-            uiState is Resource.Idle
+            state.isLoading.not()
         }
     )
 
-
     LaunchedEffect(Unit) {
-        createRoomVm.event.collect { event ->
-            when(event) {
-                RoomFormEvent.NavigateToRoom -> {
+        vm.effect.collect { effect ->
+            when(effect) {
+                is CreateRoomEffect.NavigateToRoom -> {
                     onDissmiss()
-
+                    navigateToRoom(effect.id)
                 }
-                RoomFormEvent.OnSubmit -> createRoomVm.submit()
-                is RoomFormEvent.ShowToastEvent ->
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                is CreateRoomEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
     ModalBottomSheet(
-        onDismissRequest = { if (uiState is Resource.Idle) onDissmiss() },
+        onDismissRequest = { if (state.isLoading.not()) onDissmiss() },
         sheetState = sheetState,
         containerColor = Color.White,
         dragHandle = {
@@ -123,9 +125,9 @@ fun CreateRoomBottomSheet(onDissmiss: () -> Unit) {
 
             CustomTextField(true, stringResource(R.string.total_round), Color.White,
                 14.sp, false, Black1212, Black1212,
-                Black1212, 10.sp, formState.totalRounds, false, 1,
+                Black1212, 10.sp, state.totalRounds, false, 1,
                 {}, {
-                    if (it.length <= 2) createRoomVm.onRoomRoundChange(it)
+                    if (it.length <= 2) vm.onIntent(CreateRoomIntent.OnTotalRoundChanged(it))
                 }, true,
                 KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number), KeyboardActions.Default)
 
@@ -133,18 +135,19 @@ fun CreateRoomBottomSheet(onDissmiss: () -> Unit) {
 
             CustomTextField(true, stringResource(R.string.duration_per_round), Color.White,
                 14.sp, false, Black1212, Black1212,
-                Black1212, 10.sp, formState.durationPerRound, false, 1,
+                Black1212, 10.sp, state.durationPerRound, false, 1,
                 {}, {
-                    if (it.length <= 3) createRoomVm.onRoomDurationChange(it)
+                    if (it.length <= 3) vm.onIntent(CreateRoomIntent.OnDurationRoundChanged(it))
                 }, true,
                 KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number), KeyboardActions.Default)
+
             Spacer(Modifier.height(20.dp))
 
             CustomButton(
                 buttonColor, 14.sp, Black1212,
                 FontWeight.Medium, White, buttonText, {
-                    if (uiState is Resource.Idle) {
-                        createRoomVm.setEvent(RoomFormEvent.OnSubmit)
+                    if (state.isLoading.not()) {
+                        vm.onIntent(CreateRoomIntent.OnSubmit)
                     }
                 })
         }
@@ -155,6 +158,6 @@ fun CreateRoomBottomSheet(onDissmiss: () -> Unit) {
 @Composable
 fun CreateRoomBottomSheetPreview() {
     GeoHuntTheme {
-        CreateRoomBottomSheet(hiltViewModel())
+        CreateRoomBottomSheet(hiltViewModel(), {})
     }
 }

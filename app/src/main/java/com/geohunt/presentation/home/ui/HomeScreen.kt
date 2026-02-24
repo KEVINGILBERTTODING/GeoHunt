@@ -81,6 +81,7 @@ import kotlin.math.sin
 fun HomeScreen(
     singlePlayerVm: SinglePlayerVm,
     navigateToRoom: (String) -> Unit,
+    navigateToLoadingScreen: () -> Unit,
     homeVm: HomeVm = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -157,7 +158,7 @@ fun HomeScreen(
                         singlePlayerVm.setSelectedCity(homeVm.selectedCity)
                         singlePlayerVm.setDataCityList(homeVm.cities.value)
                         singlePlayerVm.clearGameHistory()
-                        navController.navigate(Screen.LoadingScreenSinglePlayer.route)
+                        navigateToLoadingScreen()
                     }else if (homeVm.selectedGameMode == "Create Room") {
                        showCreateRoomFormBottomSheet = true
                     }else {
@@ -206,13 +207,18 @@ fun HomeScreen(
     if (showCreateRoomFormBottomSheet) {
         CreateRoomBottomSheet({
             showCreateRoomFormBottomSheet = false
+        }, { roomCode ->
+            showCreateRoomFormBottomSheet = false
+            navigateToRoom(roomCode)
         })
     }
 
     if (showJoinRoomFormBottomSheet) {
-        JoinRoomFormBottomSheet() {
+        JoinRoomFormBottomSheet({ roomCode ->
+            navigateToRoom(roomCode)
+        }, {
             showJoinRoomFormBottomSheet = false
-        }
+        })
     }
 
     BackHandler {
@@ -314,6 +320,6 @@ fun HomeScreen(
 @Composable
 fun HomeScreenPreview() {
     GeoHuntTheme {
-        HomeScreen()
+        HomeScreen(hiltViewModel(), {}, {})
     }
 }
