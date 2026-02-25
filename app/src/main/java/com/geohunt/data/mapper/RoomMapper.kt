@@ -30,8 +30,8 @@ object RoomMapper {
         uid = uid,
         username = username,
         joinedAt = joinedAt,
-        isConnected = isConnected,
-        isReady = isReady
+        online = online,
+        ready = ready
     )
 
     fun RoomRoundDto.toModel() = Round(

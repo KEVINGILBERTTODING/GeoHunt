@@ -14,9 +14,11 @@ data class RoomUiState(
 
 sealed class RoomIntent: MviIntent {
     object LoadRoomData : RoomIntent()
+    object OnStartGame : RoomIntent()
 }
 
 sealed class RoomEffect: MviEffect {
     data class ShowToast(val message: String): RoomEffect()
     data class NavigateToGame(val id: String): RoomEffect()
+    object onBack : RoomEffect()
 }

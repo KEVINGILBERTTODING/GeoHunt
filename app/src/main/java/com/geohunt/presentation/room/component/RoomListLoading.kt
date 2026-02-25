@@ -12,6 +12,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun RoomListLoading() {
     Box(Modifier.fillMaxSize()) {
-        CircularProgressIndicator(Modifier.size(50.dp).align(Alignment.Center))
+        CircularProgressIndicator(Modifier.size(30.dp).align(Alignment.Center))
     }
 }

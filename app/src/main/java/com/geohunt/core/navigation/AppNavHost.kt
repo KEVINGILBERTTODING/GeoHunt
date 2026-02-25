@@ -57,7 +57,6 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 RoomScreen({
                     navController.popBackStack()
                 }, {
-
                 })
             }
         }

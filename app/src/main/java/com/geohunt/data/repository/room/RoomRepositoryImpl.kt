@@ -43,8 +43,8 @@ class RoomRepositoryImpl @Inject constructor(
                 uid = hostId,
                 username = username,
                 joinedAt = System.currentTimeMillis(),
-                isConnected = true,
-                isReady = true)
+                online = true,
+                ready = true)
 
             roomRef.onDisconnect().removeValue()
             roomRef.child("info").setValue(roomInfo).await()
@@ -73,10 +73,12 @@ class RoomRepositoryImpl @Inject constructor(
                     uid = uid,
                     username = username,
                     joinedAt = System.currentTimeMillis(),
-                    isConnected = true,
-                    isReady = true)
+                    online = true,
+                    ready = true)
                 val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
                 roomRef.child("players").child(uid).setValue(roomPlayersDto).await()
+                roomRef.child("players").child(uid).onDisconnect()
+                    .setValue(roomPlayersDto.copy(online = false))
                 Result.success(Unit)
             }else {
                 Result.failure(Exception("Room not found"))
