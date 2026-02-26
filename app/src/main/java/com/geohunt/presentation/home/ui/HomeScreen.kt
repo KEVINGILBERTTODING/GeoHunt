@@ -54,16 +54,17 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.geohunt.R
+import com.geohunt.core.contract.MultiPlayerIntent
 import com.geohunt.core.navigation.Screen
 import com.geohunt.core.resource.Resource
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
-import com.geohunt.core.ui.theme.Black39
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
+import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
 import com.geohunt.presentation.home.component.CountryBottomSheet
 import com.geohunt.presentation.home.component.CreateRoomBottomSheet
@@ -71,8 +72,6 @@ import com.geohunt.presentation.home.component.GameModeBottomSheet
 import com.geohunt.presentation.home.component.JoinRoomFormBottomSheet
 import com.geohunt.presentation.home.event.HomeEvent
 import com.geohunt.presentation.home.vm.HomeVm
-import timber.log.Timber
-import kotlin.math.sin
 
 @SuppressLint("ContextCastToActivity", "UnrememberedGetBackStackEntry",
     "ConfigurationScreenWidthHeight"
@@ -80,6 +79,7 @@ import kotlin.math.sin
 @Composable
 fun HomeScreen(
     singlePlayerVm: SinglePlayerVm,
+    multiPlayerVm: MultiPlayerVm,
     navigateToRoom: (String) -> Unit,
     navigateToLoadingScreen: () -> Unit,
     homeVm: HomeVm = hiltViewModel()
@@ -97,6 +97,7 @@ fun HomeScreen(
     var showGameModeBottomSheet by remember { mutableStateOf(false) }
     var showCreateRoomFormBottomSheet by remember { mutableStateOf(false) }
     var showJoinRoomFormBottomSheet by remember { mutableStateOf(false) }
+    val multiPlayerState by multiPlayerVm.state.collectAsStateWithLifecycle()
 
     val buttonColor = when(homeState) {
         is Resource.Success -> Green41B
@@ -160,6 +161,10 @@ fun HomeScreen(
                         singlePlayerVm.clearGameHistory()
                         navigateToLoadingScreen()
                     }else if (homeVm.selectedGameMode == "Create Room") {
+                        multiPlayerVm.onIntent(MultiPlayerIntent.OnSaveCountry(homeVm.countryState.value))
+                        multiPlayerVm.onIntent(MultiPlayerIntent.OnSaveCity(homeVm.selectedCity))
+                        multiPlayerVm.onIntent(MultiPlayerIntent.OnSaveCityList(homeVm.cities.value))
+                        multiPlayerVm.onIntent(MultiPlayerIntent.OnSaveUserData(homeVm.getUserData()))
                        showCreateRoomFormBottomSheet = true
                     }else {
                         showJoinRoomFormBottomSheet = true
@@ -210,7 +215,7 @@ fun HomeScreen(
         }, { roomCode ->
             showCreateRoomFormBottomSheet = false
             navigateToRoom(roomCode)
-        })
+        }, multiPlayerState)
     }
 
     if (showJoinRoomFormBottomSheet) {
@@ -320,6 +325,6 @@ fun HomeScreen(
 @Composable
 fun HomeScreenPreview() {
     GeoHuntTheme {
-        HomeScreen(hiltViewModel(), {}, {})
+        HomeScreen(hiltViewModel(), hiltViewModel(), {}, {})
     }
 }

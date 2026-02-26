@@ -21,8 +21,7 @@ object RoomMapper {
         hostId = hostId,
         totalRounds = totalRounds,
         createdAt = createdAt,
-        durationPerRound = durationPerRound,
-        currentRound = currentRound,
+        durationPerRound = durationPerRound
 
     )
 
@@ -40,6 +39,7 @@ object RoomMapper {
         startedAt = startedAt,
         trueLat = trueLat,
         trueLng = trueLng,
+        photoUrl = photoUrl,
         answers = answers.map { (key, value) -> value.toModel() }
     )
 }

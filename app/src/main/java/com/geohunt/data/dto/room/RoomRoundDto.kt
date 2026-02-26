@@ -6,5 +6,6 @@ data class RoomRoundDto(
     val endedAt: Long = 0,
     val trueLat: String = "",
     val trueLng: String = "",
+    val photoUrl: String = "",
     val answers: HashMap<String, RoomAnswersDto> = hashMapOf()
 )

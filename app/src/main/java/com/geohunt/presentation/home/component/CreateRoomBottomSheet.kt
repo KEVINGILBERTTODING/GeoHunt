@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.geohunt.R
+import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.navigation.Screen
 import com.geohunt.core.resource.Resource
 import com.geohunt.core.ui.component.CustomButton
@@ -49,6 +50,7 @@ import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.GreenE6
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
+import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
 import com.geohunt.data.dto.city.City
 import com.geohunt.data.dto.country.Country
 import com.geohunt.presentation.home.contract.CreateRoomEffect
@@ -63,6 +65,7 @@ import timber.log.Timber
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateRoomBottomSheet(onDissmiss: () -> Unit, navigateToRoom: (String) -> Unit,
+                          multiPlayerUiState: MultiPlayerUiState,
                           vm: CreateRoomVm = hiltViewModel()) {
 
     val state by vm.state.collectAsStateWithLifecycle()
@@ -82,6 +85,9 @@ fun CreateRoomBottomSheet(onDissmiss: () -> Unit, navigateToRoom: (String) -> Un
             state.isLoading.not()
         }
     )
+    LaunchedEffect(Unit) {
+        vm.onIntent(CreateRoomIntent.OnSaveCountryId(multiPlayerUiState.country.id))
+    }
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -158,6 +164,6 @@ fun CreateRoomBottomSheet(onDissmiss: () -> Unit, navigateToRoom: (String) -> Un
 @Composable
 fun CreateRoomBottomSheetPreview() {
     GeoHuntTheme {
-        CreateRoomBottomSheet(hiltViewModel(), {})
+        CreateRoomBottomSheet({}, {}, MultiPlayerUiState())
     }
 }

@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
 import com.geohunt.presentation.room.ui.RoomScreen
 import com.geohunt.presentation.home.ui.HomeScreen
@@ -33,8 +34,9 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry(Screen.HomeGraph.route)
                 }
-                val sharedVm = hiltViewModel<SinglePlayerVm>(parentEntry)
-                HomeScreen(sharedVm, { id ->
+                val singlePlayerVm = hiltViewModel<SinglePlayerVm>(parentEntry)
+                val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
+                HomeScreen(singlePlayerVm, multiPlayerVm, { id ->
                     navController.navigate(Screen.RoomScreen.createRoute(id))
                 }, {
                     navController.navigate(Screen.LoadingScreenSinglePlayer.route)
@@ -53,10 +55,14 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 navArgument("id") {
                     type = NavType.StringType
                 }
-            )) {
+            )) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(Screen.HomeGraph.route)
+                }
+                val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
                 RoomScreen({
                     navController.popBackStack()
-                }, {
+                }, multiPlayerVm, {
                 })
             }
         }

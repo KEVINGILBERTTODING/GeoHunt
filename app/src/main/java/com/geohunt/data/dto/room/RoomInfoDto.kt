@@ -7,5 +7,5 @@ data class RoomInfoDto(
     val totalRounds: Int = 1,
     val createdAt: Long = 0,
     val durationPerRound: Int = 30, // in second
-    val currentRound: Int = 0
+    val countryId: Int = 1
 )

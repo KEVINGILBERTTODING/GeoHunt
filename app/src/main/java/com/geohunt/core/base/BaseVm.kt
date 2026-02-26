@@ -97,11 +97,14 @@ abstract class BaseViewModel<I : MviIntent, S : MviState, E : MviEffect>(
         showLoading: Boolean = true,
         request: () -> Flow<Result<T>>,
         onSuccess: (T) -> Unit,
+        onLoading: (() -> Unit)? = null,
         onError: ((Throwable) -> Unit)? = null
     ) {
         viewModelScope.launch {
             try {
-                if (showLoading) onShowLoading()
+                if (showLoading) {
+                    onLoading?.invoke() ?: onShowLoading()
+                }
 
                 request().collect { result ->
                     result

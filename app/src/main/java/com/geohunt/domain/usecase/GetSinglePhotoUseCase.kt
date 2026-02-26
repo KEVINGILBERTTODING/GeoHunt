@@ -8,13 +8,12 @@ import javax.inject.Inject
 class GetSinglePhotoUseCase @Inject constructor(
     private val repository: KartaViewRepository
 ){
-    suspend operator fun invoke(lat: String, lng: String): Resource<GamePhoto?> {
+    suspend operator fun invoke(lat: String, lng: String): Result<GamePhoto?> {
         val result = repository.getPhoto(lat, lng)
         return when (result) {
-            is Resource.Success -> Resource.Success(result.data.randomOrNull())
-            is Resource.Loading -> Resource.Loading
-            is Resource.Error -> Resource.Error(result.message, result.exception)
-            else -> Resource.Error("Unknown error", Exception())
+            is Resource.Success -> Result.success(result.data.randomOrNull())
+            is Resource.Error -> Result.failure(Exception(result.message))
+            else -> Result.failure(Exception("Unknown error"))
         }
     }
 }

@@ -10,13 +10,19 @@ import javax.inject.Inject
 class CityRepositoryImpl @Inject constructor(
     private val gameService: GameService
 ): CityRepository {
+    var _cachedCities = emptyList<City>()
     override suspend fun getCities(): Resource<List<City>> {
         return try {
-            val response = gameService.getCities()
-            if (response.isSuccessful) {
-                return Resource.Success(response.body()!!)
+            if (_cachedCities.isNotEmpty()) {
+                return Resource.Success(_cachedCities)
+            }else {
+                val response = gameService.getCities()
+                if (response.isSuccessful) {
+                    _cachedCities = response.body()!!
+                    return Resource.Success(_cachedCities)
+                }
+                Resource.Error(response.message(), Exception())
             }
-            Resource.Error(response.message(), Exception())
         } catch (e: Exception) {
             Resource.Error(e.message.toString(), Exception())
         }

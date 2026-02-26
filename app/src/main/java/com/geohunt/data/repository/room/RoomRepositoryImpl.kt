@@ -4,6 +4,7 @@ import androidx.compose.animation.core.snap
 import com.geohunt.data.dto.room.RoomDto
 import com.geohunt.data.dto.room.RoomInfoDto
 import com.geohunt.data.dto.room.RoomPlayersDto
+import com.geohunt.data.dto.room.RoomRoundDto
 import com.geohunt.data.mapper.RoomMapper.toModel
 import com.geohunt.domain.model.Room
 import com.geohunt.domain.repository.RoomRepository
@@ -27,7 +28,8 @@ class RoomRepositoryImpl @Inject constructor(
         hostId: String,
         totalRounds: Int,
         durationPerRound: Int,
-        username: String
+        username: String,
+        countryId: Int
     ): Result<String> {
          return try {
             val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
@@ -37,7 +39,7 @@ class RoomRepositoryImpl @Inject constructor(
                 hostId = hostId,
                 totalRounds = totalRounds,
                 durationPerRound = durationPerRound,
-                currentRound = 1
+                countryId = countryId
             )
             val roomPlayersDto = RoomPlayersDto(
                 uid = hostId,
@@ -129,6 +131,20 @@ class RoomRepositoryImpl @Inject constructor(
         }
     }
 
-
+    override suspend fun setRound(
+        roomCode: String,
+        round: RoomRoundDto,
+        roundNumber: Int
+    ): Result<Unit> {
+        try {
+            val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
+            roomRef.child("rounds").child("round_$roundNumber")
+                .setValue(round).await()
+            return Result.success(Unit)
+        }catch (e: Exception) {
+            Timber.e(e)
+            return Result.failure(Exception(e))
+        }
+    }
 
 }

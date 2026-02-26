@@ -3,6 +3,9 @@ package com.geohunt.presentation.room.ui
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,17 +38,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import com.geohunt.R
+import com.geohunt.core.contract.MultiPlayerEffect
+import com.geohunt.core.contract.MultiPlayerIntent
+import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
-import com.geohunt.core.ui.theme.GreenE6
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
+import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
 import com.geohunt.domain.model.Player
 import com.geohunt.domain.model.Room
+import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
 import com.geohunt.presentation.room.component.ItemPlayer
 import com.geohunt.presentation.room.component.RoomEmpty
 import com.geohunt.presentation.room.component.RoomListLoading
@@ -57,30 +63,65 @@ import com.geohunt.presentation.room.vm.RoomVm
 @Composable
 fun RoomScreen(
     onBackPressed: () -> Unit,
+    multiPlayerVm: MultiPlayerVm,
     onNavigateToGame: () -> Unit,
-    roomVm: RoomVm = hiltViewModel()
+    roomVm: RoomVm = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val state by roomVm.state.collectAsStateWithLifecycle()
+    val mpState by multiPlayerVm.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        multiPlayerVm.effect.collect { effect ->
+            when(effect) {
+                is MultiPlayerEffect.OnBack -> { onBackPressed() }
+                is MultiPlayerEffect.OnSuccess -> {}
+                is MultiPlayerEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(state.room) {
+        multiPlayerVm.onIntent(MultiPlayerIntent.OnLoadRoom(state.room))
+    }
 
     LaunchedEffect(Unit) {
         roomVm.effect.collect { event ->
             when(event) {
                 is RoomEffect.NavigateToGame -> { onNavigateToGame() }
-                is RoomEffect.ShowToast -> Toast.makeText(context, event.message,
-                    Toast.LENGTH_SHORT).show()
-                is RoomEffect.onBack -> { onBackPressed() }
+                is RoomEffect.ShowToast -> {Toast.makeText(context, event.message,
+                    Toast.LENGTH_SHORT).show() }
+                is RoomEffect.OnBack -> { onBackPressed() }
+                is RoomEffect.StartGame -> {
+                    multiPlayerVm.onIntent(MultiPlayerIntent.OnStartGame)
+                }
             }
         }
     }
-    RoomContent(state, context, roomVm.userData.userId,
-        {
-        roomVm::onIntent
-    }, { onBackPressed() })
+
+    Crossfade(
+        targetState = state.room.rounds.lastOrNull()?.status ==  "status",
+        animationSpec = tween(300)
+    ) { isLoading ->
+        if (isLoading) {
+            LoadingMpScreen(){}
+        }else {
+            if (state.room.rounds.lastOrNull()?.status == "success") {
+                onNavigateToGame()
+            }
+            RoomContent(state, context, roomVm.userData.userId,
+                mpState,
+                { roomVm.onIntent(it) },
+                { onBackPressed() })
+        }
+    }
 }
 
 @Composable
-fun RoomContent(state: RoomUiState, context: Context,uid: String,
+fun RoomContent(state: RoomUiState, context: Context, uid: String,
+                mpState: MultiPlayerUiState,
                 onIntent: (RoomIntent) -> Unit = {},
                 onBackPressed: () -> Unit) {
     val buttonColor = when {
@@ -92,7 +133,10 @@ fun RoomContent(state: RoomUiState, context: Context,uid: String,
         else -> stringResource(R.string.start)
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
+
+    Column(Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
         Spacer(Modifier.height(20.dp))
 
         Row(Modifier.fillMaxWidth(),
@@ -108,7 +152,8 @@ fun RoomContent(state: RoomUiState, context: Context,uid: String,
                 )
             }
             Text(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
                     .fillMaxWidth(),
                 text = state.room.info.roomCode,
                 style = TextStyle(
@@ -171,13 +216,13 @@ fun RoomContent(state: RoomUiState, context: Context,uid: String,
             }
         }
 
-        if (state.isLoading.not()) {
+        if (state.room.info.hostId == mpState.userData.userId && state.isLoading.not()) {
            Box(Modifier.padding(bottom = 8.dp)) {
                CustomButton(
                    buttonColor, 14.sp, Black1212,
                    FontWeight.Medium, White, buttonText, {
                        if (state.isLoading.not()) {
-
+                           onIntent(RoomIntent.OnStartGame)
                        }
                    }
                )
@@ -198,7 +243,8 @@ fun RoomScreenPreview() {
     GeoHuntTheme {
         RoomContent(RoomUiState(isLoading = false, error = null, room = Room(
             players = players)
-        ), LocalContext.current, "", {}, {}
+        ), LocalContext.current, "", MultiPlayerUiState(), {},
+            {}
         )
     }
 }

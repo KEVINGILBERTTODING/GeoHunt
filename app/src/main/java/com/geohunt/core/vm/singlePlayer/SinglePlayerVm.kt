@@ -67,9 +67,9 @@ class SinglePlayerVm @Inject constructor(
                     trueLocation.value.first,
                     trueLocation.value.second
                 )
-                if (response is Resource.Success && response.data != null) {
-                    val data = response.data
-                    if (data.photoUrl.isNotBlank()) {
+                if (response.isSuccess) {
+                    val data = response.getOrNull()
+                    if (data != null && data.photoUrl.isNotBlank()) {
                         reloadTime = 1
                         setImageUrl(data.photoUrl)
                         setTrueLocation(data.lat, data.lng)

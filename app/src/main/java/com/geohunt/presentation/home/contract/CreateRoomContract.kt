@@ -8,6 +8,7 @@ sealed class CreateRoomIntent: MviIntent {
     object OnSubmit : CreateRoomIntent()
     data class OnTotalRoundChanged(val value: String): CreateRoomIntent()
     data class OnDurationRoundChanged(val value: String): CreateRoomIntent()
+    data class OnSaveCountryId(val value: Int): CreateRoomIntent()
 }
 
 sealed class CreateRoomEffect: MviEffect {
@@ -20,4 +21,5 @@ data class CreateRoomUiState(
     val errorMsg: String? = "",
     val totalRounds: String = "",
     val durationPerRound: String = "",
+    val countryId: Int = 1
 ): MviState

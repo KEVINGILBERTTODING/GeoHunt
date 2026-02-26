@@ -8,5 +8,6 @@ data class Round (
     val endedAt: Long = 0,
     val trueLat: String = "",
     val trueLng: String = "",
+    val photoUrl: String = "",
     val answers: List<Answer> = listOf()
 )

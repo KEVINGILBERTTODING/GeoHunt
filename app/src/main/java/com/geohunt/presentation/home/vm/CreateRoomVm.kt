@@ -1,22 +1,12 @@
 package com.geohunt.presentation.home.vm
 
-import android.view.View
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
-import com.geohunt.core.resource.Resource
 import com.geohunt.domain.usecase.CreateRoomUseCase
 import com.geohunt.presentation.home.contract.CreateRoomEffect
 import com.geohunt.presentation.home.contract.CreateRoomIntent
 import com.geohunt.presentation.home.contract.CreateRoomUiState
-import com.geohunt.presentation.home.event.RoomFormEvent
-import com.geohunt.presentation.home.state.RoomFormState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,6 +28,10 @@ class CreateRoomVm @Inject constructor(
             }
             is CreateRoomIntent.OnTotalRoundChanged -> {
                 updateState { copy(totalRounds = intent.value) }
+            }
+
+            is CreateRoomIntent.OnSaveCountryId -> {
+                updateState { copy(countryId = intent.value) }
             }
         }
     }
@@ -99,7 +93,8 @@ class CreateRoomVm @Inject constructor(
             launchWithResult(
                 request = {
                     createRoomUseCase(state.value.totalRounds.toInt(),
-                        state.value.durationPerRound.toInt())
+                        state.value.durationPerRound.toInt(),
+                        state.value.countryId)
                 },
                 onSuccess = { roomId ->
                     sendEffect(CreateRoomEffect.NavigateToRoom(roomId))
