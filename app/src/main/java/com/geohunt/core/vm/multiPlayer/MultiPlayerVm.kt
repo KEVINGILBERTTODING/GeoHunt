@@ -21,8 +21,7 @@ class MultiPlayerVm @Inject constructor(
     private val getSinglePhotoUseCase: GetSinglePhotoUseCase,
     private val getRandomCityUseCase: GetRandomCityUseCase,
     private val getRandomCityLatLngUseCase: GetRandomCityLatLngUseCase,
-    private val storeRoundUseCase: StoreRoundUseCase,
-    private val getUserDataUseCase: GetUserDataUseCase
+    private val storeRoundUseCase: StoreRoundUseCase
 ): BaseViewModel<MultiPlayerIntent, MultiPlayerUiState, MultiPlayerEffect>(
     initialState = MultiPlayerUiState()
 ) {

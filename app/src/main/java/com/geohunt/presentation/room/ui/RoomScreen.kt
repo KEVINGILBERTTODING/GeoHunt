@@ -102,7 +102,7 @@ fun RoomScreen(
     }
 
     Crossfade(
-        targetState = state.room.rounds.lastOrNull()?.status ==  "status",
+        targetState = state.room.rounds.lastOrNull()?.status ==  "loading",
         animationSpec = tween(300)
     ) { isLoading ->
         if (isLoading) {
