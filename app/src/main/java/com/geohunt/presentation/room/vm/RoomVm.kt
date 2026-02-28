@@ -14,6 +14,8 @@ import com.geohunt.presentation.room.contract.RoomIntent
 import com.geohunt.presentation.room.contract.RoomUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -22,19 +24,41 @@ import javax.inject.Inject
 @HiltViewModel
 class RoomVm @Inject constructor(
     private val observeRoomDataUseCase: ObserveRoomDataUseCase,
-    savedStateHandle: SavedStateHandle,
     private val getUserDataUseCase: GetUserDataUseCase,
     private val multiplayerValidationUseCase: MultiplayerValidationUseCase,
     private val updatePlayerUseCase: UpdatePlayerUseCase
 ): BaseViewModel<RoomIntent, RoomUiState, RoomEffect>(
     initialState = RoomUiState()
 ) {
-    val roomId = checkNotNull(savedStateHandle.get<String>("id"))
     var userData = getUserDataUseCase()
 
     init {
-        onIntent(RoomIntent.LoadRoomData)
+        viewModelScope.launch {
+            observeRoomDataUseCase().collect { result ->
+                when {
+                    result.isSuccess -> {
+                        val room = result.getOrThrow()
+                        updateState {
+                            copy(
+                                isLoading = false,
+                                error = null,
+                                room = room
+                            )
+                        }
+                    }
+                    result.isFailure -> {
+                        updateState {
+                            copy(
+                                isLoading = false,
+                                error = result.exceptionOrNull()?.message ?: "Something went wrong"
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
+
     override suspend fun handleIntent(intent: RoomIntent) {
         when(intent) {
             is RoomIntent.LoadRoomData -> {
@@ -53,26 +77,22 @@ class RoomVm @Inject constructor(
             }
 
             is RoomIntent.OnPlayerReady -> {
-                updatePlayer(
-                    RoomPlayersDto(
-                        uid = intent.dataPlayer.uid,
-                        ready = intent.isReady,
-                        online = intent.dataPlayer.online,
-                        joinedAt = intent.dataPlayer.joinedAt,
-                        username = intent.dataPlayer.username)
-                )
+                val players = hashMapOf<String, Any>()
+                players["${userData.userId}/loadPanorama"] = false
+                updatePlayer(players)
             }
         }
     }
 
-    private fun updatePlayer(playersDto: RoomPlayersDto) {
+    private fun updatePlayer(hashMap: HashMap<String, Any>) {
         launchWithResult(
             showLoading = false,
-            request = { updatePlayerUseCase(playersDto) },
+            request = { updatePlayerUseCase(hashMap) },
             onSuccess = {},
             onError = {}
         )
     }
+
 
     private fun loadRoom() {
         launchWithFlow(

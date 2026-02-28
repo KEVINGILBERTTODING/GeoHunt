@@ -6,6 +6,8 @@ import com.geohunt.data.dto.room.RoomInfoDto
 import com.geohunt.data.dto.room.RoomPlayersDto
 import com.geohunt.data.dto.room.RoomRoundDto
 import com.geohunt.data.mapper.RoomMapper.toModel
+import com.geohunt.di.qualifier.ApplicationScope
+import com.geohunt.domain.model.Player
 import com.geohunt.domain.model.Room
 import com.geohunt.domain.repository.RoomRepository
 import com.google.firebase.database.DataSnapshot
@@ -13,17 +15,24 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.getValue
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
 class RoomRepositoryImpl @Inject constructor(
-    private val firebaseDatabase: FirebaseDatabase
+    private val firebaseDatabase: FirebaseDatabase,
+    @ApplicationScope private val appScope: CoroutineScope
 ): RoomRepository {
-    var roomCodes: String = ""
+    private var roomFlow: SharedFlow<Result<Room>>? = null
+    private var roomCodes = ""
+
     override suspend fun createRoom(
         roomCode: String,
         hostId: String,
@@ -33,6 +42,8 @@ class RoomRepositoryImpl @Inject constructor(
         countryId: Int
     ): Result<String> {
          return try {
+             // reset flow
+             roomFlow = null
              roomCodes = roomCode
             val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
             val roomInfo = RoomInfoDto(
@@ -71,6 +82,9 @@ class RoomRepositoryImpl @Inject constructor(
         uid: String,
         username: String
     ): Result<Unit> {
+        // reset flow
+        roomFlow = null
+        roomCodes = roomCode
         return try {
             if (isRoomExist()) {
                 val roomPlayersDto = RoomPlayersDto(
@@ -79,7 +93,6 @@ class RoomRepositoryImpl @Inject constructor(
                     joinedAt = System.currentTimeMillis(),
                     online = true,
                     ready = true)
-                roomCodes = roomCode
                 val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
                 roomRef.child("players").child(uid).setValue(roomPlayersDto).await()
                 roomRef.child("players").child(uid).onDisconnect()
@@ -110,28 +123,33 @@ class RoomRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun observeRoomData(): Flow<Result<Room>> = callbackFlow {
-        val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val roomData = snapshot.getValue<RoomDto>()?.toModel()
-                if (roomData != null) {
-                    trySend(Result.success(roomData))
-                }else {
-                    trySend(Result.failure(Exception("Room not found")))
+    override fun observeRoomData(): Flow<Result<Room>> {
+        return roomFlow ?: callbackFlow {
+            val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
+            val listener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val roomData = snapshot.getValue<RoomDto>()?.toModel()
+                    if (roomData != null) {
+                        trySend(Result.success(roomData))
+                    } else {
+                        trySend(Result.failure(Exception("Room not found")))
+                    }
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    Timber.d(error.message)
+                    trySend(Result.failure(Exception("Something went wrong")))
                 }
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Timber.d(error.message)
-                trySend(Result.failure(Exception("Something went wrong")))
+            roomRef.addValueEventListener(listener)
+            awaitClose {
+                roomRef.removeEventListener(listener)
+                roomFlow = null
             }
-
-        }
-        roomRef.addValueEventListener(listener)
-        awaitClose {
-            roomRef.removeEventListener(listener)
-        }
+        }.shareIn(
+            scope = appScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            replay = 1
+        ).also { roomFlow = it }
     }
 
     override suspend fun setRound(
@@ -159,10 +177,10 @@ class RoomRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updatePlayerData(dataPlayer: RoomPlayersDto): Result<Unit> {
+    override suspend fun updatePlayerData(hashMap: HashMap<String, Any>): Result<Unit> {
         try {
             firebaseDatabase.getReference("rooms").child(roomCodes)
-                .child("players").child(dataPlayer.uid).setValue(dataPlayer).await()
+                .child("players").updateChildren(hashMap).await()
             return Result.success(Unit)
         }catch (e: Exception) {
             Timber.e(e)

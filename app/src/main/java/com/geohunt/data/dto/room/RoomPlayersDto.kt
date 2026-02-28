@@ -5,5 +5,6 @@ data class RoomPlayersDto(
     val username: String = "",
     val ready: Boolean = false,
     val online: Boolean = false,
-    val joinedAt: Long = 0
+    val joinedAt: Long = 0,
+    val loadPanorama : Boolean = false
 )

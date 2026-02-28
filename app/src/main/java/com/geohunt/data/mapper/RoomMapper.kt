@@ -22,7 +22,6 @@ object RoomMapper {
         totalRounds = totalRounds,
         createdAt = createdAt,
         durationPerRound = durationPerRound
-
     )
 
     fun RoomPlayersDto.toModel() = Player(
@@ -30,7 +29,8 @@ object RoomMapper {
         username = username,
         joinedAt = joinedAt,
         online = online,
-        ready = ready
+        ready = ready,
+        loadPanorama = loadPanorama
     )
 
     fun RoomRoundDto.toModel() = Round(

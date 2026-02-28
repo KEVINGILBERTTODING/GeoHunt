@@ -15,8 +15,7 @@ sealed class MultiPlayerIntent: MviIntent {
     data class OnSaveCountry(val country: Country): MultiPlayerIntent()
     data class OnSaveCity(val city: City): MultiPlayerIntent()
     data class OnSaveCityList(val cityList: List<City>): MultiPlayerIntent()
-    data class OnLoadRoom(val room: Room): MultiPlayerIntent()
-    object OnStartGame : MultiPlayerIntent()
+    data class OnStartGame(val currentRound: Int) : MultiPlayerIntent()
     data class OnSaveUserData(val user: User): MultiPlayerIntent()
 }
 
@@ -33,7 +32,6 @@ data class MultiPlayerUiState(
     val guessedLocPair: Pair<String, String> = Pair("", ""),
     val cityList: List<City> = emptyList(),
     val round: RoomRoundDto = RoomRoundDto(),
-    val roomData: Room = Room(),
     val currentRound: Int = 0,
     val isRetry: Boolean = false,
     val userData: User = User("", "")

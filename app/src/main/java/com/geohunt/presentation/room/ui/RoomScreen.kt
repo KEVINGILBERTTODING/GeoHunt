@@ -86,10 +86,6 @@ fun RoomScreen(
         }
     }
 
-    LaunchedEffect(state.room) {
-        multiPlayerVm.onIntent(MultiPlayerIntent.OnLoadRoom(state.room))
-    }
-
     LaunchedEffect(Unit) {
         roomVm.effect.collect { event ->
             when(event) {
@@ -99,7 +95,7 @@ fun RoomScreen(
                 is RoomEffect.OnBack -> {
                     onBackPressed() }
                 is RoomEffect.StartGame -> {
-                    multiPlayerVm.onIntent(MultiPlayerIntent.OnStartGame)
+                    multiPlayerVm.onIntent(MultiPlayerIntent.OnStartGame(state.room.rounds.size))
                 }
             }
         }
@@ -256,7 +252,7 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
                     FontWeight.Medium, White, textReadyButton, {
                        isReady = !isReady
                         state.room.players.find { it.uid == mpState.userData.userId }?.let { player ->
-                            onIntent(RoomIntent.OnPlayerReady(player, isReady))
+                            onIntent(RoomIntent.OnPlayerReady(isReady))
                         }
                     }
                 )

@@ -29,7 +29,7 @@ class MultiPlayerVm @Inject constructor(
 
     fun hitKartaview() {
         viewModelScope.launch {
-            storeRound(state.value.round.copy(status = "loading"))
+            updateRoundData(state.value.round.copy(status = "loading"))
             while (reloadTime <= 5) {
                 if (state.value.trueLocPair.first.isBlank() || state.value.trueLocPair.second.isBlank()) {
                     getNewLatLng()
@@ -50,7 +50,7 @@ class MultiPlayerVm @Inject constructor(
                                 trueLng = state.value.trueLocPair.second
                             ))
                         }
-                        storeRound(state.value.round)
+                        updateRoundData(state.value.round)
                         return@launch
                     }
                 }
@@ -64,7 +64,7 @@ class MultiPlayerVm @Inject constructor(
 
             Timber.d("Max reload reached")
             reloadTime = 1
-            storeRound(state.value.round.copy(status = "error"))
+            updateRoundData(state.value.round.copy(status = "error"))
             sendEffect(MultiPlayerEffect.ShowToast("Something went wrong, please try again"))
         }
     }
@@ -90,12 +90,9 @@ class MultiPlayerVm @Inject constructor(
           is MultiPlayerIntent.OnSaveCityList -> {
               updateState { copy(cityList = intent.cityList) }
           }
-          is MultiPlayerIntent.OnLoadRoom -> {
-              updateState { copy(roomData = intent.room) }
-          }
           is MultiPlayerIntent.OnStartGame -> {
               if (!state.value.isRetry) {
-                  updateState { copy(currentRound = state.value.roomData.rounds.size + 1) }
+                  updateState { copy(currentRound = intent.currentRound + 1) }
               }
               updateState { copy(isRetry = true) }
               hitKartaview()
@@ -108,11 +105,10 @@ class MultiPlayerVm @Inject constructor(
     }
 
 
-    fun storeRound(round: RoomRoundDto) {
+    fun updateRoundData(round: RoomRoundDto) {
         launchWithResult(
             request = { storeRoundUseCase(round, state.value.currentRound) },
             onSuccess = {
-
             }
         )
     }
