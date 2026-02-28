@@ -36,5 +36,5 @@ data class MultiPlayerUiState(
     val roomData: Room = Room(),
     val currentRound: Int = 0,
     val isRetry: Boolean = false,
-    val userData: User = User("", "",)
+    val userData: User = User("", "")
 ): MviState

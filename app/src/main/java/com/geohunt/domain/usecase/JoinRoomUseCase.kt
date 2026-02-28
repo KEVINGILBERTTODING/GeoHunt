@@ -10,7 +10,7 @@ class JoinRoomUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(roomCode: String): Result<Unit> {
         return try {
-            val roomData = roomRepository.getRoomData(roomCode)
+            val roomData = roomRepository.getRoomData()
             val userData = getUserDataUseCase()
             if (roomData.isSuccess) {
                 val players = roomData.getOrThrow().players.toList()

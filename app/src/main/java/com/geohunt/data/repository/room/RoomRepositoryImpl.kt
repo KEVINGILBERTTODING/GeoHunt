@@ -23,6 +23,7 @@ import javax.inject.Inject
 class RoomRepositoryImpl @Inject constructor(
     private val firebaseDatabase: FirebaseDatabase
 ): RoomRepository {
+    var roomCodes: String = ""
     override suspend fun createRoom(
         roomCode: String,
         hostId: String,
@@ -32,6 +33,7 @@ class RoomRepositoryImpl @Inject constructor(
         countryId: Int
     ): Result<String> {
          return try {
+             roomCodes = roomCode
             val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
             val roomInfo = RoomInfoDto(
                 roomCode = roomCode,
@@ -58,8 +60,8 @@ class RoomRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun isRoomExist(roomCode: String): Boolean {
-        val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
+    override suspend fun isRoomExist(): Boolean {
+        val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
         val snapshot = roomRef.get().await()
         return snapshot.exists()
     }
@@ -70,13 +72,14 @@ class RoomRepositoryImpl @Inject constructor(
         username: String
     ): Result<Unit> {
         return try {
-            if (isRoomExist(roomCode)) {
+            if (isRoomExist()) {
                 val roomPlayersDto = RoomPlayersDto(
                     uid = uid,
                     username = username,
                     joinedAt = System.currentTimeMillis(),
                     online = true,
                     ready = true)
+                roomCodes = roomCode
                 val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
                 roomRef.child("players").child(uid).setValue(roomPlayersDto).await()
                 roomRef.child("players").child(uid).onDisconnect()
@@ -92,9 +95,9 @@ class RoomRepositoryImpl @Inject constructor(
 
     }
 
-    override suspend fun getRoomData(roomCode: String): Result<RoomDto> {
+    override suspend fun getRoomData(): Result<RoomDto> {
         try {
-            val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
+            val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
             val snapshot = roomRef.get().await()
             val roomData = snapshot.getValue<RoomDto>()
             roomData?.let {
@@ -107,8 +110,8 @@ class RoomRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun observeRoomData(roomCode: String): Flow<Result<Room>> = callbackFlow {
-        val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
+    override fun observeRoomData(): Flow<Result<Room>> = callbackFlow {
+        val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val roomData = snapshot.getValue<RoomDto>()?.toModel()
@@ -132,14 +135,34 @@ class RoomRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setRound(
-        roomCode: String,
         round: RoomRoundDto,
         roundNumber: Int
     ): Result<Unit> {
         try {
-            val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
+            val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
             roomRef.child("rounds").child("round_$roundNumber")
                 .setValue(round).await()
+            return Result.success(Unit)
+        }catch (e: Exception) {
+            Timber.e(e)
+            return Result.failure(Exception(e))
+        }
+    }
+
+    override suspend fun deleteRoom(): Result<Unit> {
+        try {
+            firebaseDatabase.getReference("rooms").child(roomCodes).removeValue()
+            return Result.success(Unit)
+        }catch (e: Exception) {
+            Timber.e(e)
+            return Result.failure(Exception(e))
+        }
+    }
+
+    override suspend fun updatePlayerData(dataPlayer: RoomPlayersDto): Result<Unit> {
+        try {
+            firebaseDatabase.getReference("rooms").child(roomCodes)
+                .child("players").child(dataPlayer.uid).setValue(dataPlayer).await()
             return Result.success(Unit)
         }catch (e: Exception) {
             Timber.e(e)

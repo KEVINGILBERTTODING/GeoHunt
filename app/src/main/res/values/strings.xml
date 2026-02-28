@@ -52,4 +52,6 @@
     <string name="duration_per_round">Duration Per Round (seconds)</string>
     <string name="join_room">Join Room</string>
     <string name="data_not_found">Data not found!</string>
+    <string name="ready">Ready</string>
+    <string name="not_ready">Not Ready</string>
 </resources>

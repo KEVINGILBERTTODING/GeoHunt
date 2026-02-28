@@ -110,8 +110,7 @@ class MultiPlayerVm @Inject constructor(
 
     fun storeRound(round: RoomRoundDto) {
         launchWithResult(
-            request = { storeRoundUseCase(state.value.roomData.info.roomCode,
-                round, state.value.currentRound) },
+            request = { storeRoundUseCase(round, state.value.currentRound) },
             onSuccess = {
 
             }

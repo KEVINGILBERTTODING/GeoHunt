@@ -8,7 +8,7 @@ import javax.inject.Inject
 class ObserveRoomDataUseCase @Inject constructor(
     private val roomRepository: RoomRepository
 ) {
-    operator fun invoke(roomCode: String): Flow<Result<Room>>{
-        return roomRepository.observeRoomData(roomCode)
+    operator fun invoke(): Flow<Result<Room>>{
+        return roomRepository.observeRoomData()
     }
 }

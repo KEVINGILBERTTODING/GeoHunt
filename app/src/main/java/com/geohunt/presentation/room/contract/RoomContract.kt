@@ -15,6 +15,7 @@ data class RoomUiState(
 sealed class RoomIntent: MviIntent {
     object LoadRoomData : RoomIntent()
     object OnStartGame : RoomIntent()
+    data class OnPlayerReady(val isReady: Boolean): RoomIntent()
 }
 
 sealed class RoomEffect: MviEffect {

@@ -24,6 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -93,7 +96,8 @@ fun RoomScreen(
                 is RoomEffect.NavigateToGame -> { onNavigateToGame() }
                 is RoomEffect.ShowToast -> {Toast.makeText(context, event.message,
                     Toast.LENGTH_SHORT).show() }
-                is RoomEffect.OnBack -> { onBackPressed() }
+                is RoomEffect.OnBack -> {
+                    onBackPressed() }
                 is RoomEffect.StartGame -> {
                     multiPlayerVm.onIntent(MultiPlayerIntent.OnStartGame)
                 }
@@ -114,7 +118,10 @@ fun RoomScreen(
             RoomContent(state, context, roomVm.userData.userId,
                 mpState,
                 { roomVm.onIntent(it) },
-                { onBackPressed() })
+                {
+                    onBackPressed()
+                }
+            )
         }
     }
 }
@@ -124,6 +131,16 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
                 mpState: MultiPlayerUiState,
                 onIntent: (RoomIntent) -> Unit = {},
                 onBackPressed: () -> Unit) {
+    var isReady by rememberSaveable { mutableStateOf(false) }
+
+    val buttonReadyColor =  when {
+        isReady -> Green41B
+        else -> Color.Gray
+    }
+    val textReadyButton = when {
+        isReady -> stringResource(R.string.ready)
+        else -> stringResource(R.string.not_ready)
+    }
     val buttonColor = when {
         state.isLoading.not() -> Green41B
         else -> Color.Gray
@@ -143,7 +160,8 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround) {
             IconButton(
-                onClick = { onBackPressed() }
+                onClick = {
+                    onBackPressed() }
             ){
                 Icon(
                     modifier = Modifier.size(24.dp),
@@ -216,6 +234,7 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
             }
         }
 
+        // start game button
         if (state.room.info.hostId == mpState.userData.userId && state.isLoading.not()) {
            Box(Modifier.padding(bottom = 8.dp)) {
                CustomButton(
@@ -227,6 +246,18 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
                    }
                )
            }
+        }
+
+        // set ready button
+        if (state.room.info.hostId != mpState.userData.userId) {
+            Box(Modifier.padding(bottom = 8.dp)) {
+                CustomButton(
+                    buttonReadyColor, 14.sp, Black1212,
+                    FontWeight.Medium, White, textReadyButton, {
+                       isReady = !isReady
+                    }
+                )
+            }
         }
 
     }

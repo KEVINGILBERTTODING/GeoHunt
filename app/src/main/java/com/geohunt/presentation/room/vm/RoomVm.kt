@@ -1,7 +1,9 @@
 package com.geohunt.presentation.room.vm
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
+import com.geohunt.domain.usecase.DeleteRoomUseCase
 import com.geohunt.domain.usecase.GetUserDataUseCase
 import com.geohunt.domain.usecase.MultiplayerValidationUseCase
 import com.geohunt.domain.usecase.ObserveRoomDataUseCase
@@ -9,6 +11,9 @@ import com.geohunt.presentation.room.contract.RoomEffect
 import com.geohunt.presentation.room.contract.RoomIntent
 import com.geohunt.presentation.room.contract.RoomUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -17,7 +22,8 @@ class RoomVm @Inject constructor(
     private val observeRoomDataUseCase: ObserveRoomDataUseCase,
     savedStateHandle: SavedStateHandle,
     private val getUserDataUseCase: GetUserDataUseCase,
-    private val multiplayerValidationUseCase: MultiplayerValidationUseCase
+    private val multiplayerValidationUseCase: MultiplayerValidationUseCase,
+    private val deleteRoomUseCase: DeleteRoomUseCase
 ): BaseViewModel<RoomIntent, RoomUiState, RoomEffect>(
     initialState = RoomUiState()
 ) {
@@ -43,12 +49,16 @@ class RoomVm @Inject constructor(
 //                        sendEffect(RoomEffect.ShowToast(it.message ?: "Something went wrong"))
 //                    }
             }
+
+            is RoomIntent.OnPlayerReady ->{
+
+            }
         }
     }
 
     private fun loadRoom() {
         launchWithFlow(
-            request = { observeRoomDataUseCase(roomId) },
+            request = { observeRoomDataUseCase() },
             onError = {
                 onHandleErrorMessage(it.message ?: "Something went wrong")
                 sendEffect(RoomEffect.OnBack)
@@ -78,4 +88,5 @@ class RoomVm @Inject constructor(
         updateState { copy(error = message) }
         sendEffect(RoomEffect.ShowToast(message))
     }
+
 }
