@@ -3,6 +3,7 @@ package com.geohunt.presentation.room.contract
 import com.geohunt.core.base.MviEffect
 import com.geohunt.core.base.MviIntent
 import com.geohunt.core.base.MviState
+import com.geohunt.domain.model.Player
 import com.geohunt.domain.model.Room
 
 data class RoomUiState(
@@ -15,7 +16,7 @@ data class RoomUiState(
 sealed class RoomIntent: MviIntent {
     object LoadRoomData : RoomIntent()
     object OnStartGame : RoomIntent()
-    data class OnPlayerReady(val isReady: Boolean): RoomIntent()
+    data class OnPlayerReady(val dataPlayer: Player, val isReady: Boolean): RoomIntent()
 }
 
 sealed class RoomEffect: MviEffect {

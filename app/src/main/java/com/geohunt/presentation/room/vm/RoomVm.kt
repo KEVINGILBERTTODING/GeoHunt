@@ -3,10 +3,12 @@ package com.geohunt.presentation.room.vm
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
+import com.geohunt.data.dto.room.RoomPlayersDto
 import com.geohunt.domain.usecase.DeleteRoomUseCase
 import com.geohunt.domain.usecase.GetUserDataUseCase
 import com.geohunt.domain.usecase.MultiplayerValidationUseCase
 import com.geohunt.domain.usecase.ObserveRoomDataUseCase
+import com.geohunt.domain.usecase.UpdatePlayerUseCase
 import com.geohunt.presentation.room.contract.RoomEffect
 import com.geohunt.presentation.room.contract.RoomIntent
 import com.geohunt.presentation.room.contract.RoomUiState
@@ -23,7 +25,7 @@ class RoomVm @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getUserDataUseCase: GetUserDataUseCase,
     private val multiplayerValidationUseCase: MultiplayerValidationUseCase,
-    private val deleteRoomUseCase: DeleteRoomUseCase
+    private val updatePlayerUseCase: UpdatePlayerUseCase
 ): BaseViewModel<RoomIntent, RoomUiState, RoomEffect>(
     initialState = RoomUiState()
 ) {
@@ -50,10 +52,26 @@ class RoomVm @Inject constructor(
 //                    }
             }
 
-            is RoomIntent.OnPlayerReady ->{
-
+            is RoomIntent.OnPlayerReady -> {
+                updatePlayer(
+                    RoomPlayersDto(
+                        uid = intent.dataPlayer.uid,
+                        ready = intent.isReady,
+                        online = intent.dataPlayer.online,
+                        joinedAt = intent.dataPlayer.joinedAt,
+                        username = intent.dataPlayer.username)
+                )
             }
         }
+    }
+
+    private fun updatePlayer(playersDto: RoomPlayersDto) {
+        launchWithResult(
+            showLoading = false,
+            request = { updatePlayerUseCase(playersDto) },
+            onSuccess = {},
+            onError = {}
+        )
     }
 
     private fun loadRoom() {

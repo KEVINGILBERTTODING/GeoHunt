@@ -255,6 +255,9 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
                     buttonReadyColor, 14.sp, Black1212,
                     FontWeight.Medium, White, textReadyButton, {
                        isReady = !isReady
+                        state.room.players.find { it.uid == mpState.userData.userId }?.let { player ->
+                            onIntent(RoomIntent.OnPlayerReady(player, isReady))
+                        }
                     }
                 )
             }
