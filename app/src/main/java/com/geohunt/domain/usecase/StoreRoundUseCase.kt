@@ -7,9 +7,9 @@ import javax.inject.Inject
 class StoreRoundUseCase @Inject constructor(
     private val roomRepository: RoomRepository
 ) {
-    suspend operator fun invoke(round: RoomRoundDto, roundNumber: Int)
+    suspend operator fun invoke(hashMap: HashMap<String, Any>)
     : Result<Unit>
     {
-        return roomRepository.setRound(round, roundNumber)
+        return roomRepository.storeRound(hashMap)
     }
 }

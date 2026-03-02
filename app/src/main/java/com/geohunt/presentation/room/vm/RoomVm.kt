@@ -34,7 +34,9 @@ class RoomVm @Inject constructor(
 
     init {
         viewModelScope.launch {
+            onShowLoading()
             observeRoomDataUseCase().collect { result ->
+                onHideLoading()
                 when {
                     result.isSuccess -> {
                         val room = result.getOrThrow()
@@ -47,12 +49,7 @@ class RoomVm @Inject constructor(
                         }
                     }
                     result.isFailure -> {
-                        updateState {
-                            copy(
-                                isLoading = false,
-                                error = result.exceptionOrNull()?.message ?: "Something went wrong"
-                            )
-                        }
+                        onHandleErrorMessage(result.exceptionOrNull()?.message ?: "Something went wrong")
                     }
                 }
             }
@@ -78,7 +75,7 @@ class RoomVm @Inject constructor(
 
             is RoomIntent.OnPlayerReady -> {
                 val players = hashMapOf<String, Any>()
-                players["${userData.userId}/loadPanorama"] = false
+                players["${userData.userId}/ready"] = false
                 updatePlayer(players)
             }
         }

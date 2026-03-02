@@ -34,7 +34,6 @@ object RoomMapper {
     )
 
     fun RoomRoundDto.toModel() = Round(
-        endedAt = endedAt,
         status = status,
         startedAt = startedAt,
         trueLat = trueLat,

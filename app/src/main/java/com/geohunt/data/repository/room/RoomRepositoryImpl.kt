@@ -152,20 +152,17 @@ class RoomRepositoryImpl @Inject constructor(
         ).also { roomFlow = it }
     }
 
-    override suspend fun setRound(
-        round: RoomRoundDto,
-        roundNumber: Int
-    ): Result<Unit> {
+    override suspend fun storeRound(hashMap: HashMap<String, Any>): Result<Unit> {
         try {
-            val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
-            roomRef.child("rounds").child("round_$roundNumber")
-                .setValue(round).await()
+            firebaseDatabase.getReference("rooms").child(roomCodes)
+                .child("rounds").updateChildren(hashMap).await()
             return Result.success(Unit)
         }catch (e: Exception) {
             Timber.e(e)
             return Result.failure(Exception(e))
         }
     }
+
 
     override suspend fun deleteRoom(): Result<Unit> {
         try {

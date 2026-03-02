@@ -29,7 +29,7 @@ class MultiPlayerVm @Inject constructor(
 
     fun hitKartaview() {
         viewModelScope.launch {
-            updateRoundData(state.value.round.copy(status = "loading"))
+            updateRoundData(hashMapOf("round_${state.value.currentRound}/status" to "loading"))
             while (reloadTime <= 5) {
                 if (state.value.trueLocPair.first.isBlank() || state.value.trueLocPair.second.isBlank()) {
                     getNewLatLng()
@@ -46,11 +46,18 @@ class MultiPlayerVm @Inject constructor(
                             copy(round = RoomRoundDto(
                                 photoUrl = data.photoUrl,
                                 status = "success",
-                                trueLat = state.value.trueLocPair.first,
-                                trueLng = state.value.trueLocPair.second
+                                trueLat = data.lat,
+                                trueLng = data.lng
                             ))
                         }
-                        updateRoundData(state.value.round)
+                        updateRoundData(hashMapOf(
+                            "round_${state.value.currentRound}/status" to "success",
+                            "round_${state.value.currentRound}/photoUrl" to data.photoUrl,
+                            "round_${state.value.currentRound}/trueLat" to data.lat,
+                            "round_${state.value.currentRound}/trueLng" to data.lng,
+                            "round_${state.value.currentRound}/startedAt" to System.currentTimeMillis(),
+                            )
+                        )
                         return@launch
                     }
                 }
@@ -64,7 +71,7 @@ class MultiPlayerVm @Inject constructor(
 
             Timber.d("Max reload reached")
             reloadTime = 1
-            updateRoundData(state.value.round.copy(status = "error"))
+            updateRoundData(hashMapOf("round_${state.value.currentRound}/status" to "error"))
             sendEffect(MultiPlayerEffect.ShowToast("Something went wrong, please try again"))
         }
     }
@@ -105,9 +112,9 @@ class MultiPlayerVm @Inject constructor(
     }
 
 
-    fun updateRoundData(round: RoomRoundDto) {
+    fun updateRoundData(hashMap: HashMap<String, Any>) {
         launchWithResult(
-            request = { storeRoundUseCase(round, state.value.currentRound) },
+            request = { storeRoundUseCase(hashMap) },
             onSuccess = {
             }
         )
