@@ -35,8 +35,7 @@ import com.geohunt.presentation.loadingScreen.multiplayer.vm.LoadingMpVm
 
 @Composable
 fun LoadingMpScreen(
-    vm: LoadingMpVm = hiltViewModel(),
-    onBackPressed: () -> Unit
+    vm: LoadingMpVm = hiltViewModel()
 ){
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.loading)
@@ -92,6 +91,6 @@ fun LoadingMpScreen(
 @Composable
 fun LoadingSinglePlayerPreview() {
     GeoHuntTheme {
-        LoadingMpScreen(){}
+        LoadingMpScreen()
     }
 }

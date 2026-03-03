@@ -10,4 +10,5 @@ sealed class Screen(val route: String) {
     object RoomScreen : Screen("room_screen/{id}") {
         fun createRoute(id: String) = "room_screen/$id"
     }
+    object GameMapMpScreen : Screen("game_map_mp_screen")
 }

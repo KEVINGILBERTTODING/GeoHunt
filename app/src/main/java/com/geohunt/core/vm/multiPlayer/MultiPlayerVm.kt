@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
 import com.geohunt.core.contract.MultiPlayerEffect
 import com.geohunt.core.contract.MultiPlayerIntent
+import com.geohunt.core.contract.MultiPlayerIntent.*
 import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.data.dto.room.RoomRoundDto
 import com.geohunt.domain.usecase.GetRandomCityLatLngUseCase
@@ -42,14 +43,6 @@ class MultiPlayerVm @Inject constructor(
                     val data = response.getOrNull()
                     if (data != null && data.photoUrl.isNotBlank()) {
                         reloadTime = 1
-                        updateState {
-                            copy(round = RoomRoundDto(
-                                photoUrl = data.photoUrl,
-                                status = "success",
-                                trueLat = data.lat,
-                                trueLng = data.lng
-                            ))
-                        }
                         updateRoundData(hashMapOf(
                             "round_${state.value.currentRound}/status" to "success",
                             "round_${state.value.currentRound}/photoUrl" to data.photoUrl,
@@ -88,26 +81,32 @@ class MultiPlayerVm @Inject constructor(
 
     override suspend fun handleIntent(intent: MultiPlayerIntent) {
       when(intent) {
-          is MultiPlayerIntent.OnSaveCity -> {
+          is OnSaveCity -> {
               updateState { copy(city = intent.city) }
           }
-          is MultiPlayerIntent.OnSaveCountry -> {
+          is OnSaveCountry -> {
               updateState { copy(country = intent.country) }
           }
-          is MultiPlayerIntent.OnSaveCityList -> {
+          is OnSaveCityList -> {
               updateState { copy(cityList = intent.cityList) }
           }
-          is MultiPlayerIntent.OnStartGame -> {
+          is OnStartGame -> {
               if (!state.value.isRetry) {
                   updateState { copy(currentRound = intent.currentRound + 1) }
               }
-              updateState { copy(isRetry = true) }
+              OnUpdateRetryState(true)
+              getNewLatLng()
               hitKartaview()
           }
 
-          is MultiPlayerIntent.OnSaveUserData -> {
+          is OnSaveUserData -> {
               updateState { copy(userData = intent.user) }
           }
+
+          is OnUpdateRetryState -> {
+              updateState { copy(isRetry = intent.state) }
+          }
+
       }
     }
 

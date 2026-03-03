@@ -106,7 +106,7 @@ fun RoomScreen(
         animationSpec = tween(300)
     ) { isLoading ->
         if (isLoading) {
-            LoadingMpScreen(){}
+            LoadingMpScreen()
         }else {
             if (state.room.rounds.lastOrNull()?.status == "success") {
                 onNavigateToGame()
