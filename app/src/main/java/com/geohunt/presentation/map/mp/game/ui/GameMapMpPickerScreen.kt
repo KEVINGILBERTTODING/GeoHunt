@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,9 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -37,46 +36,56 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
+import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.extension.bitmapDescriptorFromVector
-import com.geohunt.core.resource.Resource
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.component.CustomFab
 import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
-import com.geohunt.core.ui.theme.Black39
-import com.geohunt.core.ui.theme.BlueE6
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Orange
-import com.geohunt.core.util.MapGraphicUtil
-import com.geohunt.presentation.home.ui.HomeScreen
+import com.geohunt.presentation.map.mp.game.contract.GameMapMpPickerIntent
+import com.geohunt.presentation.map.mp.game.contract.GameMapMpPickerUiState
+import com.geohunt.presentation.map.mp.game.contract.GameMapMpUiState
+import com.geohunt.presentation.map.mp.game.vm.GameMapMpPickerVm
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 
+
+@Composable
+fun GameMapMpPickerScreen(
+    viewModel: GameMapMpPickerVm = hiltViewModel(),
+    mpUiState: MultiPlayerUiState,
+    onDismiss: () -> Unit) {
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    ContentScreen(uiState, mpUiState, { onDismiss() }, {
+        viewModel.onIntent(it)
+    })
+}
+
 @SuppressLint("DefaultLocale")
 @Composable
-fun GameMapPickerScreen(
-    viewModel: GameMapSinglePlayerVm,
-    onDismiss: () -> Unit, onClick: (Pair<String, String>) -> Unit) {
-    val markerLocationState by viewModel.markerPositionState.collectAsStateWithLifecycle()
-
-    val cameraPositionState by viewModel.cameraPositionState.collectAsStateWithLifecycle()
-
-    val textLatLng = if (markerLocationState == null) {
+private fun ContentScreen(uiState: GameMapMpPickerUiState,
+                          mpUiState: MultiPlayerUiState,
+                          onDismiss: () -> Unit,
+                          onIntent: (GameMapMpPickerIntent) -> Unit) {
+    val textLatLng = if (uiState.latLng == null) {
         stringResource(R.string.tap_on_the_map_to_choose)
     }else {
-        val latRound = String.format("%.3f", markerLocationState!!.latitude)
-        val lngRound = String.format("%.3f", markerLocationState!!.longitude)
+        val latRound = String.format("%.3f", uiState.latLng.latitude)
+        val lngRound = String.format("%.3f", uiState.latLng.longitude)
         "${latRound}, $lngRound"
     }
 
-    val isUserHasSelectedLocation = markerLocationState != null
+
+    val isUserHasSelectedLocation = uiState.latLng != null
 
     val context = LocalContext.current
 
@@ -93,19 +102,32 @@ fun GameMapPickerScreen(
         onDismiss()
     }
 
-    val buttonColor = if (isUserHasSelectedLocation) Green41B else Color.Gray
+    val buttonColor = if (uiState.isLoadingSubmit.not()) {
+        if (isUserHasSelectedLocation.not()) {
+            Color.Gray
+        }else {
+            Green41B
+        }
+    }
+    else Color.Gray
+
+    val textButton = if (uiState.isLoadingSubmit) stringResource(R.string.loading_game)
+    else {
+        stringResource(R.string.confirm)
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         GoogleMap(
             uiSettings = uiSettings,
             modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState,
+            cameraPositionState = uiState.cameraPositionState,
             onMapClick = { latLng ->
-                viewModel.setMarkerPositionState(latLng)
+                onIntent(GameMapMpPickerIntent.OnSaveLatLng(latLng))
                 isShowBottomContainer = true
             }
         ) {
 
-            markerLocationState?.let {
+            uiState.latLng?.let {
                 Marker(
                     icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
                         Orange.toArgb(), 56),
@@ -129,22 +151,36 @@ fun GameMapPickerScreen(
 
         Column(
             Modifier.align(Alignment.BottomCenter)
-            .fillMaxWidth()
+                .fillMaxWidth()
         ) {
-           if (isShowBottomContainer) {
-               Box(Modifier.align(Alignment.End).padding(end = 16.dp)) {
-                   CustomFab(
-                       image = painterResource(R.drawable.ic_close),
-                       colorTint = Black1212
-                   ) {
-                       isShowBottomContainer = false
-                   }
-               }
-           }
+            AnimatedVisibility(
+                visible = isShowBottomContainer,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
+            ) {
+                Box(Modifier
+                    .fillMaxWidth()
+                    .padding(end = 16.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    CustomFab(
+                        image = painterResource(R.drawable.ic_close),
+                        colorTint = Black1212
+                    ) {
+                        isShowBottomContainer = !isShowBottomContainer
+                    }
+                }
+
+            }
+
 
             Spacer(Modifier.height(20.dp))
 
-            if (isShowBottomContainer) {
+            AnimatedVisibility(
+                visible = isShowBottomContainer,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
+            ) {
                 Box(Modifier
                     .fillMaxWidth()
                     .background(
@@ -177,10 +213,10 @@ fun GameMapPickerScreen(
                             Box(Modifier.weight(1f)) {
                                 CustomButton(
                                     buttonColor, 14.sp, Black1212,
-                                    FontWeight.Medium, Color.White, stringResource(R.string.confirm), {
-                                        if (isUserHasSelectedLocation) {
-                                            onClick(Pair(markerLocationState!!.latitude.toString(),
-                                                markerLocationState!!.longitude.toString()))
+                                    FontWeight.Medium, Color.White, textButton, {
+                                        if (isUserHasSelectedLocation && uiState.isLoadingSubmit.not()) {
+                                            onIntent(GameMapMpPickerIntent.OnSubmitAnswer(
+                                                mpUiState.trueLocPair, mpUiState.currentRound))
                                         }else {
                                             Toast.makeText(context,
                                                 context.getString(R.string.no_location_selected),
@@ -197,7 +233,6 @@ fun GameMapPickerScreen(
 
 
     }
-
 }
 
 
@@ -206,6 +241,6 @@ fun GameMapPickerScreen(
 @Composable
 fun GameMapPickerPreview() {
     GeoHuntTheme {
-        GameMapPickerScreen(GameMapSinglePlayerVm(), {}) { }
+        ContentScreen(GameMapMpPickerUiState(), MultiPlayerUiState(),{}, {})
     }
 }

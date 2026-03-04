@@ -71,7 +71,6 @@ class MultiPlayerVm @Inject constructor(
 
     fun getNewLatLng() {
         updateState { copy(trueLocPair = "" to "") }
-        updateState { copy(guessedLocPair = "" to "") }
         updateState { copy(city = getRandomCityUseCase(
             state.value.country.id,
             state.value.cityList)) }
@@ -94,19 +93,16 @@ class MultiPlayerVm @Inject constructor(
               if (!state.value.isRetry) {
                   updateState { copy(currentRound = intent.currentRound + 1) }
               }
-              OnUpdateRetryState(true)
+              handleIntent(OnUpdateRetryState(true))
               getNewLatLng()
               hitKartaview()
           }
-
           is OnSaveUserData -> {
               updateState { copy(userData = intent.user) }
           }
-
           is OnUpdateRetryState -> {
               updateState { copy(isRetry = intent.state) }
           }
-
       }
     }
 

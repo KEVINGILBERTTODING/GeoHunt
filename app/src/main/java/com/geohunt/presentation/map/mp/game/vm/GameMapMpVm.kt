@@ -2,11 +2,16 @@ package com.geohunt.presentation.map.mp.game.vm
 
 import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
+import com.geohunt.data.dto.room.RoomAnswersDto
+import com.geohunt.domain.usecase.CalculatePointUseCase
+import com.geohunt.domain.usecase.CountDistanceUseCase
 import com.geohunt.domain.usecase.GetUserDataUseCase
 import com.geohunt.domain.usecase.ObserveRoomDataUseCase
+import com.geohunt.domain.usecase.StoreAnswerUseCase
 import com.geohunt.domain.usecase.UpdatePlayerUseCase
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpEffect
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
+import com.geohunt.presentation.map.mp.game.contract.GameMapMpPickerIntent
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -16,7 +21,7 @@ import javax.inject.Inject
 class GameMapMpVm @Inject constructor(
     private val updatePlayerUseCase: UpdatePlayerUseCase,
     private val getUserDataUseCase: GetUserDataUseCase,
-    private val observeRoomDataUseCase: ObserveRoomDataUseCase
+    private val observeRoomDataUseCase: ObserveRoomDataUseCase,
 ): BaseViewModel<GameMapMpIntent, GameMapMpUiState, GameMapMpEffect>(
     initialState = GameMapMpUiState()
 ) {
@@ -33,7 +38,6 @@ class GameMapMpVm @Inject constructor(
                         updateState {
                             copy(
                                 isLoading = false,
-                                errorMsg = null,
                                 roomData = room
                             )
                         }
@@ -47,7 +51,6 @@ class GameMapMpVm @Inject constructor(
     }
     override suspend fun handleIntent(intent: GameMapMpIntent) {
         when (intent) {
-            GameMapMpIntent.OnSubmit -> {}
             is GameMapMpIntent.UpdateUserLoadPanorama -> {
                 updatePlayerData(hashMapOf(
                     "${userData.userId}/loadPanorama" to intent.status
@@ -63,6 +66,7 @@ class GameMapMpVm @Inject constructor(
                 )
                 sendEffect(GameMapMpEffect.OnBack)
             }
+
         }
     }
 
@@ -77,6 +81,7 @@ class GameMapMpVm @Inject constructor(
             }
         )
     }
+
 
     override fun onShowLoading() {
         super.onShowLoading()

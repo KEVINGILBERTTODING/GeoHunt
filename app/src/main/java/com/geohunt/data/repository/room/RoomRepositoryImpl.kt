@@ -1,6 +1,7 @@
 package com.geohunt.data.repository.room
 
 import androidx.compose.animation.core.snap
+import com.geohunt.data.dto.room.RoomAnswersDto
 import com.geohunt.data.dto.room.RoomDto
 import com.geohunt.data.dto.room.RoomInfoDto
 import com.geohunt.data.dto.room.RoomPlayersDto
@@ -178,6 +179,18 @@ class RoomRepositoryImpl @Inject constructor(
         try {
             firebaseDatabase.getReference("rooms").child(roomCodes)
                 .child("players").updateChildren(hashMap).await()
+            return Result.success(Unit)
+        }catch (e: Exception) {
+            Timber.e(e)
+            return Result.failure(Exception(e))
+        }
+    }
+
+    override suspend fun storeAnswer(answersDto: RoomAnswersDto, currentRound: Int, uid: String): Result<Unit> {
+        try {
+            firebaseDatabase.getReference("rooms").child(roomCodes)
+                .child("rounds").child(("round_${currentRound}/answers"))
+                .child(uid).setValue(answersDto).await()
             return Result.success(Unit)
         }catch (e: Exception) {
             Timber.e(e)

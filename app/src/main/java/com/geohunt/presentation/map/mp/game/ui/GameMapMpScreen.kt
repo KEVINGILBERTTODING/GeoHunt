@@ -47,15 +47,19 @@ import com.geohunt.presentation.home.component.CountryBottomSheet
 import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpEffect
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
+import com.geohunt.presentation.map.mp.game.vm.GameMapMpPickerVm
 import com.geohunt.presentation.map.mp.game.vm.GameMapMpVm
 import com.geohunt.presentation.map.singlePlayer.game.event.GameMapSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
+import com.geohunt.presentation.waiting.mp.ui.WaitingPlayerScreen
+import timber.log.Timber
 
 @Composable
 fun GameMapMpScreen(
     multiPlayerVm: MultiPlayerVm,
     onBackPressed: () -> Unit,
-    vm: GameMapMpVm = hiltViewModel()
+    vm: GameMapMpVm = hiltViewModel(),
+    mapPickerVm: GameMapMpPickerVm = hiltViewModel()
 ) {
     var isPageLoaded by remember { mutableStateOf(false) }
     var showMapPicker by remember { mutableStateOf(false) }
@@ -64,7 +68,9 @@ fun GameMapMpScreen(
     val context = LocalContext.current
     val uiState by vm.state.collectAsStateWithLifecycle()
     val mpState by multiPlayerVm.state.collectAsStateWithLifecycle()
-    val isHostid = uiState.roomData.info.hostId == vm.userData.userId
+    val isHostId = uiState.roomData.info.hostId == vm.userData.userId
+    val roundData = uiState.roomData.rounds.lastOrNull()
+    val playerData = uiState.roomData.players
 
 
     // EFFECT
@@ -102,6 +108,8 @@ fun GameMapMpScreen(
         }
     }
 
+
+
     Box(Modifier.fillMaxSize()) {
         AndroidView(
             factory = { context ->
@@ -126,13 +134,16 @@ fun GameMapMpScreen(
                         @JavascriptInterface
                         fun onPanoramaLoaded() {
                             isSuccessLoadStreetView = true
-                            multiPlayerVm.onIntent(MultiPlayerIntent.OnUpdateRetryState(false))
+                            if (isHostId) {
+                                Timber.d("is host ide")
+                                multiPlayerVm.onIntent(MultiPlayerIntent.OnUpdateRetryState(false))
+                            }
                             vm.onIntent(GameMapMpIntent.UpdateUserLoadPanorama(true))
                         }
 
                         @JavascriptInterface
                         fun onPanoramaError(errorMsg: String) {
-                            if (isHostid) {
+                            if (isHostId) {
                                 multiPlayerVm.onIntent(MultiPlayerIntent.OnStartGame(
                                     mpState.currentRound)
                                 )
@@ -155,39 +166,53 @@ fun GameMapMpScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        if (isSuccessLoadStreetView) {
-            Box(modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 40.dp, end = 20.dp)) {
-                CustomFab(painterResource(R.drawable.ic_eye), Black1212,
-                    Green41B, Black1212) {
-                    showMapPicker = !showMapPicker
+
+        when(roundData?.status) {
+            "success" -> {
+                if (isSuccessLoadStreetView && playerData.any { !it.loadPanorama && it.online }) {
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = slideInVertically { it } + fadeIn(),
+                        exit = slideOutVertically { it } + fadeOut()
+                    ) {
+                        WaitingPlayerScreen()
+                    }
+                }else {
+                    // FAB
+                    Box(modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 40.dp, end = 20.dp)) {
+                        CustomFab(painterResource(R.drawable.ic_eye), Black1212,
+                            Green41B, Black1212) {
+                            showMapPicker = !showMapPicker
+                        }
+                    }
+                }
+            }
+            else -> {
+                AnimatedVisibility(
+                    visible = true,
+                    enter = slideInVertically { it } + fadeIn(),
+                    exit = slideOutVertically { it } + fadeOut()
+                ) {
+                    LoadingMpScreen()
                 }
             }
         }
 
-        // loading screen
         AnimatedVisibility(
-            visible = uiState.roomData.rounds.last().status == "loading",
+            visible = showMapPicker,
             enter = slideInVertically { it } + fadeIn(),
             exit = slideOutVertically { it } + fadeOut()
         ) {
-            LoadingMpScreen()
+            GameMapMpPickerScreen(
+                mapPickerVm,
+                mpState,
+                onDismiss = {
+                    showMapPicker = !showMapPicker
+                }
+            )
         }
-
-//        AnimatedVisibility(
-//            visible = showMapPicker,
-//            enter = slideInVertically { it } + fadeIn(),
-//            exit = slideOutVertically { it } + fadeOut()
-//        ) {
-//            GameMapPickerScreen(mapGameSinglePlayerVm,{
-//                mapGameSinglePlayerVm.hideBottomSheetMapPickerEvent()
-//            }, { latLng ->
-//                singlePlayerVm.setGuessedLocation(latLng.first, latLng.second)
-//                mapGameSinglePlayerVm.hideBottomSheetMapPickerEvent()
-//                mapGameSinglePlayerVm.navigateToGameResult()
-//            })
-//        }
 
     }
 

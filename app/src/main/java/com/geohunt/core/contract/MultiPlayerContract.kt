@@ -30,7 +30,6 @@ data class MultiPlayerUiState(
     val country: Country = Country(0, "Random", "", ""),
     val city: City = City(0,0, "","", ""),
     val trueLocPair: Pair<String, String> = Pair("", ""),
-    val guessedLocPair: Pair<String, String> = Pair("", ""),
     val cityList: List<City> = emptyList(),
     val currentRound: Int = 0,
     val isRetry: Boolean = false,

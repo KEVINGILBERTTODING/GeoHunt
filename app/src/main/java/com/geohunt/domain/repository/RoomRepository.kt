@@ -1,6 +1,7 @@
 package com.geohunt.domain.repository
 
 import com.geohunt.core.resource.Resource
+import com.geohunt.data.dto.room.RoomAnswersDto
 import com.geohunt.data.dto.room.RoomDto
 import com.geohunt.data.dto.room.RoomPlayersDto
 import com.geohunt.data.dto.room.RoomRoundDto
@@ -19,4 +20,5 @@ interface RoomRepository {
     suspend fun storeRound(hashMap: HashMap<String, Any>): Result<Unit>
     suspend fun deleteRoom(): Result<Unit>
     suspend fun updatePlayerData(hashMap: HashMap<String, Any>): Result<Unit>
+    suspend fun storeAnswer(answersDto: RoomAnswersDto, currentRound: Int, uid: String): Result<Unit>
 }

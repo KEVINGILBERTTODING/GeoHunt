@@ -115,16 +115,24 @@ fun GameMapPickerScreen(
             }
         }
 
-        if (!isShowBottomContainer) {
-            Box(Modifier.align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 25.dp)) {
+        AnimatedVisibility(
+            visible = isShowBottomContainer,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut()
+        ) {
+            Box(Modifier
+                .fillMaxWidth()
+                .padding(end = 16.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
                 CustomFab(
-                    image = painterResource(R.drawable.ic_up),
+                    image = painterResource(R.drawable.ic_close),
                     colorTint = Black1212
                 ) {
-                    isShowBottomContainer = true
+                    isShowBottomContainer = !isShowBottomContainer
                 }
             }
+
         }
 
         Column(

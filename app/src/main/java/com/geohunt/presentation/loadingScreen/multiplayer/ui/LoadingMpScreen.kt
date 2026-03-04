@@ -1,6 +1,7 @@
 package com.geohunt.presentation.loadingScreen.multiplayer.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Poppins
+import com.geohunt.core.ui.theme.White
 import com.geohunt.presentation.loadingScreen.multiplayer.vm.LoadingMpVm
 
 @Composable
@@ -48,12 +50,12 @@ fun LoadingMpScreen(
 
     }
 
-    Box(Modifier.fillMaxSize().padding(16.dp)) {
+    Box(Modifier.fillMaxSize().background(White)) {
         Column(
             verticalArrangement = Arrangement.Bottom,
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(Modifier.weight(1f),
+            Column(Modifier.weight(1f).padding(16.dp),
                 verticalArrangement = Arrangement.Center) {
                 LottieAnimation(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -76,7 +78,7 @@ fun LoadingMpScreen(
             }
 
             Box(
-                Modifier.padding(bottom = 20.dp)
+                Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 20.dp)
             ) {
                 CustomTextField(true, stringResource(R.string.tips_game), Color.White,
                     14.sp, true, Black1212, Black1212,
