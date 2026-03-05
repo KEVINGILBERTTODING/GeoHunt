@@ -14,7 +14,9 @@ import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpPickerIntent
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -67,6 +69,9 @@ class GameMapMpVm @Inject constructor(
                 sendEffect(GameMapMpEffect.OnBack)
             }
 
+            is GameMapMpIntent.OnStartTime -> {
+                startTimer()
+            }
         }
     }
 
@@ -97,6 +102,23 @@ class GameMapMpVm @Inject constructor(
         super.onHandleErrorMessage(message)
         viewModelScope.launch {
             handleIntent(GameMapMpIntent.OnBackPressed)
+        }
+    }
+
+    fun startTimer() {
+        updateState { copy(endTime =  System.currentTimeMillis()
+                + (state.value.roomData.info.durationPerRound * 1000L)
+        ) }
+
+        viewModelScope.launch {
+            while (System.currentTimeMillis() < state.value.endTime) {
+                val remaining = (state.value.endTime - System.currentTimeMillis()) / 1000
+                updateState { copy(timeLeft = remaining.toInt()) }
+                Timber.d("remaining $remaining")
+                delay(500)
+            }
+            updateState { copy(timeLeft = 0) }
+            sendEffect(GameMapMpEffect.OnTimeUp)
         }
     }
 }

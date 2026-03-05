@@ -11,11 +11,18 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,11 +46,13 @@ import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
 import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
+import com.geohunt.presentation.map.mp.game.component.TimeContainer
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpEffect
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
 import com.geohunt.presentation.map.mp.game.vm.GameMapMpPickerVm
 import com.geohunt.presentation.map.mp.game.vm.GameMapMpVm
 import com.geohunt.presentation.waiting.mp.ui.WaitingPlayerScreen
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 @Composable
@@ -63,7 +72,16 @@ fun GameMapMpScreen(
     val isHostId = uiState.roomData.info.hostId == vm.userData.userId
     val roundData = uiState.roomData.rounds.lastOrNull()
     val playerData = uiState.roomData.players
+    var loadedPhotoUrl by remember { mutableStateOf("") }
+    val shouldStartTimer = roundData?.status == "success"
+            && isSuccessLoadStreetView
+            && !playerData.any { !it.loadPanorama && it.online }
 
+    LaunchedEffect(shouldStartTimer) {
+        if (shouldStartTimer) {
+            vm.onIntent(GameMapMpIntent.OnStartTime)
+        }
+    }
 
     // EFFECT
     LaunchedEffect(Unit) {
@@ -75,6 +93,8 @@ fun GameMapMpScreen(
                 is GameMapMpEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
+
+                is GameMapMpEffect.OnTimeUp -> {}
             }
         }
     }
@@ -147,9 +167,11 @@ fun GameMapMpScreen(
                 }
             },
             update = { webView ->
-                if (isPageLoaded) {
+                val photoUrl = uiState.roomData.rounds.last().photoUrl
+                if (isPageLoaded && photoUrl != loadedPhotoUrl) {
+                    loadedPhotoUrl = photoUrl
                     webView.evaluateJavascript(
-                        "loadPanorama('${uiState.roomData.rounds.last().photoUrl}')",
+                        "loadPanorama('${photoUrl}')",
                         null
                     )
                 }
@@ -157,6 +179,7 @@ fun GameMapMpScreen(
             },
             modifier = Modifier.fillMaxSize()
         )
+
 
 
         when(roundData?.status) {
@@ -204,6 +227,21 @@ fun GameMapMpScreen(
                     showMapPicker = !showMapPicker
                 }
             )
+        }
+
+        AnimatedVisibility(
+            visible = shouldStartTimer,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut()
+        ) {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .systemBarsPadding()
+                .padding(end = 16.dp, top = 8.dp),
+                contentAlignment = Alignment.TopEnd
+            ) {
+                TimeContainer(uiState.timeLeft)
+            }
         }
 
     }
