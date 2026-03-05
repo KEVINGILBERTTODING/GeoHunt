@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
 import com.geohunt.core.contract.MultiPlayerEffect
 import com.geohunt.core.contract.MultiPlayerIntent
+import com.geohunt.core.contract.MultiPlayerIntent.*
 import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.theme.Black1212
@@ -95,7 +96,7 @@ fun RoomScreen(
                 is RoomEffect.OnBack -> {
                     onBackPressed() }
                 is RoomEffect.StartGame -> {
-                    multiPlayerVm.onIntent(MultiPlayerIntent.OnStartGame(state.room.rounds.size))
+                    multiPlayerVm.onIntent(OnStartGame(state.room.rounds.size))
                 }
             }
         }

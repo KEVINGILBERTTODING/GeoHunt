@@ -86,7 +86,9 @@ class RoomVm @Inject constructor(
             showLoading = false,
             request = { updatePlayerUseCase(hashMap) },
             onSuccess = {},
-            onError = {}
+            onError = {
+                sendEffect(RoomEffect.ShowToast(it.message ?: "Something went wrong"))
+            }
         )
     }
 
@@ -122,6 +124,7 @@ class RoomVm @Inject constructor(
         super.onHandleErrorMessage(message)
         updateState { copy(error = message) }
         sendEffect(RoomEffect.ShowToast(message))
+        sendEffect(RoomEffect.OnBack)
     }
 
 }
