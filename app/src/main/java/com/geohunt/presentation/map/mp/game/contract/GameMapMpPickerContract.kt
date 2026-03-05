@@ -15,7 +15,6 @@ sealed class GameMapMpPickerIntent: MviIntent {
 
 sealed class GameMapMpPickerEffect: MviEffect {
     object OnBack: GameMapMpPickerEffect()
-    object SuccessSubmitAnswer: GameMapMpPickerEffect()
     data class OnshowToast(val msg: String): GameMapMpPickerEffect()
 }
 
@@ -23,4 +22,5 @@ data class GameMapMpPickerUiState(
     val latLng : LatLng? = null,
     val cameraPositionState: CameraPositionState = CameraPositionState(),
     val isLoadingSubmit: Boolean = false,
+    val isSuccessSubmit: Boolean = false
 ): MviState

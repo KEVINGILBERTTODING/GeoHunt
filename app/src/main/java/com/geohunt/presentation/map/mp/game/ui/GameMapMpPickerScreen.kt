@@ -106,14 +106,16 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
         if (isUserHasSelectedLocation.not()) {
             Color.Gray
         }else {
-            Green41B
+            if (uiState.isSuccessSubmit) Color.Gray
+            else Green41B
         }
     }
     else Color.Gray
 
     val textButton = if (uiState.isLoadingSubmit) stringResource(R.string.loading_game)
     else {
-        stringResource(R.string.confirm)
+        if (uiState.isSuccessSubmit) stringResource(R.string.lock_in)
+        else stringResource(R.string.confirm)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -122,8 +124,10 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = uiState.cameraPositionState,
             onMapClick = { latLng ->
-                onIntent(GameMapMpPickerIntent.OnSaveLatLng(latLng))
-                isShowBottomContainer = true
+                if (uiState.isSuccessSubmit.not()) {
+                    onIntent(GameMapMpPickerIntent.OnSaveLatLng(latLng))
+                    isShowBottomContainer = true
+                }
             }
         ) {
 
@@ -214,13 +218,10 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
                                 CustomButton(
                                     buttonColor, 14.sp, Black1212,
                                     FontWeight.Medium, Color.White, textButton, {
-                                        if (isUserHasSelectedLocation && uiState.isLoadingSubmit.not()) {
+                                        if (isUserHasSelectedLocation && uiState.isLoadingSubmit.not()
+                                            && uiState.isSuccessSubmit.not()) {
                                             onIntent(GameMapMpPickerIntent.OnSubmitAnswer(
                                                 mpUiState.trueLocPair, mpUiState.currentRound))
-                                        }else {
-                                            Toast.makeText(context,
-                                                context.getString(R.string.no_location_selected),
-                                                Toast.LENGTH_SHORT).show()
                                         }
                                     })
                             }

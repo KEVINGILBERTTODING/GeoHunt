@@ -52,7 +52,7 @@ class GameMapMpPickerVm @Inject constructor(
         launchWithResult(
             request = { storeAnswerUseCase(answer, currentRound, userData.userId) },
             onSuccess = {
-                sendEffect(GameMapMpPickerEffect.SuccessSubmitAnswer)
+                updateState { copy(isSuccessSubmit = true) }
             }
         )
     }

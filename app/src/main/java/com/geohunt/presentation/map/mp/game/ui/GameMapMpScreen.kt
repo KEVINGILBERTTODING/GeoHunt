@@ -30,27 +30,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.geohunt.R
 import com.geohunt.core.contract.MultiPlayerIntent
-import com.geohunt.core.navigation.Screen
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomFab
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
-import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
-import com.geohunt.presentation.home.component.CountryBottomSheet
 import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpEffect
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
 import com.geohunt.presentation.map.mp.game.vm.GameMapMpPickerVm
 import com.geohunt.presentation.map.mp.game.vm.GameMapMpVm
-import com.geohunt.presentation.map.singlePlayer.game.event.GameMapSinglePlayerEvent
-import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
 import com.geohunt.presentation.waiting.mp.ui.WaitingPlayerScreen
 import timber.log.Timber
 
