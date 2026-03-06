@@ -74,7 +74,11 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 }
                 val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
                 GameMapMpScreen(multiPlayerVm, {
-                    navController.popBackStack()
+                    navController.navigate(Screen.HomeScreen.route) {
+                        popUpTo(Screen.GameMapMpScreen.route) {
+                            inclusive = true
+                        }
+                    }
                 })
             }
         }

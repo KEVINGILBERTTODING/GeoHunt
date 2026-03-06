@@ -3,6 +3,7 @@ package com.geohunt.presentation.room.ui
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,9 +45,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
 import com.geohunt.core.contract.MultiPlayerEffect
-import com.geohunt.core.contract.MultiPlayerIntent
 import com.geohunt.core.contract.MultiPlayerIntent.*
 import com.geohunt.core.contract.MultiPlayerUiState
+import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
@@ -74,6 +76,11 @@ fun RoomScreen(
     val context = LocalContext.current
     val state by roomVm.state.collectAsStateWithLifecycle()
     val mpState by multiPlayerVm.state.collectAsStateWithLifecycle()
+    var showBottomSheetBack by remember { mutableStateOf(false) }
+    val textButtonBack = if (state.isLoadingBack) stringResource(R.string.loading_game)
+    else {
+        stringResource(R.string.return_to_home)
+    }
 
     LaunchedEffect(Unit) {
         multiPlayerVm.effect.collect { effect ->
@@ -102,6 +109,28 @@ fun RoomScreen(
         }
     }
 
+    if (showBottomSheetBack) {
+        ConfirmationBottomSheet(stringResource(R.string.return_to_home),
+            stringResource(R.string.are_you_sure_you_want_to_return_to_home),
+            stringResource(R.string.keep_playing),
+            textButtonBack,
+            true, true,
+            {
+                showBottomSheetBack = !showBottomSheetBack
+            },
+            {
+                showBottomSheetBack = !showBottomSheetBack
+            }) {
+            if (state.isLoadingBack.not()) {
+                roomVm.onIntent(RoomIntent.OnBack)
+            }
+        }
+    }
+
+    BackHandler {
+        showBottomSheetBack = !showBottomSheetBack
+    }
+
     Crossfade(
         targetState = state.room.rounds.lastOrNull()?.status ==  "loading",
         animationSpec = tween(300)
@@ -116,7 +145,7 @@ fun RoomScreen(
                 mpState,
                 { roomVm.onIntent(it) },
                 {
-                    onBackPressed()
+                    showBottomSheetBack = !showBottomSheetBack
                 }
             )
         }

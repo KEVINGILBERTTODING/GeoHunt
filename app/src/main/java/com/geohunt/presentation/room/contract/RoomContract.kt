@@ -10,12 +10,14 @@ data class RoomUiState(
     val room: Room = Room(),
     val error: String? = "",
     val isLoadingStartGame: Boolean = false,
+    val isLoadingBack : Boolean = false
 ): MviState
 
 sealed class RoomIntent: MviIntent {
     object LoadRoomData : RoomIntent()
     object OnStartGame : RoomIntent()
     data class OnPlayerReady(val isReady: Boolean): RoomIntent()
+    object OnBack : RoomIntent()
 }
 
 sealed class RoomEffect: MviEffect {

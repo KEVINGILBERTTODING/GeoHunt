@@ -5,6 +5,7 @@ import com.geohunt.core.base.BaseViewModel
 import com.geohunt.data.dto.room.RoomAnswersDto
 import com.geohunt.domain.usecase.CalculatePointUseCase
 import com.geohunt.domain.usecase.CountDistanceUseCase
+import com.geohunt.domain.usecase.DeleteRoomUseCase
 import com.geohunt.domain.usecase.GetUserDataUseCase
 import com.geohunt.domain.usecase.ObserveRoomDataUseCase
 import com.geohunt.domain.usecase.StoreAnswerUseCase
@@ -24,6 +25,7 @@ class GameMapMpVm @Inject constructor(
     private val updatePlayerUseCase: UpdatePlayerUseCase,
     private val getUserDataUseCase: GetUserDataUseCase,
     private val observeRoomDataUseCase: ObserveRoomDataUseCase,
+    private val removeRoomUseCase: DeleteRoomUseCase
 ): BaseViewModel<GameMapMpIntent, GameMapMpUiState, GameMapMpEffect>(
     initialState = GameMapMpUiState()
 ) {
@@ -56,17 +58,20 @@ class GameMapMpVm @Inject constructor(
             is GameMapMpIntent.UpdateUserLoadPanorama -> {
                 updatePlayerData(hashMapOf(
                     "${userData.userId}/loadPanorama" to intent.status
-                ))
+                ), false)
             }
 
             is GameMapMpIntent.OnBackPressed -> {
-                updatePlayerData(
-                    hashMapOf(
-                        "${userData.userId}/online" to false,
-                        "${userData.userId}/loadPanorama" to false
+                if (userData.userId == state.value.roomData.info.hostId) {
+                    destroyRoom()
+                }else {
+                    updatePlayerData(
+                        hashMapOf(
+                            "${userData.userId}/online" to false,
+                            "${userData.userId}/loadPanorama" to false
+                        ), true
                     )
-                )
-                sendEffect(GameMapMpEffect.OnBack)
+                }
             }
 
             is GameMapMpIntent.OnStartTime -> {
@@ -75,11 +80,13 @@ class GameMapMpVm @Inject constructor(
         }
     }
 
-    private fun updatePlayerData(hashMap: HashMap<String, Any>) {
+    private fun updatePlayerData(hashMap: HashMap<String, Any>, isBack: Boolean) {
         launchWithResult(
             showLoading = false,
             request = { updatePlayerUseCase(hashMap) },
-            onSuccess = {},
+            onSuccess = {
+                if (isBack) sendEffect(GameMapMpEffect.OnBack)
+            },
             onError = {
                 sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
                 sendEffect(GameMapMpEffect.OnBack)
@@ -100,9 +107,7 @@ class GameMapMpVm @Inject constructor(
 
     override fun onHandleErrorMessage(message: String) {
         super.onHandleErrorMessage(message)
-        viewModelScope.launch {
-            handleIntent(GameMapMpIntent.OnBackPressed)
-        }
+        sendEffect(GameMapMpEffect.OnBack)
     }
 
     fun startTimer() {
@@ -120,5 +125,21 @@ class GameMapMpVm @Inject constructor(
             updateState { copy(timeLeft = 0) }
             sendEffect(GameMapMpEffect.OnTimeUp)
         }
+    }
+
+    fun destroyRoom() {
+        updateState { copy(isLoadingBack = true) }
+        launchWithResult(
+            showLoading = false,
+            request = { removeRoomUseCase() },
+            onSuccess = {
+                updateState { copy(isLoadingBack = false) }
+                sendEffect(GameMapMpEffect.OnBack)
+                        },
+            onError = {
+                updateState { copy(isLoadingBack = false) }
+                sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
+            }
+        )
     }
 }

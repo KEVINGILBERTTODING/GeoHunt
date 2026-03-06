@@ -11,18 +11,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,7 +53,7 @@ import timber.log.Timber
 @Composable
 fun GameMapMpScreen(
     multiPlayerVm: MultiPlayerVm,
-    onBackPressed: () -> Unit,
+    onBackToHome: () -> Unit,
     vm: GameMapMpVm = hiltViewModel(),
     mapPickerVm: GameMapMpPickerVm = hiltViewModel()
 ) {
@@ -82,19 +77,24 @@ fun GameMapMpScreen(
             vm.onIntent(GameMapMpIntent.OnStartTime)
         }
     }
+    val textButtonBack = if (uiState.isLoadingBack) stringResource(R.string.loading_game)
+    else {
+        stringResource(R.string.return_to_home)
+    }
 
     // EFFECT
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
             when(effect) {
                 is GameMapMpEffect.OnBack -> {
-                    onBackPressed()
+                    onBackToHome()
                 }
                 is GameMapMpEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
+                is GameMapMpEffect.OnTimeUp -> {
 
-                is GameMapMpEffect.OnTimeUp -> {}
+                }
             }
         }
     }
@@ -106,21 +106,20 @@ fun GameMapMpScreen(
     if (showBottomSheetBack) {
         ConfirmationBottomSheet(stringResource(R.string.return_to_home),
             stringResource(R.string.are_you_sure_you_want_to_return_to_home),
-            stringResource(R.string.yes_return_to_home),
-            stringResource(R.string.cancel),
+            stringResource(R.string.keep_playing),
+            textButtonBack,
             true, true,
             {
                 showBottomSheetBack = !showBottomSheetBack
             },
             {
                 showBottomSheetBack = !showBottomSheetBack
-                onBackPressed()
             }) {
-            showBottomSheetBack = !showBottomSheetBack
+            if (uiState.isLoadingBack.not()) {
+                vm.onIntent(GameMapMpIntent.OnBackPressed)
+            }
         }
     }
-
-
 
     Box(Modifier.fillMaxSize()) {
         AndroidView(
@@ -147,7 +146,6 @@ fun GameMapMpScreen(
                         fun onPanoramaLoaded() {
                             isSuccessLoadStreetView = true
                             if (isHostId) {
-                                Timber.d("is host ide")
                                 multiPlayerVm.onIntent(MultiPlayerIntent.OnUpdateRetryState(false))
                             }
                             vm.onIntent(GameMapMpIntent.UpdateUserLoadPanorama(true))

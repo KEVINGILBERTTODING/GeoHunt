@@ -167,7 +167,7 @@ class RoomRepositoryImpl @Inject constructor(
 
     override suspend fun deleteRoom(): Result<Unit> {
         try {
-            firebaseDatabase.getReference("rooms").child(roomCodes).removeValue()
+            firebaseDatabase.getReference("rooms").child(roomCodes).removeValue().await()
             return Result.success(Unit)
         }catch (e: Exception) {
             Timber.e(e)

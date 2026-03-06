@@ -21,5 +21,6 @@ data class GameMapMpUiState(
     val isLoading: Boolean = false,
     val roomData: Room = Room(),
     val endTime: Long = 0,
-    val timeLeft: Int = 0
+    val timeLeft: Int = 0,
+    val isLoadingBack: Boolean = false,
 ): MviState
