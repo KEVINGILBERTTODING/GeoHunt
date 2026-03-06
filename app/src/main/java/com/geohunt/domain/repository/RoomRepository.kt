@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 interface RoomRepository {
     suspend fun createRoom(roomCode: String, hostId: String,
                            totalRounds: Int, durationPerRound: Int, username: String, countryId: Int): Result<String>
-    suspend fun isRoomExist(): Boolean
     suspend fun joinRoom(roomCode: String, uid: String, username: String): Result<Unit>
     suspend fun getRoomData(): Result<RoomDto>
     fun observeRoomData(): Flow<Result<Room>>

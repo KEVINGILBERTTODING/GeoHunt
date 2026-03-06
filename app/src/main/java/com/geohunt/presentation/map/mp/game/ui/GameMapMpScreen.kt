@@ -12,6 +12,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -36,19 +39,20 @@ import com.geohunt.R
 import com.geohunt.core.contract.MultiPlayerIntent
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomFab
+import com.geohunt.core.ui.component.RoundedGlassContainer
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
+import com.geohunt.core.ui.theme.White
 import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
 import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
 import com.geohunt.presentation.map.mp.game.component.TimeContainer
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpEffect
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
+import com.geohunt.presentation.map.mp.game.contract.GameMapState
 import com.geohunt.presentation.map.mp.game.vm.GameMapMpPickerVm
 import com.geohunt.presentation.map.mp.game.vm.GameMapMpVm
 import com.geohunt.presentation.waiting.mp.ui.WaitingPlayerScreen
-import kotlinx.coroutines.flow.map
-import timber.log.Timber
 
 @Composable
 fun GameMapMpScreen(
@@ -59,24 +63,12 @@ fun GameMapMpScreen(
 ) {
     var isPageLoaded by remember { mutableStateOf(false) }
     var showMapPicker by remember { mutableStateOf(false) }
-    var isSuccessLoadStreetView by remember { mutableStateOf(false) }
     var showBottomSheetBack by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val uiState by vm.state.collectAsStateWithLifecycle()
     val mpState by multiPlayerVm.state.collectAsStateWithLifecycle()
     val isHostId = uiState.roomData.info.hostId == vm.userData.userId
-    val roundData = uiState.roomData.rounds.lastOrNull()
-    val playerData = uiState.roomData.players
     var loadedPhotoUrl by remember { mutableStateOf("") }
-    val shouldStartTimer = roundData?.status == "success"
-            && isSuccessLoadStreetView
-            && !playerData.any { !it.loadPanorama && it.online }
-
-    LaunchedEffect(shouldStartTimer) {
-        if (shouldStartTimer) {
-            vm.onIntent(GameMapMpIntent.OnStartTime)
-        }
-    }
     val textButtonBack = if (uiState.isLoadingBack) stringResource(R.string.loading_game)
     else {
         stringResource(R.string.return_to_home)
@@ -117,6 +109,8 @@ fun GameMapMpScreen(
             }) {
             if (uiState.isLoadingBack.not()) {
                 vm.onIntent(GameMapMpIntent.OnBackPressed)
+            }else {
+                Toast.makeText(context, "Loading...", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -144,7 +138,6 @@ fun GameMapMpScreen(
                     addJavascriptInterface(object {
                         @JavascriptInterface
                         fun onPanoramaLoaded() {
-                            isSuccessLoadStreetView = true
                             if (isHostId) {
                                 multiPlayerVm.onIntent(MultiPlayerIntent.OnUpdateRetryState(false))
                             }
@@ -153,6 +146,7 @@ fun GameMapMpScreen(
 
                         @JavascriptInterface
                         fun onPanoramaError(errorMsg: String) {
+                            vm.onIntent(GameMapMpIntent.UpdateUserLoadPanorama(false))
                             if (isHostId) {
                                 multiPlayerVm.onIntent(MultiPlayerIntent.OnStartGame(
                                     mpState.currentRound)
@@ -180,29 +174,28 @@ fun GameMapMpScreen(
 
 
 
-        when(roundData?.status) {
-            "success" -> {
-                if (isSuccessLoadStreetView && playerData.any { !it.loadPanorama && it.online }) {
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = slideInVertically { it } + fadeIn(),
-                        exit = slideOutVertically { it } + fadeOut()
-                    ) {
-                        WaitingPlayerScreen()
-                    }
-                }else {
-                    // FAB
-                    Box(modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 40.dp, end = 20.dp)) {
-                        CustomFab(painterResource(R.drawable.ic_eye), Black1212,
-                            Green41B, Black1212) {
-                            showMapPicker = !showMapPicker
-                        }
+        when(uiState.gameMapMpState) {
+            is GameMapState.Ready -> {
+                // FAB
+                Box(modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 40.dp, end = 20.dp)) {
+                    CustomFab(painterResource(R.drawable.ic_eye), Black1212,
+                        White, Black1212) {
+                        showMapPicker = !showMapPicker
                     }
                 }
             }
-            else -> {
+            is GameMapState.WaitingPlayer -> {
+                AnimatedVisibility(
+                    visible = true,
+                    enter = slideInVertically { it } + fadeIn(),
+                    exit = slideOutVertically { it } + fadeOut()
+                ) {
+                    WaitingPlayerScreen()
+                }
+            }
+            is GameMapState.LoadingStreetView -> {
                 AnimatedVisibility(
                     visible = true,
                     enter = slideInVertically { it } + fadeIn(),
@@ -227,20 +220,29 @@ fun GameMapMpScreen(
             )
         }
 
-        AnimatedVisibility(
-            visible = shouldStartTimer,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut()
-        ) {
-            Box(modifier = Modifier
-                .fillMaxWidth()
+        // back button
+        Row(
+            modifier = Modifier.fillMaxWidth()
                 .systemBarsPadding()
-                .padding(end = 16.dp, top = 8.dp),
-                contentAlignment = Alignment.TopEnd
+                .padding(top = 8.dp, start = 16.dp, end = 16.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RoundedGlassContainer(
+                icon = R.drawable.ic_arrow,
+                {
+                    showBottomSheetBack = !showBottomSheetBack
+                }
+            )
+            Spacer(Modifier.weight(1f))
+            AnimatedVisibility(
+                visible = uiState.gameMapMpState is GameMapState.Ready,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
             ) {
                 TimeContainer(uiState.timeLeft)
             }
         }
+
 
     }
 

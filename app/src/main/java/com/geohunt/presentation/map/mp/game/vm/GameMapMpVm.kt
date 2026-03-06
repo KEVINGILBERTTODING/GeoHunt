@@ -14,6 +14,7 @@ import com.geohunt.presentation.map.mp.game.contract.GameMapMpEffect
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpPickerIntent
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpUiState
+import com.geohunt.presentation.map.mp.game.contract.GameMapState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -45,6 +46,22 @@ class GameMapMpVm @Inject constructor(
                                 roomData = room
                             )
                         }
+
+                        if (state.value.roomData.rounds.lastOrNull()?.status == "success") {
+                            if (room.players.any { !it.loadPanorama && it.online}) {
+                                updateState { copy(
+                                    gameMapMpState = GameMapState.WaitingPlayer
+                                ) }
+                            }else {
+                                updateState { copy(
+                                    gameMapMpState = GameMapState.Ready
+                                ) }
+                                onIntent(GameMapMpIntent.OnStartTime)
+                            }
+                        }else {
+                            updateState { copy(gameMapMpState = GameMapState.LoadingStreetView) }
+                        }
+
                     }
                     result.isFailure -> {
                         onHandleErrorMessage(result.exceptionOrNull()?.message ?: "Something went wrong")
@@ -56,6 +73,7 @@ class GameMapMpVm @Inject constructor(
     override suspend fun handleIntent(intent: GameMapMpIntent) {
         when (intent) {
             is GameMapMpIntent.UpdateUserLoadPanorama -> {
+                updateState { copy(isSuccessLoadStreetView = intent.status) }
                 updatePlayerData(hashMapOf(
                     "${userData.userId}/loadPanorama" to intent.status
                 ), false)

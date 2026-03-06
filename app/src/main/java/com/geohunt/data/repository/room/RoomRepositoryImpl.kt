@@ -10,6 +10,7 @@ import com.geohunt.data.mapper.RoomMapper.toModel
 import com.geohunt.di.qualifier.ApplicationScope
 import com.geohunt.domain.model.Player
 import com.geohunt.domain.model.Room
+import com.geohunt.domain.repository.ColorRepository
 import com.geohunt.domain.repository.RoomRepository
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -29,7 +30,8 @@ import javax.inject.Inject
 
 class RoomRepositoryImpl @Inject constructor(
     private val firebaseDatabase: FirebaseDatabase,
-    @ApplicationScope private val appScope: CoroutineScope
+    @ApplicationScope private val appScope: CoroutineScope,
+    private val colorRepository: ColorRepository
 ): RoomRepository {
     private var roomFlow: SharedFlow<Result<Room>>? = null
     private var roomCodes = ""
@@ -60,7 +62,8 @@ class RoomRepositoryImpl @Inject constructor(
                 username = username,
                 joinedAt = System.currentTimeMillis(),
                 online = true,
-                ready = true)
+                ready = true,
+                playerColor = colorRepository.getColor(0))
 
             roomRef.onDisconnect().removeValue()
             roomRef.child("info").setValue(roomInfo).await()
@@ -72,12 +75,6 @@ class RoomRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun isRoomExist(): Boolean {
-        val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
-        val snapshot = roomRef.get().await()
-        return snapshot.exists()
-    }
-
     override suspend fun joinRoom(
         roomCode: String,
         uid: String,
@@ -87,17 +84,23 @@ class RoomRepositoryImpl @Inject constructor(
         roomFlow = null
         roomCodes = roomCode
         return try {
-            if (isRoomExist()) {
+            val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
+            val snapshot = roomRef.get().await()
+            if (snapshot.exists()) {
+                val roomData = snapshot.getValue<RoomDto>()
+                val playerSize = roomData?.players?.size ?: 0
                 val roomPlayersDto = RoomPlayersDto(
                     uid = uid,
                     username = username,
                     joinedAt = System.currentTimeMillis(),
                     online = true,
-                    ready = true)
+                    ready = true,
+                    playerColor = colorRepository.getColor(playerSize)
+                    )
                 val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
                 roomRef.child("players").child(uid).setValue(roomPlayersDto).await()
                 roomRef.child("players").child(uid).onDisconnect()
-                    .setValue(roomPlayersDto.copy(online = false))
+                    .setValue(roomPlayersDto.copy(online = false, ready = false))
                 Result.success(Unit)
             }else {
                 Result.failure(Exception("Room not found"))

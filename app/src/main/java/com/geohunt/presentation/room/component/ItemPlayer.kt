@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.geohunt.core.extension.onColor
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.GrayE0
@@ -70,13 +71,13 @@ fun ItemPlayer(uid: String, player: Player, onClick: () -> Unit = {}) {
                             .size(35.dp)
                             .padding(bottom = 5.dp, top = 1.dp, end = 1.dp, start = 2.dp)
                             .background(
-                                color = White)
+                                color = Color(player.playerColor))
                     ) {
                         Text(
                             modifier = Modifier.align(Alignment.Center),
                             text = player.username.first().toString().uppercase(),
                             fontSize = 16.sp,
-                            color = Black1212,
+                            color = Black1212.onColor(),
                             fontFamily = Poppins,
                             fontWeight = FontWeight.Bold
                         )
@@ -119,7 +120,7 @@ fun ItemPlayer(uid: String, player: Player, onClick: () -> Unit = {}) {
 @Composable
 fun ItemPlayerPreview() {
     GeoHuntTheme {
-        ItemPlayer ( "", Player(username = "test"),
+        ItemPlayer ( "", Player(username = "test", playerColor = -14575885),
              {})
     }
 }

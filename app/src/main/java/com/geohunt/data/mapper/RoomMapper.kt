@@ -30,7 +30,8 @@ object RoomMapper {
         joinedAt = joinedAt,
         online = online,
         ready = ready,
-        loadPanorama = loadPanorama
+        loadPanorama = loadPanorama,
+        playerColor = playerColor
     )
 
     fun RoomRoundDto.toModel() = Round(

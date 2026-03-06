@@ -123,6 +123,8 @@ fun RoomScreen(
             }) {
             if (state.isLoadingBack.not()) {
                 roomVm.onIntent(RoomIntent.OnBack)
+            }else {
+                Toast.makeText(context, "Loading...", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -252,8 +254,7 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
                 .weight(1f)
                 .padding(bottom = 20.dp)
                 .fillMaxWidth()) {
-                val players = state.room.players
-                players.forEach { player ->
+                    state.room.players.forEach { player ->
                     ItemPlayer (uid, player, {})
                     Spacer(Modifier.height(10.dp))
                 }
@@ -262,7 +263,7 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
 
         // start game button
         if (state.room.info.hostId == mpState.userData.userId && state.isLoading.not()) {
-           Box(Modifier.padding(bottom = 8.dp)) {
+           Box(Modifier.padding(bottom = 16.dp)) {
                CustomButton(
                    buttonColor, 14.sp, Black1212,
                    FontWeight.Medium, White, buttonText, {
@@ -276,7 +277,7 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
 
         // set ready button
         if (state.room.info.hostId != mpState.userData.userId) {
-            Box(Modifier.padding(bottom = 8.dp)) {
+            Box(Modifier.padding(bottom = 16.dp)) {
                 CustomButton(
                     buttonReadyColor, 14.sp, Black1212,
                     FontWeight.Medium, White, textReadyButton, {

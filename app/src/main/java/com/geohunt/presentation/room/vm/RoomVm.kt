@@ -13,6 +13,7 @@ import com.geohunt.presentation.room.contract.RoomIntent
 import com.geohunt.presentation.room.contract.RoomUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -69,8 +70,9 @@ class RoomVm @Inject constructor(
             }
 
             is RoomIntent.OnPlayerReady -> {
+                Timber.d("onready ${intent.isReady}")
                 val players = hashMapOf<String, Any>()
-                players["${userData.userId}/ready"] = false
+                players["${userData.userId}/ready"] = intent.isReady
                 updatePlayer(players, false)
             }
 

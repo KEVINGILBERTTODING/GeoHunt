@@ -23,4 +23,14 @@ data class GameMapMpUiState(
     val endTime: Long = 0,
     val timeLeft: Int = 0,
     val isLoadingBack: Boolean = false,
+    val gameMapMpState: GameMapState = GameMapState.LoadingStreetView,
+    val isSuccessLoadStreetView: Boolean = false
 ): MviState
+
+sealed class GameMapState {
+    object LoadingStreetView: GameMapState()
+    object WaitingPlayer : GameMapState()
+    object Ready : GameMapState()
+}
+
+

@@ -6,5 +6,6 @@ data class Player(
     val ready: Boolean = false,
     val online: Boolean = false,
     val joinedAt: Long = 0,
-    val loadPanorama : Boolean = false
+    val loadPanorama : Boolean = false,
+    val playerColor : Int = 0
 )

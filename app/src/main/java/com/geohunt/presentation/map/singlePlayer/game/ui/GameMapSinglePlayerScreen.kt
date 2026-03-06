@@ -39,6 +39,7 @@ import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomFab
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.Green41B
+import com.geohunt.core.ui.theme.White
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
 import com.geohunt.presentation.map.singlePlayer.game.event.GameMapSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
@@ -181,7 +182,7 @@ fun GameMapSinglePlayerScreen(navController: NavController = rememberNavControll
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 40.dp, end = 20.dp)) {
                 CustomFab(painterResource(R.drawable.ic_eye), Black1212,
-                    Green41B, Black1212) {
+                    White, Black1212) {
                     mapGameSinglePlayerVm.showBottomSheetMapPickerEvent()
                 }
             }
