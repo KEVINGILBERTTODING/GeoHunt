@@ -45,6 +45,7 @@ class JoinRoomVm @Inject constructor(
         launchWithResult(
             request = { joinRoomUseCase(state.value.roomCode) },
             onSuccess = {
+                updateState { copy(roomCode = "", errorMsg = null) }
                 sendEffect(JoinRoomEffect.NavigateToRoom(state.value.roomCode))
             }
         )
@@ -69,7 +70,7 @@ class JoinRoomVm @Inject constructor(
 
     override fun onHideLoading() {
         super.onHideLoading()
-        updateState { copy(isLoading = true) }
+        updateState { copy(isLoading = false) }
     }
 
     override fun onHandleErrorMessage(message: String) {
