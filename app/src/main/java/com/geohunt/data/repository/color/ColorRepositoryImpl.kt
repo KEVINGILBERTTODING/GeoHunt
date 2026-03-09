@@ -15,7 +15,7 @@ class ColorRepositoryImpl @Inject constructor(): ColorRepository {
         Color(0xFF00BCD4), // Player 5 - Cyan
         Color(0xFFF44336), // Player 6 - Merah
         Color(0xFFFF4081), // Player 7 - Magenta
-        Color(0xFF03A9F4), // Player 8 - Biru Muda
+        Color(0xFF795548), // Player 8 - Coklat
         Color(0xFFFFEB3B), // Player 9 - Kuning
         Color(0xFFFF5722), // Player 10 - Deep Orange
     )

@@ -62,10 +62,11 @@ import com.google.maps.android.compose.MarkerState
 @Composable
 fun GameMapMpPickerScreen(
     viewModel: GameMapMpPickerVm = hiltViewModel(),
+    gameMapState: GameMapMpUiState,
     mpUiState: MultiPlayerUiState,
     onDismiss: () -> Unit) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-    ContentScreen(uiState, mpUiState, { onDismiss() }, {
+    ContentScreen(uiState, mpUiState,gameMapState, { onDismiss() }, {
         viewModel.onIntent(it)
     })
 }
@@ -74,6 +75,7 @@ fun GameMapMpPickerScreen(
 @Composable
 private fun ContentScreen(uiState: GameMapMpPickerUiState,
                           mpUiState: MultiPlayerUiState,
+                          gameMapMpUiState: GameMapMpUiState,
                           onDismiss: () -> Unit,
                           onIntent: (GameMapMpPickerIntent) -> Unit) {
     val textLatLng = if (uiState.latLng == null) {
@@ -83,7 +85,6 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
         val lngRound = String.format("%.3f", uiState.latLng.longitude)
         "${latRound}, $lngRound"
     }
-
 
     val isUserHasSelectedLocation = uiState.latLng != null
 
@@ -97,6 +98,8 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
             mapToolbarEnabled = false
         )
     }
+    val markerColor = gameMapMpUiState.roomData.players.find {
+        it.uid == mpUiState.userData.userId }?.playerColor ?: Orange.toArgb()
 
     BackHandler {
         onDismiss()
@@ -134,7 +137,7 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
             uiState.latLng?.let {
                 Marker(
                     icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
-                        Orange.toArgb(), 56),
+                        markerColor, 56),
                     state = MarkerState(position = it),
                     title = "Selected location"
                 )
@@ -242,6 +245,8 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
 @Composable
 fun GameMapPickerPreview() {
     GeoHuntTheme {
-        ContentScreen(GameMapMpPickerUiState(), MultiPlayerUiState(),{}, {})
+        ContentScreen(GameMapMpPickerUiState(),
+            MultiPlayerUiState(), GameMapMpUiState(),
+            {}, {})
     }
 }

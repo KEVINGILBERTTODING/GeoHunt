@@ -108,7 +108,14 @@ class RoomVm @Inject constructor(
                 sendEffect(RoomEffect.OnBack)
             },
             onSuccess = { roomData ->
+                val onlineCount = roomData.players.count { it.online }
                 updateState { copy(isLoading = false, error = null, room = roomData) }
+                state.value.room.rounds.lastOrNull()?.let {
+                    if (it.status == "loading" && onlineCount == 1) {
+                        sendEffect(RoomEffect.ShowToast("Not enough players, stopping..."))
+                        sendEffect(RoomEffect.OnBack)
+                    }
+                }
             }
         )
     }

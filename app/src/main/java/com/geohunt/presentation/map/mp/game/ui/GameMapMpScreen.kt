@@ -213,6 +213,7 @@ fun GameMapMpScreen(
         ) {
             GameMapMpPickerScreen(
                 mapPickerVm,
+                uiState,
                 mpState,
                 onDismiss = {
                     showMapPicker = !showMapPicker

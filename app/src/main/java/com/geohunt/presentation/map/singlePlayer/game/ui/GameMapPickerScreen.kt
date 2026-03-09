@@ -3,11 +3,6 @@ package com.geohunt.presentation.map.singlePlayer.game.ui
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,9 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -40,20 +33,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
 import com.geohunt.core.extension.bitmapDescriptorFromVector
-import com.geohunt.core.resource.Resource
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.component.CustomFab
 import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
-import com.geohunt.core.ui.theme.Black39
-import com.geohunt.core.ui.theme.BlueE6
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Orange
-import com.geohunt.core.util.MapGraphicUtil
-import com.geohunt.presentation.home.ui.HomeScreen
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
@@ -113,26 +100,6 @@ fun GameMapPickerScreen(
                     title = "Selected location"
                 )
             }
-        }
-
-        AnimatedVisibility(
-            visible = isShowBottomContainer,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut()
-        ) {
-            Box(Modifier
-                .fillMaxWidth()
-                .padding(end = 16.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                CustomFab(
-                    image = painterResource(R.drawable.ic_close),
-                    colorTint = Black1212
-                ) {
-                    isShowBottomContainer = !isShowBottomContainer
-                }
-            }
-
         }
 
         Column(
