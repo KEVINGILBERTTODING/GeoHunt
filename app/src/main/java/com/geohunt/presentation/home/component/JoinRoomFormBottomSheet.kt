@@ -106,7 +106,7 @@ fun JoinRoomFormBottomSheet(
                 .padding(16.dp)
         ) {
             Text(
-                text = stringResource(R.string.create_room),
+                text = stringResource(R.string.join_room),
                 modifier = Modifier.fillMaxWidth(),
                 style = TextStyle(
                     textAlign = TextAlign.Start,

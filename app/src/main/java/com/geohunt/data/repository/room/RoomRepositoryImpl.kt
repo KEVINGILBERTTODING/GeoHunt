@@ -84,24 +84,42 @@ class RoomRepositoryImpl @Inject constructor(
         roomFlow = null
         roomCodes = roomCode
         return try {
-            val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
+            val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
             val snapshot = roomRef.get().await()
             if (snapshot.exists()) {
                 val roomData = snapshot.getValue<RoomDto>()
-                val playerSize = roomData?.players?.size ?: 0
-                val roomPlayersDto = RoomPlayersDto(
-                    uid = uid,
-                    username = username,
-                    joinedAt = System.currentTimeMillis(),
-                    online = true,
-                    ready = true,
-                    playerColor = colorRepository.getColor(playerSize)
-                    )
-                val roomRef = firebaseDatabase.getReference("rooms").child(roomCode)
-                roomRef.child("players").child(uid).setValue(roomPlayersDto).await()
-                roomRef.child("players").child(uid).onDisconnect()
-                    .setValue(roomPlayersDto.copy(online = false, ready = false))
-                Result.success(Unit)
+                val playerSize = roomData?.players?.count() ?: 0
+                val playerAlreadyJoin = snapshot.child("players").child(uid).exists()
+
+                if (playerSize < 1) {
+                    return Result.failure(Exception("Room not found"))
+                }else if (playerAlreadyJoin || playerSize < 10) {
+                    roomRef.child("players").child(uid).onDisconnect()
+                        .updateChildren(hashMapOf<String, Any>(
+                            "online" to false,
+                            "ready" to false))
+
+                    if (playerAlreadyJoin) {
+                        roomRef.child("players").child(uid).updateChildren(
+                            hashMapOf<String, Any>(
+                                "online" to true,
+                                "ready" to true
+                            )).await()
+                    }else {
+                        val roomPlayersDto = RoomPlayersDto(
+                            uid = uid,
+                            username = username,
+                            joinedAt = System.currentTimeMillis(),
+                            online = true,
+                            ready = true,
+                            playerColor = colorRepository.getColor(playerSize)
+                        )
+                        roomRef.child("players").child(uid).setValue(roomPlayersDto).await()
+                    }
+                    Result.success(Unit)
+                }else {
+                    return Result.failure(Exception("Room is full"))
+                }
             }else {
                 Result.failure(Exception("Room not found"))
             }

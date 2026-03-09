@@ -10,19 +10,7 @@ class JoinRoomUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(roomCode: String): Result<Unit> {
         return try {
-            val roomData = roomRepository.getRoomData()
-            val userData = getUserDataUseCase()
-            if (roomData.isSuccess) {
-                val players = roomData.getOrThrow().players.toList()
-                val isPlayerAlreadyJoin = players.any { it.second.uid == userData.userId }
-                if (isPlayerAlreadyJoin || players.count() <= 10) {
-                    roomRepository.joinRoom(roomCode, userData.userId, userData.username)
-                }else {
-                    Result.failure(Exception("Room is full"))
-                }
-            }else {
-                Result.failure(Exception(roomData.exceptionOrNull()?.message ?: "Something went wrong"))
-            }
+            roomRepository.joinRoom(roomCode, getUserDataUseCase().userId, getUserDataUseCase().username)
         }catch (e: Exception) {
             Timber.d(e)
             Result.failure(e)

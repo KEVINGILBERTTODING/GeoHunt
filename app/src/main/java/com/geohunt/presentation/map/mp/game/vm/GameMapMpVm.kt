@@ -2,17 +2,13 @@ package com.geohunt.presentation.map.mp.game.vm
 
 import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
-import com.geohunt.data.dto.room.RoomAnswersDto
-import com.geohunt.domain.usecase.CalculatePointUseCase
-import com.geohunt.domain.usecase.CountDistanceUseCase
+import com.geohunt.domain.usecase.CheckMinimumPlayerUseCase
 import com.geohunt.domain.usecase.DeleteRoomUseCase
 import com.geohunt.domain.usecase.GetUserDataUseCase
 import com.geohunt.domain.usecase.ObserveRoomDataUseCase
-import com.geohunt.domain.usecase.StoreAnswerUseCase
 import com.geohunt.domain.usecase.UpdatePlayerUseCase
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpEffect
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
-import com.geohunt.presentation.map.mp.game.contract.GameMapMpPickerIntent
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpUiState
 import com.geohunt.presentation.map.mp.game.contract.GameMapState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +22,8 @@ class GameMapMpVm @Inject constructor(
     private val updatePlayerUseCase: UpdatePlayerUseCase,
     private val getUserDataUseCase: GetUserDataUseCase,
     private val observeRoomDataUseCase: ObserveRoomDataUseCase,
-    private val removeRoomUseCase: DeleteRoomUseCase
+    private val removeRoomUseCase: DeleteRoomUseCase,
+    private val checkMinimumPlayerUseCase: CheckMinimumPlayerUseCase
 ): BaseViewModel<GameMapMpIntent, GameMapMpUiState, GameMapMpEffect>(
     initialState = GameMapMpUiState()
 ) {
@@ -48,6 +45,13 @@ class GameMapMpVm @Inject constructor(
                             )
                         }
 
+                        checkMinimumPlayerUseCase.invoke(room)
+                            .onFailure {
+                                sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
+                                sendEffect(GameMapMpEffect.OnTimeUp)
+                            }
+
+
                         if (state.value.roomData.rounds.lastOrNull()?.status == "success") {
                             if (room.players.any { !it.loadPanorama && it.online}) {
                                 updateState { copy(
@@ -66,6 +70,7 @@ class GameMapMpVm @Inject constructor(
                     }
                     result.isFailure -> {
                         onHandleErrorMessage(result.exceptionOrNull()?.message ?: "Something went wrong")
+                        sendEffect(GameMapMpEffect.OnBack)
                     }
                 }
             }
@@ -86,6 +91,7 @@ class GameMapMpVm @Inject constructor(
                 }else {
                     updatePlayerData(
                         hashMapOf(
+                            "${state.value.userData.userId}/ready" to false,
                             "${state.value.userData.userId}/online" to false,
                             "${state.value.userData.userId}/loadPanorama" to false
                         ), true

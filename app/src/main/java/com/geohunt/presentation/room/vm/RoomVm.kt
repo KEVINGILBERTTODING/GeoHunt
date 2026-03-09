@@ -2,6 +2,7 @@ package com.geohunt.presentation.room.vm
 
 import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
+import com.geohunt.domain.usecase.CheckMinimumPlayerUseCase
 import com.geohunt.domain.usecase.DeleteRoomUseCase
 import com.geohunt.domain.usecase.GetUserDataUseCase
 import com.geohunt.domain.usecase.MultiplayerValidationUseCase
@@ -22,7 +23,8 @@ class RoomVm @Inject constructor(
     private val getUserDataUseCase: GetUserDataUseCase,
     private val multiplayerValidationUseCase: MultiplayerValidationUseCase,
     private val updatePlayerUseCase: UpdatePlayerUseCase,
-    private val removeRoomUseCase: DeleteRoomUseCase
+    private val removeRoomUseCase: DeleteRoomUseCase,
+    private val checkMinimumPlayerUseCase: CheckMinimumPlayerUseCase
 ): BaseViewModel<RoomIntent, RoomUiState, RoomEffect>(
     initialState = RoomUiState()
 ) {
@@ -46,11 +48,13 @@ class RoomVm @Inject constructor(
                             )
                         }
 
-                        val onlineCount = state.value.room.players.count { it.online }
                         state.value.room.rounds.lastOrNull()?.let {
-                            if (it.status == "loading" && onlineCount == 1) {
-                                sendEffect(RoomEffect.ShowToast("Not enough players, stopping..."))
-                                sendEffect(RoomEffect.OnBack)
+                            if (it.status == "loading") {
+                                checkMinimumPlayerUseCase.invoke(room)
+                                    .onFailure {
+                                        sendEffect(RoomEffect.ShowToast("Not enough players, stopping..."))
+                                        sendEffect(RoomEffect.OnBack)
+                                    }
                             }
                         }
                     }
@@ -65,15 +69,14 @@ class RoomVm @Inject constructor(
     override suspend fun handleIntent(intent: RoomIntent) {
         when(intent) {
             is RoomIntent.OnStartGame -> {
-                sendEffect(RoomEffect.StartGame)
-//                val validationResult = multiplayerValidationUseCase(state.value.room)
-//                validationResult
-//                    .onSuccess {
-//                        sendEffect(RoomEffect.StartGame)
-//                    }
-//                    .onFailure {
-//                        sendEffect(RoomEffect.ShowToast(it.message ?: "Something went wrong"))
-//                    }
+                val validationResult = multiplayerValidationUseCase(state.value.room)
+                validationResult
+                    .onSuccess {
+                        sendEffect(RoomEffect.StartGame)
+                    }
+                    .onFailure {
+                        sendEffect(RoomEffect.ShowToast(it.message ?: "Something went wrong"))
+                    }
             }
 
             is RoomIntent.OnPlayerReady -> {
@@ -87,7 +90,10 @@ class RoomVm @Inject constructor(
                 if (state.value.isHost) {
                     removeRoom()
                 }else {
-                    updatePlayer(hashMapOf("${state.value.userData.userId}/ready" to false), true)
+                    updatePlayer(hashMapOf(
+                        "${state.value.userData.userId}/ready" to false,
+                        "${state.value.userData.userId}/online" to false
+                        ), true)
                 }
             }
         }

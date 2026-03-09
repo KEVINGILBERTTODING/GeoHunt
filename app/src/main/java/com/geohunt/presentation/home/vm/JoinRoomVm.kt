@@ -35,18 +35,18 @@ class JoinRoomVm @Inject constructor(
     }
 
     fun submit() {
+        Timber.d("room code ${state.value.roomCode}")
         val roomCodeError = validationRoomCode(state.value.roomCode)
         if (roomCodeError != null){
             sendEffect(JoinRoomEffect.ShowToast(roomCodeError))
             updateState { copy(errorMsg = roomCodeError) }
             return
         }
-
         launchWithResult(
             request = { joinRoomUseCase(state.value.roomCode) },
             onSuccess = {
-                updateState { copy(roomCode = "", errorMsg = null) }
                 sendEffect(JoinRoomEffect.NavigateToRoom(state.value.roomCode))
+                updateState { copy(roomCode = "", errorMsg = null) }
             }
         )
 
