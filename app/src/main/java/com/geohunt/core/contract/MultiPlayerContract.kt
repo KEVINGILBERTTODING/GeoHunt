@@ -16,7 +16,6 @@ sealed class MultiPlayerIntent: MviIntent {
     data class OnSaveCity(val city: City): MultiPlayerIntent()
     data class OnSaveCityList(val cityList: List<City>): MultiPlayerIntent()
     data class OnStartGame(val currentRound: Int) : MultiPlayerIntent()
-    data class OnSaveUserData(val user: User): MultiPlayerIntent()
     data class OnUpdateRetryState(val state: Boolean): MultiPlayerIntent()
 }
 
@@ -32,6 +31,5 @@ data class MultiPlayerUiState(
     val trueLocPair: Pair<String, String> = Pair("", ""),
     val cityList: List<City> = emptyList(),
     val currentRound: Int = 0,
-    val isRetry: Boolean = false,
-    val userData: User = User("", "")
+    val isRetry: Boolean = false
 ): MviState

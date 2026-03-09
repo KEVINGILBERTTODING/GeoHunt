@@ -67,7 +67,6 @@ fun GameMapMpScreen(
     val context = LocalContext.current
     val uiState by vm.state.collectAsStateWithLifecycle()
     val mpState by multiPlayerVm.state.collectAsStateWithLifecycle()
-    val isHostId = uiState.roomData.info.hostId == vm.userData.userId
     var loadedPhotoUrl by remember { mutableStateOf("") }
     val textButtonBack = if (uiState.isLoadingBack) stringResource(R.string.loading_game)
     else {
@@ -138,7 +137,7 @@ fun GameMapMpScreen(
                     addJavascriptInterface(object {
                         @JavascriptInterface
                         fun onPanoramaLoaded() {
-                            if (isHostId) {
+                            if (uiState.isHost) {
                                 multiPlayerVm.onIntent(MultiPlayerIntent.OnUpdateRetryState(false))
                             }
                             vm.onIntent(GameMapMpIntent.UpdateUserLoadPanorama(true))
@@ -147,7 +146,7 @@ fun GameMapMpScreen(
                         @JavascriptInterface
                         fun onPanoramaError(errorMsg: String) {
                             vm.onIntent(GameMapMpIntent.UpdateUserLoadPanorama(false))
-                            if (isHostId) {
+                            if (uiState.isHost) {
                                 multiPlayerVm.onIntent(MultiPlayerIntent.OnStartGame(
                                     mpState.currentRound)
                                 )

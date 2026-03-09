@@ -65,6 +65,7 @@ import com.geohunt.presentation.room.contract.RoomEffect
 import com.geohunt.presentation.room.contract.RoomIntent
 import com.geohunt.presentation.room.contract.RoomUiState
 import com.geohunt.presentation.room.vm.RoomVm
+import timber.log.Timber
 
 @Composable
 fun RoomScreen(
@@ -101,7 +102,8 @@ fun RoomScreen(
                 is RoomEffect.ShowToast -> {Toast.makeText(context, event.message,
                     Toast.LENGTH_SHORT).show() }
                 is RoomEffect.OnBack -> {
-                    onBackPressed() }
+                    onBackPressed()
+                }
                 is RoomEffect.StartGame -> {
                     multiPlayerVm.onIntent(OnStartGame(state.room.rounds.size))
                 }
@@ -143,8 +145,7 @@ fun RoomScreen(
             if (state.room.rounds.lastOrNull()?.status == "success") {
                 onNavigateToGame()
             }
-            RoomContent(state, context, roomVm.userData.userId,
-                mpState,
+            RoomContent(state, context,
                 { roomVm.onIntent(it) },
                 {
                     showBottomSheetBack = !showBottomSheetBack
@@ -155,19 +156,19 @@ fun RoomScreen(
 }
 
 @Composable
-fun RoomContent(state: RoomUiState, context: Context, uid: String,
-                mpState: MultiPlayerUiState,
+fun RoomContent(state: RoomUiState, context: Context,
                 onIntent: (RoomIntent) -> Unit = {},
                 onBackPressed: () -> Unit) {
-    var isReady by rememberSaveable { mutableStateOf(false) }
+
 
     val buttonReadyColor =  when {
-        isReady -> Green41B
-        else -> Color.Gray
+        state.isReady -> Color.Gray
+        else -> Green41B
     }
     val textReadyButton = when {
-        isReady -> stringResource(R.string.ready)
-        else -> stringResource(R.string.not_ready)
+        state.isLoadingReady -> stringResource(R.string.loading_game)
+        state.isReady -> stringResource(R.string.cancel)
+        else -> stringResource(R.string.ready)
     }
     val buttonColor = when {
         state.isLoading.not() -> Green41B
@@ -255,14 +256,14 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
                 .padding(bottom = 20.dp)
                 .fillMaxWidth()) {
                     state.room.players.forEach { player ->
-                    ItemPlayer (uid, player, {})
+                    ItemPlayer (state.userData.userId, player, {})
                     Spacer(Modifier.height(10.dp))
                 }
             }
         }
 
         // start game button
-        if (state.room.info.hostId == mpState.userData.userId && state.isLoading.not()) {
+        if (state.isHost && state.isLoading.not()) {
            Box(Modifier.padding(bottom = 16.dp)) {
                CustomButton(
                    buttonColor, 14.sp, Black1212,
@@ -276,14 +277,17 @@ fun RoomContent(state: RoomUiState, context: Context, uid: String,
         }
 
         // set ready button
-        if (state.room.info.hostId != mpState.userData.userId) {
+        if (state.isHost.not() && state.isLoading.not()) {
             Box(Modifier.padding(bottom = 16.dp)) {
                 CustomButton(
                     buttonReadyColor, 14.sp, Black1212,
                     FontWeight.Medium, White, textReadyButton, {
-                       isReady = !isReady
-                        state.room.players.find { it.uid == mpState.userData.userId }?.let { player ->
-                            onIntent(RoomIntent.OnPlayerReady(isReady))
+                        if (state.isLoadingReady.not()) {
+                            Timber.d("player ready ${state.isReady.not()}")
+                            state.room.players.find { it.uid ==  state.userData.userId}?.let { player ->
+                                Timber.d("player ready ${state.isReady.not()}")
+                                onIntent(RoomIntent.OnPlayerReady(!state.isReady))
+                            }
                         }
                     }
                 )
@@ -304,7 +308,7 @@ fun RoomScreenPreview() {
     GeoHuntTheme {
         RoomContent(RoomUiState(isLoading = false, error = null, room = Room(
             players = players)
-        ), LocalContext.current, "", MultiPlayerUiState(), {},
+        ), LocalContext.current,  {},
             {}
         )
     }

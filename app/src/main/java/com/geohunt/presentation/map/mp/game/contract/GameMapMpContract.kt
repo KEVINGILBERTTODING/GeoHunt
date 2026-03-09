@@ -3,6 +3,7 @@ package com.geohunt.presentation.map.mp.game.contract
 import com.geohunt.core.base.MviEffect
 import com.geohunt.core.base.MviIntent
 import com.geohunt.core.base.MviState
+import com.geohunt.data.dto.user.User
 import com.geohunt.domain.model.Room
 
 sealed class GameMapMpIntent: MviIntent {
@@ -24,7 +25,9 @@ data class GameMapMpUiState(
     val timeLeft: Int = 0,
     val isLoadingBack: Boolean = false,
     val gameMapMpState: GameMapState = GameMapState.LoadingStreetView,
-    val isSuccessLoadStreetView: Boolean = false
+    val isSuccessLoadStreetView: Boolean = false,
+    val userData: User = User("", ""),
+    val isHost: Boolean = false
 ): MviState
 
 sealed class GameMapState {

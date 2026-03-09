@@ -164,7 +164,6 @@ fun HomeScreen(
                         multiPlayerVm.onIntent(MultiPlayerIntent.OnSaveCountry(homeVm.countryState.value))
                         multiPlayerVm.onIntent(MultiPlayerIntent.OnSaveCity(homeVm.selectedCity))
                         multiPlayerVm.onIntent(MultiPlayerIntent.OnSaveCityList(homeVm.cities.value))
-                        multiPlayerVm.onIntent(MultiPlayerIntent.OnSaveUserData(homeVm.getUserData()))
                        showCreateRoomFormBottomSheet = true
                     }else {
                         showJoinRoomFormBottomSheet = true

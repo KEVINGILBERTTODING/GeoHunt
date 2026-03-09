@@ -97,9 +97,6 @@ class MultiPlayerVm @Inject constructor(
               getNewLatLng()
               hitKartaview()
           }
-          is OnSaveUserData -> {
-              updateState { copy(userData = intent.user) }
-          }
           is OnUpdateRetryState -> {
               updateState { copy(isRetry = intent.state) }
           }

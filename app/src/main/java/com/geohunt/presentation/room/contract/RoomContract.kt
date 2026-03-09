@@ -3,6 +3,7 @@ package com.geohunt.presentation.room.contract
 import com.geohunt.core.base.MviEffect
 import com.geohunt.core.base.MviIntent
 import com.geohunt.core.base.MviState
+import com.geohunt.data.dto.user.User
 import com.geohunt.domain.model.Room
 
 data class RoomUiState(
@@ -10,11 +11,14 @@ data class RoomUiState(
     val room: Room = Room(),
     val error: String? = "",
     val isLoadingStartGame: Boolean = false,
-    val isLoadingBack : Boolean = false
+    val isLoadingBack : Boolean = false,
+    val isReady: Boolean = true,
+    val isLoadingReady: Boolean = false,
+    val isHost: Boolean = false,
+    val userData: User = User("", "")
 ): MviState
 
 sealed class RoomIntent: MviIntent {
-    object LoadRoomData : RoomIntent()
     object OnStartGame : RoomIntent()
     data class OnPlayerReady(val isReady: Boolean): RoomIntent()
     object OnBack : RoomIntent()

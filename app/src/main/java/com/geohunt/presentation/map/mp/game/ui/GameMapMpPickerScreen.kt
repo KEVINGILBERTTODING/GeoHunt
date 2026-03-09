@@ -99,7 +99,7 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
         )
     }
     val markerColor = gameMapMpUiState.roomData.players.find {
-        it.uid == mpUiState.userData.userId }?.playerColor ?: Orange.toArgb()
+        it.uid == gameMapMpUiState.userData.userId }?.playerColor ?: Orange.toArgb()
 
     BackHandler {
         onDismiss()

@@ -30,9 +30,9 @@ class GameMapMpVm @Inject constructor(
 ): BaseViewModel<GameMapMpIntent, GameMapMpUiState, GameMapMpEffect>(
     initialState = GameMapMpUiState()
 ) {
-    val userData = getUserDataUseCase()
 
     init {
+        updateState { copy(userData = getUserDataUseCase()) }
         viewModelScope.launch {
             onShowLoading()
             observeRoomDataUseCase().collect { result ->
@@ -43,7 +43,8 @@ class GameMapMpVm @Inject constructor(
                         updateState {
                             copy(
                                 isLoading = false,
-                                roomData = room
+                                roomData = room,
+                                isHost = room.info.hostId == userData.userId
                             )
                         }
 
@@ -75,18 +76,18 @@ class GameMapMpVm @Inject constructor(
             is GameMapMpIntent.UpdateUserLoadPanorama -> {
                 updateState { copy(isSuccessLoadStreetView = intent.status) }
                 updatePlayerData(hashMapOf(
-                    "${userData.userId}/loadPanorama" to intent.status
+                    "${state.value.userData.userId}/loadPanorama" to intent.status
                 ), false)
             }
 
             is GameMapMpIntent.OnBackPressed -> {
-                if (userData.userId == state.value.roomData.info.hostId) {
+                if (state.value.userData.userId == state.value.roomData.info.hostId) {
                     destroyRoom()
                 }else {
                     updatePlayerData(
                         hashMapOf(
-                            "${userData.userId}/online" to false,
-                            "${userData.userId}/loadPanorama" to false
+                            "${state.value.userData.userId}/online" to false,
+                            "${state.value.userData.userId}/loadPanorama" to false
                         ), true
                     )
                 }

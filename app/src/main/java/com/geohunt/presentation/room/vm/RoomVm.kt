@@ -26,9 +26,9 @@ class RoomVm @Inject constructor(
 ): BaseViewModel<RoomIntent, RoomUiState, RoomEffect>(
     initialState = RoomUiState()
 ) {
-    var userData = getUserDataUseCase()
 
     init {
+        updateState { copy(userData = getUserDataUseCase()) }
         viewModelScope.launch {
             onShowLoading()
             observeRoomDataUseCase().collect { result ->
@@ -40,8 +40,18 @@ class RoomVm @Inject constructor(
                             copy(
                                 isLoading = false,
                                 error = null,
-                                room = room
+                                room = room,
+                                isReady = room.players.find { it.uid == userData.userId }?.ready ?: false,
+                                isHost = userData.userId == room.info.hostId
                             )
+                        }
+
+                        val onlineCount = state.value.room.players.count { it.online }
+                        state.value.room.rounds.lastOrNull()?.let {
+                            if (it.status == "loading" && onlineCount == 1) {
+                                sendEffect(RoomEffect.ShowToast("Not enough players, stopping..."))
+                                sendEffect(RoomEffect.OnBack)
+                            }
                         }
                     }
                     result.isFailure -> {
@@ -54,9 +64,6 @@ class RoomVm @Inject constructor(
 
     override suspend fun handleIntent(intent: RoomIntent) {
         when(intent) {
-            is RoomIntent.LoadRoomData -> {
-                loadRoom()
-            }
             is RoomIntent.OnStartGame -> {
                 sendEffect(RoomEffect.StartGame)
 //                val validationResult = multiplayerValidationUseCase(state.value.room)
@@ -72,50 +79,44 @@ class RoomVm @Inject constructor(
             is RoomIntent.OnPlayerReady -> {
                 Timber.d("onready ${intent.isReady}")
                 val players = hashMapOf<String, Any>()
-                players["${userData.userId}/ready"] = intent.isReady
+                players["${state.value.userData.userId}/ready"] = intent.isReady
                 updatePlayer(players, false)
             }
 
             is RoomIntent.OnBack -> {
-                if (userData.userId == state.value.room.info.hostId) {
+                if (state.value.isHost) {
                     removeRoom()
                 }else {
-                    updatePlayer(hashMapOf("${userData.userId}/ready" to false), true)
+                    updatePlayer(hashMapOf("${state.value.userData.userId}/ready" to false), true)
                 }
             }
         }
     }
 
     private fun updatePlayer(hashMap: HashMap<String, Any>, isBack: Boolean) {
+        if (isBack){
+            updateState { copy(isLoadingBack = true) }
+        }else {
+            updateState { copy(isLoadingReady = true) }
+        }
         launchWithResult(
             showLoading = false,
             request = { updatePlayerUseCase(hashMap) },
             onSuccess = {
-                if (isBack) sendEffect(RoomEffect.OnBack)
-            },
-            onError = {
-                sendEffect(RoomEffect.ShowToast(it.message ?: "Something went wrong"))
-            }
-        )
-    }
-
-
-    private fun loadRoom() {
-        launchWithFlow(
-            request = { observeRoomDataUseCase() },
-            onError = {
-                onHandleErrorMessage(it.message ?: "Something went wrong")
-                sendEffect(RoomEffect.OnBack)
-            },
-            onSuccess = { roomData ->
-                val onlineCount = roomData.players.count { it.online }
-                updateState { copy(isLoading = false, error = null, room = roomData) }
-                state.value.room.rounds.lastOrNull()?.let {
-                    if (it.status == "loading" && onlineCount == 1) {
-                        sendEffect(RoomEffect.ShowToast("Not enough players, stopping..."))
-                        sendEffect(RoomEffect.OnBack)
-                    }
+                if (isBack) {
+                    updateState { copy(isLoadingBack = false) }
+                    sendEffect(RoomEffect.OnBack)
+                }else {
+                    updateState { copy(isLoadingReady = false) }
                 }
+            },
+            onError = {
+                if (isBack) {
+                    updateState { copy(isLoadingBack = false) }
+                }else {
+                    updateState { copy(isLoadingReady = false) }
+                }
+                sendEffect(RoomEffect.ShowToast(it.message ?: "Something went wrong"))
             }
         )
     }
