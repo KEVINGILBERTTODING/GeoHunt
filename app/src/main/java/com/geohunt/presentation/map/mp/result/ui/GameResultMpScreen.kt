@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
@@ -27,7 +28,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -48,7 +48,6 @@ import com.geohunt.core.contract.MultiPlayerIntent
 import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.navigation.Screen
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
-import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.GrayE0
@@ -56,8 +55,9 @@ import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
 import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
-import com.geohunt.presentation.map.mp.result.component.GameResultMpIntent
-import com.geohunt.presentation.map.mp.result.component.GameResultMpUiState
+import com.geohunt.presentation.map.mp.result.component.ItemGameHistoryMp
+import com.geohunt.presentation.map.mp.result.contract.GameResultMpIntent
+import com.geohunt.presentation.map.mp.result.contract.GameResultMpUiState
 import com.geohunt.presentation.map.mp.result.vm.GameResultMpVm
 import com.google.maps.android.compose.GoogleMap
 
@@ -75,12 +75,6 @@ fun GameResultMpScreen(
     val context = LocalContext.current
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
-
-
-    // EVENT
-    LaunchedEffect(Unit) {
-    }
-
 
 
 
@@ -200,6 +194,9 @@ fun GameResultMpContent(uiState: GameResultMpUiState, mpUiState: MultiPlayerUiSt
                         gameResultIntent : (GameResultMpIntent) -> Unit,
                         mpIntent : (MultiPlayerIntent) -> Unit,
                         ) {
+    val answer = uiState.room.rounds.last().answers.find {
+        it.uid == uiState.userData.userId }
+
     Box(
         modifier = Modifier
             .background(White)
@@ -220,7 +217,7 @@ fun GameResultMpContent(uiState: GameResultMpUiState, mpUiState: MultiPlayerUiSt
                                     color = Green41B,
                                 )
                             ) {
-//                                        append("+${pointState.intValue}")
+                                        append("+${answer?.point ?: 0}")
                             }
                             withStyle(
                                 style = SpanStyle(
@@ -235,40 +232,6 @@ fun GameResultMpContent(uiState: GameResultMpUiState, mpUiState: MultiPlayerUiSt
                         }
                 )
                 Spacer(Modifier.height(10.dp))
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = GrayE0,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(12.dp)) {
-                        Row(Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(
-                                text = stringResource(R.string.total_points),
-                                fontSize = 12.sp,
-                                fontFamily = Poppins,
-                                color = Black1212,
-                                textAlign = TextAlign.Start,
-                                fontWeight = FontWeight.Normal,
-                            )
-                            Spacer(Modifier.width(20.dp))
-                            Text(
-                                text = uiState.room.rounds.size.toString(),
-                                fontSize = 14.sp,
-                                fontFamily = Poppins,
-                                color = Black1212,
-                                textAlign = TextAlign.End,
-                                fontWeight = FontWeight.Medium,
-                            )
-                        }
-
-                    }
-                }
-
-                Spacer(Modifier.height(22.dp))
 
                 Text(
                     modifier = Modifier.fillMaxWidth(),
@@ -281,49 +244,16 @@ fun GameResultMpContent(uiState: GameResultMpUiState, mpUiState: MultiPlayerUiSt
                 Spacer(Modifier.height(10.dp))
             }
 
-
-//                    items(gameHistory.asReversed()) { item ->
-//                        ItemGameHistorySinglePlayer(item.no, item) {
-//                            pointState.intValue = item.point
-//                           resultVm.changeMarkerStateEvent(item.trueLocation, item.guessedLocation)
-//                        }
-//                        Spacer(Modifier.height(15.dp))
-//                    }
-
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(bottom = 25.dp, end = 16.dp, start = 16.dp)
-        ) {
-            Box(Modifier.weight(1f)) {
-                CustomButton(
-                    androidx.compose.ui.graphics.Color.White, 14.sp, Black1212,
-                    FontWeight.Medium, Black1212, stringResource(R.string.home), {
-//                                resultVm.navigateToHome()
-                    })
+            items(uiState.room.rounds.last().answers
+                .sortedByDescending { it.point }.map { it }) { item ->
+                ItemGameHistoryMp(item, uiState.room)
+                Spacer(Modifier.height(15.dp))
             }
 
-            Box(Modifier.weight(1f)) {
-                CustomButton(
-                    Green41B, 14.sp, Black1212,
-                    FontWeight.Medium, androidx.compose.ui.graphics.Color.White, stringResource(R.string.next), {
-//                                resultVm.nextRound()
-                    })
-            }
         }
     }
 }
 
-private fun navigateToHome(navController: NavController) {
-    navController.navigate(Screen.HomeScreen.route) {
-        popUpTo(Screen.GameResultSinglePlayerScreen.route) {
-            inclusive = true
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

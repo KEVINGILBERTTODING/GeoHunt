@@ -8,10 +8,9 @@ import com.geohunt.domain.usecase.GetUserDataUseCase
 import com.geohunt.domain.usecase.MultiplayerValidationUseCase
 import com.geohunt.domain.usecase.ObserveRoomDataUseCase
 import com.geohunt.domain.usecase.UpdatePlayerUseCase
-import com.geohunt.presentation.map.mp.result.component.GameResultMpEffect
-import com.geohunt.presentation.map.mp.result.component.GameResultMpIntent
-import com.geohunt.presentation.map.mp.result.component.GameResultMpUiState
-import com.geohunt.presentation.room.contract.RoomEffect
+import com.geohunt.presentation.map.mp.result.contract.GameResultMpEffect
+import com.geohunt.presentation.map.mp.result.contract.GameResultMpIntent
+import com.geohunt.presentation.map.mp.result.contract.GameResultMpUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject

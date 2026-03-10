@@ -1,4 +1,4 @@
-package com.geohunt.presentation.map.singlePlayer.result.component
+package com.geohunt.presentation.map.mp.result.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,21 +31,23 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
 import com.geohunt.R
 import com.geohunt.core.extension.toPrettierDistanceString
 import com.geohunt.core.ui.theme.Black1212
-import com.geohunt.core.ui.theme.BlueE6
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.GrayE0
 import com.geohunt.core.ui.theme.Green41B
-import com.geohunt.core.ui.theme.Orange
 import com.geohunt.core.ui.theme.Poppins
-import com.geohunt.domain.model.GameHistorySinglePlayer
+import com.geohunt.domain.model.Answer
+import com.geohunt.domain.model.Room
 
 @Composable
-fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistorySinglePlayer,
-                                onClick: (gameHistorySinglePlayer: GameHistorySinglePlayer) -> Unit) {
+fun ItemGameHistoryMp(answers: Answer, roomData: Room) {
+    val round = roomData.rounds.lastOrNull()
+    val player = roomData.players.find { it.uid == answers.uid }
+    val lat = answers.lat.toDoubleOrNull()?.let { "%.6f".format(it) } ?: "0.0"
+    val lng = answers.lng.toDoubleOrNull()?.let { "%.6f".format(it) } ?: "0.0"
+
     Box(modifier = Modifier
         .fillMaxWidth()
         .border(
@@ -58,7 +60,7 @@ fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistory
             Row(Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    text = "Round $index",
+                    text = player?.username ?: "-",
                     fontSize = 12.sp,
                     fontFamily = Poppins,
                     color = Black1212,
@@ -76,7 +78,7 @@ fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistory
                                 color = Green41B
                             )
                         ) {
-                            append("+${gameHistorySinglePlayer.point}")
+                            append("+${answers.point}")
                         }
                         withStyle(
                             style = SpanStyle(
@@ -86,7 +88,7 @@ fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistory
                                 color = Black1212
                             )
                         ) {
-                            append(" . ${gameHistorySinglePlayer.distance.toPrettierDistanceString()}")
+                            append(" . ${answers.distance.toPrettierDistanceString()}")
                         }
                     },
                     fontFamily = Poppins,
@@ -111,12 +113,12 @@ fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistory
                     Image(
                         modifier = Modifier.size(24.dp),
                         painter = painterResource(R.drawable.ic_marker),
-                        colorFilter = ColorFilter.tint(BlueE6),
+                        colorFilter = ColorFilter.tint(Color(player?.playerColor ?: 0)),
                         contentDescription = ""
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = "${gameHistorySinglePlayer.trueLocation.first}, ${gameHistorySinglePlayer.trueLocation.second}",
+                        text = "$lat, $lng",
                         fontSize = 12.sp,
                         fontFamily = Poppins,
                         color = Black1212,
@@ -125,21 +127,10 @@ fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistory
                     )
                 }
                 Row(Modifier.fillMaxWidth()) {
-                    Box(Modifier.width(24.dp)) {
-                        Box(Modifier.align(Alignment.Center)) {
-                            DashedVerticalLine(
-                                color = GrayE0,
-                                dashHeight = 8f,
-                                gapHeight = 7f,
-                                lineHeight = 30.dp,
-                                lineWidth = 2.dp
-                            )
-                        }
-                    }
-                    Spacer(Modifier.width(10.dp))
+                    Spacer(Modifier.width(34.dp))
                     Box(Modifier.align(Alignment.CenterVertically)
                         .clickable(onClick = {
-                            onClick(gameHistorySinglePlayer)
+
                         })) {
                         Text(
                             text = stringResource(R.string.show_map),
@@ -150,23 +141,6 @@ fun ItemGameHistorySinglePlayer(index: Int, gameHistorySinglePlayer: GameHistory
                             fontWeight = FontWeight.Normal,
                         )
                     }
-                }
-                Row(Modifier.fillMaxWidth()) {
-                    Image(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(R.drawable.ic_marker),
-                        colorFilter = ColorFilter.tint(Orange),
-                        contentDescription = ""
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "${gameHistorySinglePlayer.guessedLocation.first}, ${gameHistorySinglePlayer.guessedLocation.second}",
-                        fontSize = 12.sp,
-                        fontFamily = Poppins,
-                        color = Black1212,
-                        textAlign = TextAlign.Start,
-                        fontWeight = FontWeight.Normal,
-                    )
                 }
             }
         }

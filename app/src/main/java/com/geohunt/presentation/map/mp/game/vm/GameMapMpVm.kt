@@ -52,11 +52,11 @@ class GameMapMpVm @Inject constructor(
                             )
                         }
 
-//                        checkMinimumPlayerUseCase.invoke(room)
-//                            .onFailure {
-//                                sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
-//                                sendEffect(GameMapMpEffect.OnTimeUp)
-//                            }
+                        checkMinimumPlayerUseCase.invoke(room)
+                            .onFailure {
+                                sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
+                                sendEffect(GameMapMpEffect.OnTimeUp)
+                            }
 
 
                         if (state.value.roomData.rounds.lastOrNull()?.status == "success") {

@@ -1,4 +1,4 @@
-package com.geohunt.presentation.map.mp.result.component
+package com.geohunt.presentation.map.mp.result.contract
 
 import com.geohunt.core.base.MviEffect
 import com.geohunt.core.base.MviIntent
