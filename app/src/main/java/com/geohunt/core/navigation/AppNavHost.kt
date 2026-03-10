@@ -18,6 +18,7 @@ import com.geohunt.presentation.room.ui.RoomScreen
 import com.geohunt.presentation.home.ui.HomeScreen
 import com.geohunt.presentation.loadingScreen.singlePlayer.ui.LoadingSinglePlayerScreen
 import com.geohunt.presentation.map.mp.game.ui.GameMapMpScreen
+import com.geohunt.presentation.map.mp.result.ui.GameResultMpScreen
 import com.geohunt.presentation.map.singlePlayer.game.ui.GameMapSinglePlayerScreen
 import com.geohunt.presentation.map.singlePlayer.result.ui.GameResultSingleScreen
 import com.geohunt.presentation.splashScreen.ui.SplashScreen
@@ -79,7 +80,25 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                             inclusive = true
                         }
                     }
+                }, {
+                    navController.navigate(Screen.GameResultMpScreen.route)
                 })
+            }
+            composable(Screen.GameResultMpScreen.route) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(Screen.HomeGraph.route)
+                }
+                val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
+                GameResultMpScreen({
+                    navController.navigate(Screen.HomeScreen.route) {
+                        popUpTo(Screen.GameMapMpScreen.route) {
+                            inclusive = true
+                        }
+                    }
+                }, {
+                    navController.navigate(Screen.GameMapMpScreen.route)
+                }, multiPlayerVm)
+
             }
         }
 

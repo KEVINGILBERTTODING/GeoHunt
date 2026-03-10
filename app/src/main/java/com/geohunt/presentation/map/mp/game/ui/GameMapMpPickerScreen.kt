@@ -36,8 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
 import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.extension.bitmapDescriptorFromVector
@@ -48,11 +46,8 @@ import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Orange
-import com.geohunt.presentation.map.mp.game.contract.GameMapMpPickerIntent
-import com.geohunt.presentation.map.mp.game.contract.GameMapMpPickerUiState
+import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpUiState
-import com.geohunt.presentation.map.mp.game.vm.GameMapMpPickerVm
-import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
@@ -61,23 +56,21 @@ import com.google.maps.android.compose.MarkerState
 
 @Composable
 fun GameMapMpPickerScreen(
-    viewModel: GameMapMpPickerVm = hiltViewModel(),
     gameMapState: GameMapMpUiState,
     mpUiState: MultiPlayerUiState,
+    onIntent: (GameMapMpIntent) -> Unit,
     onDismiss: () -> Unit) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
-    ContentScreen(uiState, mpUiState,gameMapState, { onDismiss() }, {
-        viewModel.onIntent(it)
+    ContentScreen(gameMapState, mpUiState, { onDismiss() }, {
+        onIntent(it)
     })
 }
 
 @SuppressLint("DefaultLocale")
 @Composable
-private fun ContentScreen(uiState: GameMapMpPickerUiState,
+private fun ContentScreen(uiState: GameMapMpUiState,
                           mpUiState: MultiPlayerUiState,
-                          gameMapMpUiState: GameMapMpUiState,
                           onDismiss: () -> Unit,
-                          onIntent: (GameMapMpPickerIntent) -> Unit) {
+                          onIntent: (GameMapMpIntent) -> Unit) {
     val textLatLng = if (uiState.latLng == null) {
         stringResource(R.string.tap_on_the_map_to_choose)
     }else {
@@ -98,8 +91,8 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
             mapToolbarEnabled = false
         )
     }
-    val markerColor = gameMapMpUiState.roomData.players.find {
-        it.uid == gameMapMpUiState.userData.userId }?.playerColor ?: Orange.toArgb()
+    val markerColor = uiState.roomData.players.find {
+        it.uid == uiState.userData.userId }?.playerColor ?: Orange.toArgb()
 
     BackHandler {
         onDismiss()
@@ -109,7 +102,7 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
         if (isUserHasSelectedLocation.not()) {
             Color.Gray
         }else {
-            if (uiState.isSuccessSubmit) Color.Gray
+            if (uiState.isSubmit) Color.Gray
             else Green41B
         }
     }
@@ -117,7 +110,7 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
 
     val textButton = if (uiState.isLoadingSubmit) stringResource(R.string.loading_game)
     else {
-        if (uiState.isSuccessSubmit) stringResource(R.string.lock_in)
+        if (uiState.isSubmit) stringResource(R.string.lock_in)
         else stringResource(R.string.confirm)
     }
 
@@ -127,8 +120,8 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = uiState.cameraPositionState,
             onMapClick = { latLng ->
-                if (uiState.isSuccessSubmit.not()) {
-                    onIntent(GameMapMpPickerIntent.OnSaveLatLng(latLng))
+                if (uiState.isSubmit.not()) {
+                    onIntent(GameMapMpIntent.OnSaveLatLng(latLng))
                     isShowBottomContainer = true
                 }
             }
@@ -222,9 +215,8 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
                                     buttonColor, 14.sp, Black1212,
                                     FontWeight.Medium, Color.White, textButton, {
                                         if (isUserHasSelectedLocation && uiState.isLoadingSubmit.not()
-                                            && uiState.isSuccessSubmit.not()) {
-                                            onIntent(GameMapMpPickerIntent.OnSubmitAnswer(
-                                                mpUiState.trueLocPair, mpUiState.currentRound))
+                                            && uiState.isSubmit.not()) {
+                                            onIntent(GameMapMpIntent.OnSubmitState)
                                         }
                                     })
                             }
@@ -245,8 +237,8 @@ private fun ContentScreen(uiState: GameMapMpPickerUiState,
 @Composable
 fun GameMapPickerPreview() {
     GeoHuntTheme {
-        ContentScreen(GameMapMpPickerUiState(),
-            MultiPlayerUiState(), GameMapMpUiState(),
+        ContentScreen(GameMapMpUiState(),
+            MultiPlayerUiState(),
             {}, {})
     }
 }

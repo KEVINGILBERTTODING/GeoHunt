@@ -2,10 +2,14 @@ package com.geohunt.presentation.map.mp.game.vm
 
 import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
+import com.geohunt.data.dto.room.RoomAnswersDto
+import com.geohunt.domain.usecase.CalculatePointUseCase
 import com.geohunt.domain.usecase.CheckMinimumPlayerUseCase
+import com.geohunt.domain.usecase.CountDistanceUseCase
 import com.geohunt.domain.usecase.DeleteRoomUseCase
 import com.geohunt.domain.usecase.GetUserDataUseCase
 import com.geohunt.domain.usecase.ObserveRoomDataUseCase
+import com.geohunt.domain.usecase.StoreAnswerUseCase
 import com.geohunt.domain.usecase.UpdatePlayerUseCase
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpEffect
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
@@ -23,7 +27,10 @@ class GameMapMpVm @Inject constructor(
     private val getUserDataUseCase: GetUserDataUseCase,
     private val observeRoomDataUseCase: ObserveRoomDataUseCase,
     private val removeRoomUseCase: DeleteRoomUseCase,
-    private val checkMinimumPlayerUseCase: CheckMinimumPlayerUseCase
+    private val checkMinimumPlayerUseCase: CheckMinimumPlayerUseCase,
+    private val storeAnswerUseCase: StoreAnswerUseCase,
+    private val calculatePointUseCase: CalculatePointUseCase,
+    private val countDistanceUseCase: CountDistanceUseCase,
 ): BaseViewModel<GameMapMpIntent, GameMapMpUiState, GameMapMpEffect>(
     initialState = GameMapMpUiState()
 ) {
@@ -45,23 +52,26 @@ class GameMapMpVm @Inject constructor(
                             )
                         }
 
-                        checkMinimumPlayerUseCase.invoke(room)
-                            .onFailure {
-                                sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
-                                sendEffect(GameMapMpEffect.OnTimeUp)
-                            }
+//                        checkMinimumPlayerUseCase.invoke(room)
+//                            .onFailure {
+//                                sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
+//                                sendEffect(GameMapMpEffect.OnTimeUp)
+//                            }
 
 
                         if (state.value.roomData.rounds.lastOrNull()?.status == "success") {
+                            updateState { copy(
+                                gameMapMpState = GameMapState.Ready
+                            ) }
                             if (room.players.any { !it.loadPanorama && it.online}) {
                                 updateState { copy(
                                     gameMapMpState = GameMapState.WaitingPlayer
                                 ) }
                             }else {
-                                updateState { copy(
-                                    gameMapMpState = GameMapState.Ready
-                                ) }
-                                onIntent(GameMapMpIntent.OnStartTime)
+                                if (!state.value.isRoundStarted) {
+                                    updateState { copy(isRoundStarted = true) }
+                                    onIntent(GameMapMpIntent.OnStartTime)
+                                }
                             }
                         }else {
                             updateState { copy(gameMapMpState = GameMapState.LoadingStreetView) }
@@ -102,6 +112,20 @@ class GameMapMpVm @Inject constructor(
             is GameMapMpIntent.OnStartTime -> {
                 startTimer()
             }
+
+            is GameMapMpIntent.OnSaveCameraPosState -> {
+                updateState { copy(cameraPositionState = intent.cameraState) }
+            }
+            is GameMapMpIntent.OnSaveLatLng -> {
+                updateState { copy(latLng = intent.latLng) }
+            }
+            is GameMapMpIntent.OnSubmitAnswer -> {
+                storeAnswer(intent.trueLoc)
+            }
+
+            is GameMapMpIntent.OnSubmitState -> {
+                updateState { copy(isSubmit = true) }
+            }
         }
     }
 
@@ -115,6 +139,31 @@ class GameMapMpVm @Inject constructor(
             onError = {
                 sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
                 sendEffect(GameMapMpEffect.OnBack)
+            }
+        )
+    }
+
+    fun storeAnswer(trueLoc: Pair<String, String>) {
+        val guessedLoc = (state.value.latLng?.latitude ?: 0.0).toString() to
+                (state.value.latLng?.longitude ?: 0.0).toString()
+        val distance = countDistanceUseCase(trueLoc, guessedLoc)
+        val answer = RoomAnswersDto(
+            uid = state.value.userData.userId,
+            lat = guessedLoc.first,
+            lng = guessedLoc.second,
+            distance = distance,
+            point = calculatePointUseCase(distance)
+        )
+        launchWithResult(
+            showLoading = false,
+            request = { storeAnswerUseCase(answer, state.value.roomData.rounds.size, state.value.userData.userId) },
+            onSuccess = {
+                updateState { copy(isLoadingSubmit = false) }
+                sendEffect(GameMapMpEffect.OnNavigateToResult)
+            },
+            onError = {
+                updateState { copy(isLoadingSubmit = false) }
+                sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
             }
         )
     }

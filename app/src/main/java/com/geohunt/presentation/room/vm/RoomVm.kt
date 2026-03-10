@@ -48,15 +48,15 @@ class RoomVm @Inject constructor(
                             )
                         }
 
-                        state.value.room.rounds.lastOrNull()?.let {
-                            if (it.status == "loading") {
-                                checkMinimumPlayerUseCase.invoke(room)
-                                    .onFailure {
-                                        sendEffect(RoomEffect.ShowToast("Not enough players, stopping..."))
-                                        sendEffect(RoomEffect.OnBack)
-                                    }
-                            }
-                        }
+//                        state.value.room.rounds.lastOrNull()?.let {
+//                            if (it.status == "loading") {
+//                                checkMinimumPlayerUseCase.invoke(room)
+//                                    .onFailure {
+//                                        sendEffect(RoomEffect.ShowToast("Not enough players, stopping..."))
+//                                        sendEffect(RoomEffect.OnBack)
+//                                    }
+//                            }
+//                        }
                     }
                     result.isFailure -> {
                         onHandleErrorMessage(result.exceptionOrNull()?.message ?: "Something went wrong")
@@ -69,14 +69,16 @@ class RoomVm @Inject constructor(
     override suspend fun handleIntent(intent: RoomIntent) {
         when(intent) {
             is RoomIntent.OnStartGame -> {
-                val validationResult = multiplayerValidationUseCase(state.value.room)
-                validationResult
-                    .onSuccess {
-                        sendEffect(RoomEffect.StartGame)
-                    }
-                    .onFailure {
-                        sendEffect(RoomEffect.ShowToast(it.message ?: "Something went wrong"))
-                    }
+                sendEffect(RoomEffect.StartGame)
+
+//                val validationResult = multiplayerValidationUseCase(state.value.room)
+//                validationResult
+//                    .onSuccess {
+//                        sendEffect(RoomEffect.StartGame)
+//                    }
+//                    .onFailure {
+//                        sendEffect(RoomEffect.ShowToast(it.message ?: "Something went wrong"))
+//                    }
             }
 
             is RoomIntent.OnPlayerReady -> {

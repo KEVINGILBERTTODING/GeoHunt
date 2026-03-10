@@ -49,8 +49,8 @@ import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
 import com.geohunt.presentation.map.mp.game.component.TimeContainer
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpEffect
 import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent
+import com.geohunt.presentation.map.mp.game.contract.GameMapMpIntent.*
 import com.geohunt.presentation.map.mp.game.contract.GameMapState
-import com.geohunt.presentation.map.mp.game.vm.GameMapMpPickerVm
 import com.geohunt.presentation.map.mp.game.vm.GameMapMpVm
 import com.geohunt.presentation.waiting.mp.ui.WaitingPlayerScreen
 
@@ -58,8 +58,8 @@ import com.geohunt.presentation.waiting.mp.ui.WaitingPlayerScreen
 fun GameMapMpScreen(
     multiPlayerVm: MultiPlayerVm,
     onBackToHome: () -> Unit,
+    onNavigateToResult: () -> Unit,
     vm: GameMapMpVm = hiltViewModel(),
-    mapPickerVm: GameMapMpPickerVm = hiltViewModel()
 ) {
     var isPageLoaded by remember { mutableStateOf(false) }
     var showMapPicker by remember { mutableStateOf(false) }
@@ -72,6 +72,7 @@ fun GameMapMpScreen(
     else {
         stringResource(R.string.return_to_home)
     }
+    val roundData = uiState.roomData.rounds.last()
 
     // EFFECT
     LaunchedEffect(Unit) {
@@ -84,7 +85,12 @@ fun GameMapMpScreen(
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
                 is GameMapMpEffect.OnTimeUp -> {
+                    vm.onIntent(OnSubmitAnswer(
+                        roundData.trueLat to roundData.trueLng))
+                }
 
+                is GameMapMpEffect.OnNavigateToResult -> {
+                    onNavigateToResult()
                 }
             }
         }
@@ -211,9 +217,11 @@ fun GameMapMpScreen(
             exit = slideOutVertically { it } + fadeOut()
         ) {
             GameMapMpPickerScreen(
-                mapPickerVm,
                 uiState,
                 mpState,
+                {
+                    vm.onIntent(it)
+                },
                 onDismiss = {
                     showMapPicker = !showMapPicker
                 }
