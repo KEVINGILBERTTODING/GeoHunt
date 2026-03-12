@@ -12,8 +12,15 @@ class CalculateLeaderBoard @Inject constructor() {
             }
             p to total
         }.sortedByDescending { it.second }
+
+        val allSamePoint = playerPoints.map { it.second }.distinct().size == 1
+
         return playerPoints.mapIndexed { index, (player, point) ->
-            LeaderBoard(player = player, totalPoint = point, rank = index + 1)
+            LeaderBoard(
+                player = player,
+                totalPoint = point,
+                rank = if (allSamePoint) null else index + 1
+            )
         }
     }
 }
