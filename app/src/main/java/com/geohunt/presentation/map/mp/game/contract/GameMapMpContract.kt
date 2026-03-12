@@ -4,6 +4,7 @@ import com.geohunt.core.base.MviEffect
 import com.geohunt.core.base.MviIntent
 import com.geohunt.core.base.MviState
 import com.geohunt.data.dto.user.User
+import com.geohunt.domain.model.Player
 import com.geohunt.domain.model.Room
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState

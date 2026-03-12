@@ -72,7 +72,7 @@ fun GameMapMpScreen(
     else {
         stringResource(R.string.return_to_home)
     }
-    val roundData = uiState.roomData.rounds.last()
+    val roundData = uiState.roomData.rounds.lastOrNull()
 
     // EFFECT
     LaunchedEffect(Unit) {
@@ -86,7 +86,8 @@ fun GameMapMpScreen(
                 }
                 is GameMapMpEffect.OnTimeUp -> {
                     vm.onIntent(OnSubmitAnswer(
-                        roundData.trueLat to roundData.trueLng))
+                        Pair(roundData?.trueLat ?: "0.0",
+                            roundData?.trueLng ?: "0.0")))
                 }
 
                 is GameMapMpEffect.OnNavigateToResult -> {

@@ -38,15 +38,11 @@ import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.GrayE0
 import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
-import com.geohunt.domain.model.Answer
-import com.geohunt.domain.model.Room
+import com.geohunt.domain.model.RoundResult
+import com.geohunt.domain.model.Player
 
 @Composable
-fun ItemGameHistoryMp(answers: Answer, roomData: Room) {
-    val round = roomData.rounds.lastOrNull()
-    val player = roomData.players.find { it.uid == answers.uid }
-    val lat = answers.lat.toDoubleOrNull()?.let { "%.6f".format(it) } ?: "0.0"
-    val lng = answers.lng.toDoubleOrNull()?.let { "%.6f".format(it) } ?: "0.0"
+fun ItemRoundResult(roundResult: RoundResult) {
 
     Box(modifier = Modifier
         .fillMaxWidth()
@@ -60,7 +56,7 @@ fun ItemGameHistoryMp(answers: Answer, roomData: Room) {
             Row(Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    text = player?.username ?: "-",
+                    text = roundResult.player.username,
                     fontSize = 12.sp,
                     fontFamily = Poppins,
                     color = Black1212,
@@ -78,7 +74,7 @@ fun ItemGameHistoryMp(answers: Answer, roomData: Room) {
                                 color = Green41B
                             )
                         ) {
-                            append("+${answers.point}")
+                            append("+${roundResult.point}")
                         }
                         withStyle(
                             style = SpanStyle(
@@ -88,7 +84,7 @@ fun ItemGameHistoryMp(answers: Answer, roomData: Room) {
                                 color = Black1212
                             )
                         ) {
-                            append(" . ${answers.distance.toPrettierDistanceString()}")
+                            append(" . ${roundResult.distance.toPrettierDistanceString()}")
                         }
                     },
                     fontFamily = Poppins,
@@ -113,12 +109,12 @@ fun ItemGameHistoryMp(answers: Answer, roomData: Room) {
                     Image(
                         modifier = Modifier.size(24.dp),
                         painter = painterResource(R.drawable.ic_marker),
-                        colorFilter = ColorFilter.tint(Color(player?.playerColor ?: 0)),
+                        colorFilter = ColorFilter.tint(Color(roundResult.player.playerColor)),
                         contentDescription = ""
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = "$lat, $lng",
+                        text = "${roundResult.lat}, ${roundResult.lng}",
                         fontSize = 12.sp,
                         fontFamily = Poppins,
                         color = Black1212,
@@ -133,7 +129,7 @@ fun ItemGameHistoryMp(answers: Answer, roomData: Room) {
 
                         })) {
                         Text(
-                            text = stringResource(R.string.show_map),
+                            text = stringResource(R.string.show_marker),
                             fontSize = 12.sp,
                             fontFamily = Poppins,
                             color = Green41B,
@@ -151,7 +147,14 @@ fun ItemGameHistoryMp(answers: Answer, roomData: Room) {
 @Preview(showBackground = true)
 @Composable
 fun ItemGameHistorySinglePreview() {
+    val roundResult = RoundResult(
+        player = Player(username = "kevin"),
+        lat = "123.456789",
+        lng = "987.654321",
+        point = 100,
+        distance = 100f
+    )
     GeoHuntTheme {
-
+        ItemRoundResult(roundResult)
     }
 }

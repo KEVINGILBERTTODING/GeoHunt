@@ -55,4 +55,7 @@
     <string name="ready">Ready</string>
     <string name="not_ready">Not Ready</string>
     <string name="lock_in">Lock In</string>
+    <string name="round_result">Round Results</string>
+    <string name="leaderboard">Leaderboard</string>
+    <string name="show_marker">Show Marker</string>
 </resources>

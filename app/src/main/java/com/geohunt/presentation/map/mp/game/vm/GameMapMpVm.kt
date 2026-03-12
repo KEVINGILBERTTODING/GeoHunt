@@ -143,7 +143,7 @@ class GameMapMpVm @Inject constructor(
         )
     }
 
-    fun storeAnswer(trueLoc: Pair<String, String>) {
+    private fun storeAnswer(trueLoc: Pair<String, String>) {
         val guessedLoc = (state.value.latLng?.latitude ?: 0.0).toString() to
                 (state.value.latLng?.longitude ?: 0.0).toString()
         val distance = countDistanceUseCase(trueLoc, guessedLoc)
@@ -201,7 +201,7 @@ class GameMapMpVm @Inject constructor(
         }
     }
 
-    fun destroyRoom() {
+    private fun destroyRoom() {
         updateState { copy(isLoadingBack = true) }
         launchWithResult(
             showLoading = false,

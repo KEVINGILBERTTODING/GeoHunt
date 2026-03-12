@@ -23,7 +23,7 @@ class ColorRepositoryImpl @Inject constructor(): ColorRepository {
         return playerMarkerColors[index].toArgb()
     }
 
-    override fun getTrueLocationColor(index: Int): Int {
+    override fun getTrueLocationColor(): Int {
         return Green41B.toArgb()
     }
 }

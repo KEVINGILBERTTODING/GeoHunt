@@ -2,6 +2,11 @@ package com.geohunt.presentation.map.mp.result.vm
 
 import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
+import com.geohunt.domain.model.RoundResult
+import com.geohunt.domain.model.Player
+import com.geohunt.domain.model.Round
+import com.geohunt.domain.repository.ColorRepository
+import com.geohunt.domain.usecase.CalculateLeaderBoard
 import com.geohunt.domain.usecase.CheckMinimumPlayerUseCase
 import com.geohunt.domain.usecase.DeleteRoomUseCase
 import com.geohunt.domain.usecase.GetUserDataUseCase
@@ -22,7 +27,9 @@ class GameResultMpVm @Inject constructor(
     private val multiplayerValidationUseCase: MultiplayerValidationUseCase,
     private val updatePlayerUseCase: UpdatePlayerUseCase,
     private val removeRoomUseCase: DeleteRoomUseCase,
-    private val checkMinimumPlayerUseCase: CheckMinimumPlayerUseCase
+    private val checkMinimumPlayerUseCase: CheckMinimumPlayerUseCase,
+    private val calculateLeaderBoard: CalculateLeaderBoard,
+    private val colorRepository: ColorRepository
 ):
     BaseViewModel<GameResultMpIntent, GameResultMpUiState, GameResultMpEffect>(
         initialState = GameResultMpUiState()
@@ -41,7 +48,25 @@ class GameResultMpVm @Inject constructor(
                                     isLoading = false,
                                     error = null,
                                     room = room,
-                                    isHost = userData.userId == room.info.hostId
+                                    isHost = userData.userId == room.info.hostId,
+                                    leaderBoardList = calculateLeaderBoard(room),
+                                    point = room.rounds.lastOrNull()?.answers?.find {
+                                        it.uid == state.value.userData.userId }?.point ?: 0,
+                                    answerList = room.rounds.lastOrNull()
+                                        ?.answers?.sortedByDescending { it.point }?.map { it } ?: emptyList(),
+                                    roundResultList = room.rounds.lastOrNull()?.answers
+                                        ?.sortedByDescending { it.point }
+                                        ?.map { answers ->
+                                        RoundResult(
+                                            player = room.players.find { it.uid == answers.uid } ?: Player(),
+                                            lat = answers.lat,
+                                            lng = answers.lng,
+                                            point = answers.point,
+                                            distance = answers.distance
+                                        )
+                                    } ?: emptyList(),
+                                    round = room.rounds.lastOrNull() ?: Round(),
+                                    trueLocColor = colorRepository.getTrueLocationColor()
                                 )
                             }
 
