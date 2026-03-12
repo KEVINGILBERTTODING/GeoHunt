@@ -158,7 +158,7 @@ fun GameResultMpScreen(
                 uiState.roundResultList.forEachIndexed { index, answer ->
                     val guessedLoc = remember(answer.lat, answer.lng) {
                         LatLng(answer.lat.toDoubleOrNull() ?: 0.0,
-                            uiState.round.trueLng.toDoubleOrNull() ?: 0.0)
+                            answer.lng.toDoubleOrNull() ?: 0.0)
                     }
                     Marker(
                         state = remember(guessedLoc) {

@@ -69,8 +69,6 @@ class RoomVm @Inject constructor(
     override suspend fun handleIntent(intent: RoomIntent) {
         when(intent) {
             is RoomIntent.OnStartGame -> {
-                sendEffect(RoomEffect.StartGame)
-
                 val validationResult = multiplayerValidationUseCase(state.value.room)
                 validationResult
                     .onSuccess {
