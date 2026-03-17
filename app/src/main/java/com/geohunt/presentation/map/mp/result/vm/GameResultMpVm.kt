@@ -16,15 +16,17 @@ import com.geohunt.domain.usecase.UpdatePlayerUseCase
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpEffect
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpIntent
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpUiState
+import com.geohunt.presentation.map.mp.result.contract.GameResultState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class GameResultMpVm @Inject constructor(
     private val observeRoomDataUseCase: ObserveRoomDataUseCase,
     private val getUserDataUseCase: GetUserDataUseCase,
-    private val multiplayerValidationUseCase: MultiplayerValidationUseCase,
     private val updatePlayerUseCase: UpdatePlayerUseCase,
     private val removeRoomUseCase: DeleteRoomUseCase,
     private val checkMinimumPlayerUseCase: CheckMinimumPlayerUseCase,
@@ -43,40 +45,56 @@ class GameResultMpVm @Inject constructor(
                     when {
                         result.isSuccess -> {
                             val room = result.getOrThrow()
+                            if (state.value.currentRoundIndex < 0) {
+                                updateState { copy(currentRoundIndex = room.rounds.size - 1) }
+                            }
                             updateState {
                                 copy(
                                     isLoading = false,
                                     error = null,
-                                    room = room,
                                     isHost = userData.userId == room.info.hostId,
                                     leaderBoardList = calculateLeaderBoard(room),
-                                    point = room.rounds.lastOrNull()?.answers?.find {
+                                    point = room.rounds.getOrNull(state.value.currentRoundIndex)?.answers?.find {
                                         it.uid == state.value.userData.userId }?.point ?: 0,
-                                    answerList = room.rounds.lastOrNull()
-                                        ?.answers?.sortedByDescending { it.point }?.map { it } ?: emptyList(),
-                                    roundResultList = room.rounds.lastOrNull()?.answers
+                                    answerList = room.rounds.getOrNull(state.value.currentRoundIndex)?.answers?.sortedByDescending { it.point }?.map { it } ?: emptyList(),
+                                    roundResultList = room.rounds.getOrNull(state.value.currentRoundIndex)?.answers
                                         ?.sortedByDescending { it.point }
                                         ?.map { answers ->
-                                        RoundResult(
-                                            player = room.players.find { it.uid == answers.uid } ?: Player(),
-                                            lat = answers.lat,
-                                            lng = answers.lng,
-                                            point = answers.point,
-                                            distance = answers.distance
-                                        )
-                                    } ?: emptyList(),
-                                    round = room.rounds.lastOrNull() ?: Round(),
-                                    trueLocColor = colorRepository.getTrueLocationColor()
+                                            RoundResult(
+                                                player = room.players.find { it.uid == answers.uid } ?: Player(),
+                                                lat = answers.lat,
+                                                lng = answers.lng,
+                                                point = answers.point,
+                                                distance = answers.distance
+                                            )
+                                        } ?: emptyList(),
+                                    round = room.rounds.getOrNull(state.value.currentRoundIndex)?: Round(),
+                                    trueLocColor = colorRepository.getTrueLocationColor(),
+                                    isFinished = room.info.totalRounds == state.value.currentRoundIndex + 1
                                 )
                             }
 
-                            state.value.room.rounds.lastOrNull()?.let {
-                                if (it.status == "loading") {
-                                    checkMinimumPlayerUseCase.invoke(room)
-                                        .onFailure {
-                                            sendEffect(GameResultMpEffect.ShowToast("Not enough players, stopping..."))
-                                            sendEffect(GameResultMpEffect.OnCancelGame)
-                                        }
+                            if(!state.value.isFinished) {
+                                startTimer()
+                            }
+
+                            // observe next round
+                            room.rounds.getOrNull(state.value.currentRoundIndex + 1)?.let {
+                                when(it.status) {
+                                    "loading" -> {
+                                        updateState { copy(gameResultState = GameResultState.Loading) }
+                                        checkMinimumPlayerUseCase.invoke(room)
+                                            .onFailure {
+                                                updateState { copy(gameResultState = GameResultState.Idle) }
+                                                sendEffect(GameResultMpEffect.ShowToast("Not enough players, stopping..."))
+                                            }
+                                    }
+                                    "success" -> {
+                                        sendEffect(GameResultMpEffect.OnNavigateToMap)
+                                    }
+                                    "error" -> {
+                                        updateState { copy(gameResultState = GameResultState.Error) }
+                                    }
                                 }
                             }
                         }
@@ -90,11 +108,84 @@ class GameResultMpVm @Inject constructor(
 
     override suspend fun handleIntent(intent: GameResultMpIntent) {
         when(intent) {
-            GameResultMpIntent.OnBack -> {
-            }
-            GameResultMpIntent.OnStartGame -> {
-
+            GameResultMpIntent.OnBackPressed -> {
+                if (state.value.isHost) {
+                    destroyRoom()
+                }else {
+                    updatePlayerData(
+                        hashMapOf(
+                            "${state.value.userData.userId}/ready" to false,
+                            "${state.value.userData.userId}/online" to false,
+                            "${state.value.userData.userId}/loadPanorama" to false
+                        )
+                    )
+                }
             }
         }
     }
+
+    private fun startTimer() {
+        updateState { copy(endTime =  System.currentTimeMillis()
+                + (15 * 1000L) // 15 second
+        ) }
+
+        viewModelScope.launch {
+            while (System.currentTimeMillis() < state.value.endTime) {
+                val remaining = (state.value.endTime - System.currentTimeMillis()) / 1000
+                updateState { copy(timeLeft = remaining.toInt()) }
+                Timber.d("remaining $remaining")
+                delay(500)
+            }
+            updateState { copy(timeLeft = 0) }
+            if (state.value.isHost) {
+                sendEffect(GameResultMpEffect.OnStartGame)
+            }
+        }
+    }
+
+    override fun onShowLoading() {
+        super.onShowLoading()
+        updateState { copy(isLoading = true) }
+    }
+
+    override fun onHideLoading() {
+        super.onHideLoading()
+        updateState { copy(isLoading = false) }
+    }
+
+    override fun onHandleErrorMessage(message: String) {
+        super.onHandleErrorMessage(message)
+        sendEffect(GameResultMpEffect.ShowToast(message))
+        sendEffect(GameResultMpEffect.OnBack)
+    }
+
+    private fun updatePlayerData(hashMap: HashMap<String, Any>) {
+        launchWithResult(
+            showLoading = false,
+            request = { updatePlayerUseCase(hashMap) },
+            onSuccess = {
+                sendEffect(GameResultMpEffect.OnBack)
+            },
+            onError = {
+                sendEffect(GameResultMpEffect.ShowToast(it.message ?: "Something went wrong"))
+                sendEffect(GameResultMpEffect.OnBack)
+            }
+        )
+    }
+    private fun destroyRoom() {
+        updateState { copy(isLoadingBack = true) }
+        launchWithResult(
+            showLoading = false,
+            request = { removeRoomUseCase() },
+            onSuccess = {
+                updateState { copy(isLoadingBack = false) }
+                sendEffect(GameResultMpEffect.OnBack)
+            },
+            onError = {
+                updateState { copy(isLoadingBack = false) }
+                sendEffect(GameResultMpEffect.ShowToast(it.message ?: "Something went wrong"))
+            }
+        )
+    }
+
 }

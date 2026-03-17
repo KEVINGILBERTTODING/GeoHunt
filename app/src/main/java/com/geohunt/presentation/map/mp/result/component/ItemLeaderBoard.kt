@@ -54,7 +54,8 @@ fun ItemLeaderBoard(leaderBoard: LeaderBoard) {
         1 -> "🥇"
         2 -> "🥈"
         3 -> "🥉"
-        else -> ""
+        null -> ""
+        else -> {"${leaderBoard.rank}"}
     }
 
     Box(Modifier.fillMaxWidth()

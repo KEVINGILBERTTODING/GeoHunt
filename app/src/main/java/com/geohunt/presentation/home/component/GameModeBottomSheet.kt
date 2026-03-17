@@ -75,7 +75,7 @@ fun GameModeBottomSheet(homeVm: HomeVm, onClick: () -> Unit, onDissmiss: () -> U
             Spacer(Modifier.height(20.dp))
 
             homeVm.gameModeState.forEach { it ->
-                TextContainer (Color.White, 14.sp, GreenE6,
+                TextContainer (Color.White, 14.sp, Black1212,
                     FontWeight.Normal, Black1212, it,
                     TextAlign.Start, {
                         homeVm.selectedGameMode = it

@@ -8,12 +8,12 @@ import com.geohunt.domain.model.Answer
 import com.geohunt.domain.model.RoundResult
 import com.geohunt.domain.model.LeaderBoard
 import com.geohunt.domain.model.Room
+import com.geohunt.domain.model.RoomInfo
 import com.geohunt.domain.model.Round
 import com.google.maps.android.compose.CameraPositionState
 
 data class GameResultMpUiState(
     val isLoading: Boolean = false,
-    val room: Room = Room(),
     val error: String? = "",
     val isLoadingStartGame: Boolean = false,
     val isLoadingBack : Boolean = false,
@@ -25,18 +25,28 @@ data class GameResultMpUiState(
     val answerList: List<Answer> = emptyList(),
     val roundResultList: List<RoundResult> = emptyList(),
     val round: Round = Round(),
-    val trueLocColor: Int = 0
+    val trueLocColor: Int = 0,
+    val isFinished: Boolean = false,
+    val currentRoundIndex: Int = -1,
+    val endTime: Long = 0,
+    val timeLeft: Int = 0,
+    val gameResultState: GameResultState = GameResultState.Idle
 ): MviState
 
 sealed class GameResultMpIntent: MviIntent {
-    object OnStartGame : GameResultMpIntent()
-    object OnBack : GameResultMpIntent()
+    object OnBackPressed : GameResultMpIntent()
 }
 
 sealed class GameResultMpEffect: MviEffect {
     data class ShowToast(val message: String): GameResultMpEffect()
-    data class NavigateToGame(val id: String): GameResultMpEffect()
+    object OnNavigateToMap : GameResultMpEffect()
     object OnBack : GameResultMpEffect()
-    object StartGame : GameResultMpEffect()
-    object OnCancelGame : GameResultMpEffect()
+    object OnStartGame : GameResultMpEffect()
+}
+
+sealed class GameResultState() {
+    object Idle : GameResultState()
+    object Loading : GameResultState()
+    object Success : GameResultState()
+    object Error : GameResultState()
 }

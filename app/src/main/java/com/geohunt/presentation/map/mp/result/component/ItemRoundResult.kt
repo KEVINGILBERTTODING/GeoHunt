@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.geohunt.R
+import com.geohunt.core.extension.roundCoord
 import com.geohunt.core.extension.toPrettierDistanceString
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
@@ -43,6 +44,11 @@ import com.geohunt.domain.model.Player
 
 @Composable
 fun ItemRoundResult(roundResult: RoundResult) {
+    val latLng = if (roundResult.lat == "0.0" || roundResult.lng == "0.0") {
+        stringResource(R.string.no_location_selected)
+    } else {
+        "${roundResult.lat.roundCoord()}, ${roundResult.lng.roundCoord()}"
+    }
 
     Box(modifier = Modifier
         .fillMaxWidth()
@@ -114,7 +120,7 @@ fun ItemRoundResult(roundResult: RoundResult) {
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = "${roundResult.lat}, ${roundResult.lng}",
+                        text = latLng,
                         fontSize = 12.sp,
                         fontFamily = Poppins,
                         color = Black1212,
@@ -149,8 +155,8 @@ fun ItemRoundResult(roundResult: RoundResult) {
 fun ItemGameHistorySinglePreview() {
     val roundResult = RoundResult(
         player = Player(username = "kevin"),
-        lat = "123.456789",
-        lng = "987.654321",
+        lat = "12121212",
+        lng = "121728323231",
         point = 100,
         distance = 100f
     )

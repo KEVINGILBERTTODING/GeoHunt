@@ -12,6 +12,9 @@ class CountDistanceUseCase @Inject constructor() {
         val guessedLng = guessedLocation.second.toDouble()
 
         val result = FloatArray(1)
+        if (guessedLat == 0.0 || guessedLng == 0.0) {
+            return 0f
+        }
         Location.distanceBetween(trueLocLat, trueLng,
             guessedLat, guessedLng, result)
 

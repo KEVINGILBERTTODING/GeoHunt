@@ -8,6 +8,9 @@ import kotlin.random.Random
 
 class CalculatePointUseCase @Inject constructor() {
     operator fun invoke(distanceInMeters: Float, radius: Float = 100f): Int {
+        if (distanceInMeters == 0f) {
+            return 0
+        }
         val maxScore = 5000
         val baseDistance = 2000f // "Zona Nyaman": Jarak 2km skor masih terasa besar
 

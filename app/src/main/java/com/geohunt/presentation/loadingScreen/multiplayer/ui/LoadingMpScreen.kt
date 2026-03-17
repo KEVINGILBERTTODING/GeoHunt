@@ -5,10 +5,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,23 +36,26 @@ import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
+import com.geohunt.presentation.loadingScreen.multiplayer.contract.LoadingMpUiState
 import com.geohunt.presentation.loadingScreen.multiplayer.vm.LoadingMpVm
 
 @Composable
 fun LoadingMpScreen(
     vm: LoadingMpVm = hiltViewModel()
 ){
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.loading)
-    )
-
-    val state by vm.state.collectAsStateWithLifecycle()
-
-
+    val uiState by vm.state.collectAsStateWithLifecycle()
     BackHandler {
 
     }
+    Content(uiState)
 
+
+}
+@Composable
+private fun Content(uiState: LoadingMpUiState) {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.loading)
+    )
     Box(Modifier.fillMaxSize().background(White)) {
         Column(
             verticalArrangement = Arrangement.Bottom,
@@ -68,7 +74,7 @@ fun LoadingMpScreen(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .fillMaxWidth(),
-                    text = state.loadingMsg,
+                    text = uiState.loadingMsg,
                     textAlign = TextAlign.Center,
                     fontSize = 12.sp,
                     fontFamily = Poppins,
@@ -79,20 +85,20 @@ fun LoadingMpScreen(
 
             Box(
                 Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 20.dp)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
                 CustomTextField(true, stringResource(R.string.tips_game), Color.White,
                     14.sp, true, Black1212, Black1212,
-                    Black1212, 10.sp, state.tipsMsg, false, 3)
+                    Black1212, 10.sp, uiState.tipsMsg, false, 3)
             }
 
         }
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun LoadingSinglePlayerPreview() {
     GeoHuntTheme {
-        LoadingMpScreen()
+        Content(LoadingMpUiState(tipsMsg = "test", loadingMsg = "test"))
     }
 }

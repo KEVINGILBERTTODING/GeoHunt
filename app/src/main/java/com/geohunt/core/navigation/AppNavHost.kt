@@ -66,7 +66,11 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 RoomScreen({
                     navController.popBackStack()
                 }, multiPlayerVm, {
-                    navController.navigate(Screen.GameMapMpScreen.route)
+                    navController.navigate(Screen.GameMapMpScreen.route) {
+                        popUpTo(Screen.RoomScreen.route) {
+                            inclusive = true
+                        }
+                    }
                 })
             }
             composable(Screen.GameMapMpScreen.route) { backStackEntry ->
@@ -75,13 +79,13 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 }
                 val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
                 GameMapMpScreen(multiPlayerVm, {
-                    navController.navigate(Screen.HomeScreen.route) {
+                    navController.popBackStack()
+                }, {
+                    navController.navigate(Screen.GameResultMpScreen.route) {
                         popUpTo(Screen.GameMapMpScreen.route) {
                             inclusive = true
                         }
                     }
-                }, {
-                    navController.navigate(Screen.GameResultMpScreen.route)
                 })
             }
             composable(Screen.GameResultMpScreen.route) { backStackEntry ->
@@ -90,13 +94,13 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 }
                 val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
                 GameResultMpScreen({
-                    navController.navigate(Screen.HomeScreen.route) {
-                        popUpTo(Screen.GameMapMpScreen.route) {
+                    navController.popBackStack()
+                }, {
+                    navController.navigate(Screen.GameMapMpScreen.route){
+                        popUpTo(Screen.GameResultMpScreen.route) {
                             inclusive = true
                         }
                     }
-                }, {
-                    navController.navigate(Screen.GameMapMpScreen.route)
                 }, multiPlayerVm)
 
             }

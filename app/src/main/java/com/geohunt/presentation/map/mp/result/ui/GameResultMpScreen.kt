@@ -1,10 +1,15 @@
 package com.geohunt.presentation.map.mp.result.ui
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -47,11 +53,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.geohunt.R
+import com.geohunt.core.contract.MultiPlayerEffect
 import com.geohunt.core.contract.MultiPlayerIntent
+import com.geohunt.core.contract.MultiPlayerIntent.OnStartGame
 import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.extension.bitmapDescriptorFromVector
 import com.geohunt.core.navigation.Screen
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
+import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.GrayE0
@@ -59,16 +68,16 @@ import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
 import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
-import com.geohunt.domain.model.Answer
 import com.geohunt.domain.model.LeaderBoard
 import com.geohunt.domain.model.Player
-import com.geohunt.domain.model.Room
-import com.geohunt.domain.model.Round
 import com.geohunt.domain.model.RoundResult
+import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
 import com.geohunt.presentation.map.mp.result.component.ItemLeaderBoard
 import com.geohunt.presentation.map.mp.result.component.ItemRoundResult
+import com.geohunt.presentation.map.mp.result.contract.GameResultMpEffect
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpIntent
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpUiState
+import com.geohunt.presentation.map.mp.result.contract.GameResultState
 import com.geohunt.presentation.map.mp.result.vm.GameResultMpVm
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
@@ -98,7 +107,41 @@ fun GameResultMpScreen(
 
 
     BackHandler {
-        showBottomSheetBack = true
+        showBottomSheetBack = !showBottomSheetBack
+    }
+
+    LaunchedEffect(Unit) {
+        mpVm.effect.collect { effect ->
+            when(effect) {
+                is MultiPlayerEffect.OnBack -> {
+                }
+                is MultiPlayerEffect.OnSuccess -> {
+                }
+                is MultiPlayerEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        vm.effect.collect { effect ->
+            when(effect) {
+                GameResultMpEffect.OnBack -> {
+                    navigateToHome()
+                }
+                GameResultMpEffect.OnNavigateToMap -> {
+                    navigateToMap()
+                }
+                GameResultMpEffect.OnStartGame -> {
+                    mpVm.onIntent(MultiPlayerIntent.OnUpdateRetryState(false))
+                    mpVm.onIntent(OnStartGame(uiState.currentRoundIndex + 1))
+                }
+                is GameResultMpEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
 
@@ -112,6 +155,82 @@ fun GameResultMpScreen(
             )
     }
 
+    Crossfade(
+        targetState = uiState.gameResultState is GameResultState.Loading,
+        animationSpec = tween(300)
+    ) { isLoading ->
+        if (isLoading) {
+            LoadingMpScreen()
+        }else {
+            BottomSheetScaffold(
+                scaffoldState = scaffoldState,
+                sheetPeekHeight = 200.dp,
+                sheetContainerColor = White,
+                sheetDragHandle = {
+                    BottomSheetDefaults.DragHandle(
+                        color = GrayE0
+                    )
+                },
+                sheetContent = {
+                    GameResultMpContent(uiState, {
+                        showBottomSheetBack = !showBottomSheetBack
+                    }, {
+                        mpVm.onIntent(it)
+                    })
+                }
+            ) {
+                Box(Modifier.fillMaxSize()) {
+                    GoogleMap(
+                        modifier = Modifier.fillMaxSize(),
+                        cameraPositionState = uiState.cameraPositionState,
+                        onMapClick = { latLng ->
+
+                        }
+                    ) {
+
+                        uiState.roundResultList.forEachIndexed { index, answer ->
+                            val guessedLoc = remember(answer.lat, answer.lng) {
+                                LatLng(answer.lat.toDoubleOrNull() ?: 0.0,
+                                    answer.lng.toDoubleOrNull() ?: 0.0)
+                            }
+                            Marker(
+                                state = remember(guessedLoc) {
+                                    MarkerState(guessedLoc)
+                                },
+                                title = answer.player.username,
+                                tag = answer.player.username,
+                                icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
+                                    answer.player.playerColor, 56)
+                            )
+
+                            Polyline(
+                                points = listOf(guessedLoc, trueLoc),
+                                color = White,
+                                width = 14f
+                            )
+
+                            Polyline(
+                                points = listOf(guessedLoc, trueLoc),
+                                color = Black1212,
+                                width = 8f
+                            )
+                        }
+                        // true loc
+                        Marker(
+                            state = remember(trueLoc) {
+                                MarkerState(trueLoc)
+                            },
+                            title = "True Location",
+                            tag = "trueLocation",
+                            icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
+                                uiState.trueLocColor, 56)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     if (showBottomSheetBack) {
         ConfirmationBottomSheet(stringResource(R.string.return_to_home),
             stringResource(R.string.are_you_sure_you_want_to_return_to_home),
@@ -119,91 +238,21 @@ fun GameResultMpScreen(
             stringResource(R.string.cancel),
             true, true,
             {
-                showBottomSheetBack = false
+                showBottomSheetBack = !showBottomSheetBack
             },
             {
-                showBottomSheetBack = false
-//                resultVm.navigateToHome()
+                showBottomSheetBack = !showBottomSheetBack
+                vm.onIntent(GameResultMpIntent.OnBackPressed)
             }) {
-            showBottomSheetBack = false
+            showBottomSheetBack = !showBottomSheetBack
         }
     }
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetPeekHeight = 200.dp,
-        sheetContainerColor = White,
-        sheetDragHandle = {
-            BottomSheetDefaults.DragHandle(
-                color = GrayE0
-            )
-        },
-        sheetContent = {
-            GameResultMpContent(uiState, mpUiState, {
-
-            }, {
-
-            })
-        }
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = uiState.cameraPositionState,
-                onMapClick = { latLng ->
-
-                }
-            ) {
-
-                uiState.roundResultList.forEachIndexed { index, answer ->
-                    val guessedLoc = remember(answer.lat, answer.lng) {
-                        LatLng(answer.lat.toDoubleOrNull() ?: 0.0,
-                            answer.lng.toDoubleOrNull() ?: 0.0)
-                    }
-                    Marker(
-                        state = remember(guessedLoc) {
-                            MarkerState(guessedLoc)
-                        },
-                        title = answer.player.username,
-                        tag = answer.player.username,
-                        icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
-                            answer.player.playerColor, 56)
-                    )
-
-                    Polyline(
-                        points = listOf(guessedLoc, trueLoc),
-                        color = White,
-                        width = 14f
-                    )
-
-                    Polyline(
-                        points = listOf(guessedLoc, trueLoc),
-                        color = Black1212,
-                        width = 8f
-                    )
-                }
-
-
-                // true loc
-                Marker(
-                    state = remember(trueLoc) {
-                        MarkerState(trueLoc)
-                    },
-                    title = "True Location",
-                    tag = "trueLocation",
-                    icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
-                        uiState.trueLocColor, 56)
-                )
-
-
-            }
-        }
-    }
 
 }
 
 @Composable
-fun GameResultMpContent(uiState: GameResultMpUiState, mpUiState: MultiPlayerUiState,
+fun GameResultMpContent(uiState: GameResultMpUiState,
                         gameResultIntent : (GameResultMpIntent) -> Unit,
                         mpIntent : (MultiPlayerIntent) -> Unit,
                         ) {
@@ -220,7 +269,7 @@ fun GameResultMpContent(uiState: GameResultMpUiState, mpUiState: MultiPlayerUiSt
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 90.dp, top = 10.dp)
+                .padding(top = 10.dp)
         ) {
             Text(
                 modifier = Modifier
@@ -289,7 +338,8 @@ fun GameResultMpContent(uiState: GameResultMpUiState, mpUiState: MultiPlayerUiSt
                 when(page) {
                     0 -> {
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
                                 .padding(start = 16.dp, end = 16.dp),
                             verticalArrangement = Arrangement.Top) {
                             items(uiState.roundResultList) { item ->
@@ -300,7 +350,8 @@ fun GameResultMpContent(uiState: GameResultMpUiState, mpUiState: MultiPlayerUiSt
                     }
                     1 -> {
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
                                 .padding(start = 16.dp, end = 16.dp),
                             verticalArrangement = Arrangement.Top)
                         {
@@ -313,6 +364,28 @@ fun GameResultMpContent(uiState: GameResultMpUiState, mpUiState: MultiPlayerUiSt
                 }
             }
 
+            if (uiState.isFinished) {
+                Box(Modifier.padding(16.dp)) {
+                    CustomButton(
+                        Green41B, 14.sp, Black1212,
+                        FontWeight.Medium, White, stringResource(R.string.home),
+                        {
+                            gameResultIntent.invoke(GameResultMpIntent.OnBackPressed)
+                        })
+                }
+            }else {
+                if (uiState.gameResultState is GameResultState.Error && uiState.isHost) {
+                    Box(Modifier.padding(16.dp)) {
+                        CustomButton(
+                            Green41B, 14.sp, Black1212,
+                            FontWeight.Medium, White, stringResource(R.string.try_again),
+                            {
+                                mpIntent.invoke(MultiPlayerIntent.OnUpdateRetryState(false))
+                                mpIntent.invoke(OnStartGame(uiState.currentRoundIndex + 1))
+                            })
+                    }
+                }
+            }
         }
     }
 }
@@ -360,8 +433,8 @@ fun ResultMapMpPreview() {
 
     GeoHuntTheme {
         GameResultMpContent(
-            GameResultMpUiState(roundResultList = roundResultList, leaderBoardList = leaderBoardList),
-            MultiPlayerUiState(),{}, {}
+            GameResultMpUiState(roundResultList = roundResultList, leaderBoardList = leaderBoardList)
+            ,{}, {}
         )
     }
 }
