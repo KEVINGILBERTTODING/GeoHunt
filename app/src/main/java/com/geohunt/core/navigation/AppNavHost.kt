@@ -1,14 +1,17 @@
 package com.geohunt.core.navigation
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
@@ -38,9 +41,9 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                     navController.getBackStackEntry(Screen.HomeGraph.route)
                 }
                 val singlePlayerVm = hiltViewModel<SinglePlayerVm>(parentEntry)
-                val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
+                val multiPlayerVm: MultiPlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
                 HomeScreen(singlePlayerVm, multiPlayerVm, { id ->
-                    navController.navigate(Screen.RoomScreen.createRoute(id))
+                    navController.navigate(Screen.MultiplayerGraph.route)
                 }, {
                     navController.navigate(Screen.LoadingScreenSinglePlayer.route)
                 })
@@ -54,15 +57,15 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
             composable(Screen.GameResultSinglePlayerScreen.route) {
                 GameResultSingleScreen(navController)
             }
-            composable(Screen.RoomScreen.route, arguments = listOf(
-                navArgument("id") {
-                    type = NavType.StringType
-                }
-            )) { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Screen.HomeGraph.route)
-                }
-                val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
+        }
+
+        // multiplayer
+        navigation(
+            route = Screen.MultiplayerGraph.route,
+            startDestination = Screen.RoomScreen.route
+        ) {
+            composable(Screen.RoomScreen.route) { backStackEntry ->
+                val multiPlayerVm: MultiPlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
                 RoomScreen({
                     navController.popBackStack()
                 }, multiPlayerVm, {
@@ -74,10 +77,7 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 })
             }
             composable(Screen.GameMapMpScreen.route) { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Screen.HomeGraph.route)
-                }
-                val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
+                val multiPlayerVm: MultiPlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
                 GameMapMpScreen(multiPlayerVm, {
                     navController.popBackStack()
                 }, {
@@ -89,10 +89,7 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 })
             }
             composable(Screen.GameResultMpScreen.route) { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Screen.HomeGraph.route)
-                }
-                val multiPlayerVm = hiltViewModel<MultiPlayerVm>(parentEntry)
+                val multiPlayerVm: MultiPlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
                 GameResultMpScreen({
                     navController.popBackStack()
                 }, {
@@ -102,7 +99,6 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                         }
                     }
                 }, multiPlayerVm)
-
             }
         }
 

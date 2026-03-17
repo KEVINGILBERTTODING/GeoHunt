@@ -7,9 +7,9 @@ sealed class Screen(val route: String) {
     object HomeGraph : Screen("home_graph")
     object GameMapSinglePlayerScreen : Screen("game_map_single_player")
     object GameResultSinglePlayerScreen : Screen("game_result_single_player")
-    object RoomScreen : Screen("room_screen/{id}") {
-        fun createRoute(id: String) = "room_screen/$id"
-    }
+    object RoomScreen : Screen("room_screen")
     object GameMapMpScreen : Screen("game_map_mp_screen")
     object GameResultMpScreen : Screen("game_result_mp_screen")
+    object MultiplayerGraph : Screen("multiplayer_graph")
+
 }
