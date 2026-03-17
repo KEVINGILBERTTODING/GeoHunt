@@ -53,18 +53,12 @@ import com.geohunt.presentation.loadingScreen.singlePlayer.event.LoadingSinglePl
 import com.geohunt.presentation.loadingScreen.singlePlayer.vm.LoadingSinglePlayerVm
 
 @Composable
-fun LoadingSinglePlayerScreen(navController: NavController = rememberNavController()){
+fun LoadingSinglePlayerScreen(
+    singlePlayerVm: SinglePlayerVm,
+    onBack: () -> Unit,
+    onNavigateToMap: () -> Unit
+){
     val context = LocalContext.current
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.loading)
-    )
-
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val parentEntry = remember(navBackStackEntry) {
-        navController.getBackStackEntry(Screen.HomeGraph.route)
-    }
-    val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
-
     val loadingSinglePlayerVm: LoadingSinglePlayerVm =  hiltViewModel()
     val loadingMsg by loadingSinglePlayerVm.loadingMsg.collectAsStateWithLifecycle()
     val tipsMsg by loadingSinglePlayerVm.tipsMessage.collectAsStateWithLifecycle()
@@ -79,11 +73,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
         loadingSinglePlayerVm.loadingSinglePlayerEvent.collect { event ->
             when(event) {
                 is LoadingSinglePlayerEvent.navigateToMap -> {
-                    navController.navigate(Screen.GameMapSinglePlayerScreen.route) {
-                        popUpTo(Screen.LoadingScreenSinglePlayer.route){
-                            inclusive = true
-                        }
-                    }
+                    onNavigateToMap()
                 }
                 is LoadingSinglePlayerEvent.NavigateToHome -> {
                     showDialogBackPressed = true
@@ -102,7 +92,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
                 }
                 is Resource.Error -> {
                     Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                    navController.popBackStack()
+                    onBack()
                 }
             }
         }
@@ -119,7 +109,7 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
             },
             {
                 showDialogBackPressed = false
-                navController.popBackStack()
+                onBack()
             }) {
             showDialogBackPressed = false
         }
@@ -128,6 +118,15 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
     BackHandler {
         loadingSinglePlayerVm.navigateToHome()
     }
+
+    Content(loadingMsg, tipsMsg)
+}
+
+@Composable
+private fun Content(loadingMsg: String, tipsMsg: String) {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.loading)
+    )
 
     Box(Modifier.fillMaxSize().padding(16.dp)) {
         Column(
@@ -172,6 +171,6 @@ fun LoadingSinglePlayerScreen(navController: NavController = rememberNavControll
 @Composable
 fun LoadingSinglePlayerPreview() {
     GeoHuntTheme {
-        LoadingSinglePlayerScreen()
+        Content("test", "test")
     }
 }

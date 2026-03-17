@@ -45,14 +45,13 @@ import com.geohunt.presentation.map.singlePlayer.game.event.GameMapSinglePlayerE
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
 
 @Composable
-fun GameMapSinglePlayerScreen(navController: NavController = rememberNavController()) {
+fun GameMapSinglePlayerScreen(
+    singlePlayerVm: SinglePlayerVm,
+    onNavigateToResult: () -> Unit,
+    onBack : () -> Unit,
+    onNavigateToLoading: () -> Unit
+) {
     var isPageLoaded by remember { mutableStateOf(false) }
-
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val parentEntry = remember(navBackStackEntry) {
-        navController.getBackStackEntry(Screen.HomeGraph.route)
-    }
-    val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
     val urlImage by singlePlayerVm.imageUrl.collectAsStateWithLifecycle()
 
     var showMapPicker by remember { mutableStateOf(false) }
@@ -80,14 +79,10 @@ fun GameMapSinglePlayerScreen(navController: NavController = rememberNavControll
                 is GameMapSinglePlayerEvent.ErrorLoadStreetView -> {
                     if (singlePlayerVm.reloadTime > 5) {
                         Toast.makeText(context, context.getString(R.string.something_went_wrong), Toast.LENGTH_SHORT).show()
-                        navController.popBackStack()
+                        onBack()
                     }else {
                         singlePlayerVm.getNewLatLng()
-                        navController.navigate(Screen.LoadingScreenSinglePlayer.route) {
-                            popUpTo(Screen.GameMapSinglePlayerScreen.route) {
-                                inclusive = true
-                            }
-                        }
+                        onNavigateToLoading()
                     }
                 }
                 is GameMapSinglePlayerEvent.OnBackPressedEvent -> {
@@ -95,11 +90,7 @@ fun GameMapSinglePlayerScreen(navController: NavController = rememberNavControll
                 }
                 is GameMapSinglePlayerEvent.NavigateToGameResult -> {
                     singlePlayerVm.calculateDistanceAndPoint()
-                    navController.navigate(Screen.GameResultSinglePlayerScreen.route) {
-                        popUpTo(Screen.GameMapSinglePlayerScreen.route) {
-                            inclusive = true
-                        }
-                    }
+                    onNavigateToResult()
                 }
             }
         }
@@ -120,11 +111,7 @@ fun GameMapSinglePlayerScreen(navController: NavController = rememberNavControll
             },
             {
                 showBottomSheetBack = false
-                navController.navigate(Screen.HomeScreen.route) {
-                    popUpTo(Screen.GameMapSinglePlayerScreen.route) {
-                        inclusive = true
-                    }
-                }
+                onBack()
             }) {
             showBottomSheetBack = false
         }

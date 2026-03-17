@@ -37,10 +37,7 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 SplashScreen(navController)
             }
             composable(Screen.HomeScreen.route) { backStackEntry ->
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Screen.HomeGraph.route)
-                }
-                val singlePlayerVm = hiltViewModel<SinglePlayerVm>(parentEntry)
+                val singlePlayerVm: SinglePlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
                 val multiPlayerVm: MultiPlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
                 HomeScreen(singlePlayerVm, multiPlayerVm, { id ->
                     navController.navigate(Screen.MultiplayerGraph.route)
@@ -49,13 +46,54 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
                 })
             }
             composable(Screen.LoadingScreenSinglePlayer.route) {
-                LoadingSinglePlayerScreen(navController)
+                val singlePlayerVm: SinglePlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
+                LoadingSinglePlayerScreen(singlePlayerVm, {
+                    navController.popBackStack()
+                }, {
+                    navController.navigate(Screen.GameMapSinglePlayerScreen.route) {
+                        popUpTo(Screen.LoadingScreenSinglePlayer.route){
+                            inclusive = true
+                        }
+                    }
+                })
             }
             composable(Screen.GameMapSinglePlayerScreen.route) {
-                GameMapSinglePlayerScreen(navController)
+                val singlePlayerVm: SinglePlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
+                GameMapSinglePlayerScreen(
+                    singlePlayerVm,
+                    {
+                        navController.navigate(Screen.GameResultSinglePlayerScreen.route) {
+                            popUpTo(Screen.GameMapSinglePlayerScreen.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    {
+                        navController.popBackStack()
+                    },
+                    {
+                        navController.navigate(Screen.LoadingScreenSinglePlayer.route) {
+                            popUpTo(Screen.GameMapSinglePlayerScreen.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
             }
             composable(Screen.GameResultSinglePlayerScreen.route) {
-                GameResultSingleScreen(navController)
+                val singlePlayerVm: SinglePlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
+
+                GameResultSingleScreen(
+                    singlePlayerVm,
+                    {
+                        navController.navigate(Screen.HomeScreen.route) {
+                            popUpTo(Screen.GameResultSinglePlayerScreen.route) {
+                                inclusive = true
+                            }
+                        }
+                    }, {
+                        navController.navigate(Screen.LoadingScreenSinglePlayer.route)
+                    })
             }
         }
 

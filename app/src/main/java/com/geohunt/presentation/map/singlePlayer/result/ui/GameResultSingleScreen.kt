@@ -67,9 +67,6 @@ import com.geohunt.core.ui.theme.Orange
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
-import com.geohunt.data.dto.city.City
-import com.geohunt.data.dto.country.Country
-import com.geohunt.domain.model.GameHistorySinglePlayer
 import com.geohunt.presentation.map.singlePlayer.result.component.ItemGameHistorySinglePlayer
 import com.geohunt.presentation.map.singlePlayer.result.event.GameResultSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.result.vm.GameResultSinglePlayerVm
@@ -84,12 +81,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameResultSingleScreen(navController: NavHostController) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val parentEntry = remember(navBackStackEntry) {
-        navController.getBackStackEntry(Screen.HomeGraph.route)
-    }
-    val singlePlayerVm: SinglePlayerVm = hiltViewModel(parentEntry)
+fun GameResultSingleScreen(
+    singlePlayerVm: SinglePlayerVm,
+    onNavigateToHome: () -> Unit,
+    onNavigateToLoading: () -> Unit
+) {
     val trueLocationSingleVmState by singlePlayerVm.trueLocation.collectAsStateWithLifecycle()
     val guessedLocationSingleVmState by singlePlayerVm.guessedLocation.collectAsStateWithLifecycle()
     val gameHistory by singlePlayerVm.gameHistory.collectAsStateWithLifecycle()
@@ -118,7 +114,7 @@ fun GameResultSingleScreen(navController: NavHostController) {
         resultVm.gameEvent.collect { event ->
             when(event) {
                 is GameResultSinglePlayerEvent.NavigateToHome -> {
-                    navigateToHome(navController)
+                    onNavigateToHome()
                 }
                 is GameResultSinglePlayerEvent.ChangeMarkerState -> {
                     scope.launch {
@@ -129,7 +125,7 @@ fun GameResultSingleScreen(navController: NavHostController) {
                 }
                 is GameResultSinglePlayerEvent.NextRound -> {
                     singlePlayerVm.getNewLatLng()
-                    navController.navigate(Screen.LoadingScreenSinglePlayer.route)
+                    onNavigateToLoading()
                 }
             }
         }
@@ -365,18 +361,11 @@ fun GameResultSingleScreen(navController: NavHostController) {
 
 }
 
-private fun navigateToHome(navController: NavController) {
-    navController.navigate(Screen.HomeScreen.route) {
-        popUpTo(Screen.GameResultSinglePlayerScreen.route) {
-            inclusive = true
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
 fun ResultMapSingleScreenPreview() {
     GeoHuntTheme {
-        GameResultSingleScreen(rememberNavController())
+        GameResultSingleScreen(hiltViewModel(), {}, {})
     }
 }
