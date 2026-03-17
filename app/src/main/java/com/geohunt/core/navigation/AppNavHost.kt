@@ -117,7 +117,7 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
             composable(Screen.GameMapMpScreen.route) { backStackEntry ->
                 val multiPlayerVm: MultiPlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
                 GameMapMpScreen(multiPlayerVm, {
-                    navController.popBackStack()
+                    navController.popBackStack(Screen.MultiplayerGraph.route, inclusive = true)
                 }, {
                     navController.navigate(Screen.GameResultMpScreen.route) {
                         popUpTo(Screen.GameMapMpScreen.route) {
@@ -129,7 +129,7 @@ fun AppNavhost(navController: NavHostController = rememberNavController(), modif
             composable(Screen.GameResultMpScreen.route) { backStackEntry ->
                 val multiPlayerVm: MultiPlayerVm = hiltViewModel(LocalActivity.current as ViewModelStoreOwner)
                 GameResultMpScreen({
-                    navController.popBackStack()
+                    navController.popBackStack(Screen.MultiplayerGraph.route, inclusive = true)
                 }, {
                     navController.navigate(Screen.GameMapMpScreen.route){
                         popUpTo(Screen.GameResultMpScreen.route) {
