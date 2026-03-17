@@ -12,8 +12,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -167,7 +170,9 @@ fun GameMapSinglePlayerScreen(
         if (isSuccessLoadStreetView) {
             Box(modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 40.dp, end = 20.dp)) {
+                .padding(bottom = 20.dp, end = 20.dp)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+            ) {
                 CustomFab(painterResource(R.drawable.ic_eye), Black1212,
                     White, Black1212) {
                     mapGameSinglePlayerVm.showBottomSheetMapPickerEvent()

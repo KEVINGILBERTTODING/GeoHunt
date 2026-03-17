@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -192,7 +195,7 @@ fun GameResultSingleScreen(
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
-        sheetPeekHeight = 200.dp,
+        sheetPeekHeight = 220.dp,
         sheetContainerColor = White,
         sheetDragHandle = {
             BottomSheetDefaults.DragHandle(
@@ -205,7 +208,7 @@ fun GameResultSingleScreen(
                     .background(White)
             ) {
                 LazyColumn(Modifier
-                    .padding(start = 16.dp, end = 16.dp, bottom = 90.dp, top = 10.dp)) {
+                    .padding(start = 16.dp, end = 16.dp, bottom = 130.dp, top = 10.dp)) {
                     item {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
@@ -296,7 +299,8 @@ fun GameResultSingleScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .padding(bottom = 25.dp, end = 16.dp, start = 16.dp)
+                        .padding(bottom = 20.dp, end = 16.dp, start = 16.dp)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
                 ) {
                     Box(Modifier.weight(1f)) {
                         CustomButton(
