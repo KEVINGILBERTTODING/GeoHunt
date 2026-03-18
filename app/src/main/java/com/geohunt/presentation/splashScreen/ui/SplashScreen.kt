@@ -26,15 +26,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.compose.rememberLifecycleOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.geohunt.R
-import com.geohunt.core.navigation.Screen
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
@@ -46,7 +40,9 @@ import kotlinx.coroutines.delay
 import androidx.core.net.toUri
 
 @Composable
-fun SplashScreen(navController: NavController = rememberNavController()) {
+fun SplashScreen(
+    onNavigateToHome: () -> Unit
+) {
     val viewmodel: SplashVm = hiltViewModel()
     val context = LocalContext.current
     val showBottomSheetMaintenance = remember { mutableStateOf(false) }
@@ -66,7 +62,7 @@ fun SplashScreen(navController: NavController = rememberNavController()) {
                     showBottomSheetMaintenance.value = true
                 }
                 is SplashEvent.onSuccess -> {
-                    navigateToHome(navController)
+                    onNavigateToHome()
                 }
                 is SplashEvent.onUpdate -> {
                     isForceUpdate.value = event.isForceUpdate
@@ -112,7 +108,7 @@ fun SplashScreen(navController: NavController = rememberNavController()) {
                 activity?.finish()
             }) {
             showBottomSheetUpdate.value = false
-            navigateToHome(navController)
+            onNavigateToHome()
         }
     }
 
@@ -147,18 +143,11 @@ fun SplashScreen(navController: NavController = rememberNavController()) {
     }
 }
 
-private fun navigateToHome(navController: NavController) {
-    navController.navigate(Screen.HomeScreen.route) {
-        popUpTo(Screen.SplashScreen.route) {
-            inclusive = true
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
 fun SplashScreenPreview() {
     GeoHuntTheme {
-        SplashScreen()
+        SplashScreen({})
     }
 }

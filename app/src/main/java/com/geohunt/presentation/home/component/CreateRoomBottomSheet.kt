@@ -31,14 +31,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.geohunt.R
 import com.geohunt.core.contract.MultiPlayerUiState
-import com.geohunt.core.navigation.Screen
-import com.geohunt.core.resource.Resource
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.component.TextContainer

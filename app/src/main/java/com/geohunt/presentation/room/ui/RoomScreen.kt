@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
 import com.geohunt.core.contract.MultiPlayerEffect
@@ -97,11 +97,13 @@ fun RoomScreen(
 
     LaunchedEffect(Unit) {
         roomVm.effect.collect { event ->
+            Timber.d("eventroom ${event}")
             when(event) {
                 is RoomEffect.NavigateToGame -> { onNavigateToGame() }
                 is RoomEffect.ShowToast -> {Toast.makeText(context, event.message,
                     Toast.LENGTH_SHORT).show() }
                 is RoomEffect.OnBack -> {
+                    Timber.d("remove room")
                     onBackPressed()
                 }
                 is RoomEffect.StartGame -> {

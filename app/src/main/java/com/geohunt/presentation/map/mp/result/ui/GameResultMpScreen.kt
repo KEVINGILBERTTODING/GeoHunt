@@ -49,7 +49,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.geohunt.R
@@ -58,7 +58,6 @@ import com.geohunt.core.contract.MultiPlayerIntent
 import com.geohunt.core.contract.MultiPlayerIntent.OnStartGame
 import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.extension.bitmapDescriptorFromVector
-import com.geohunt.core.navigation.Screen
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.theme.Black1212
