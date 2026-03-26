@@ -5,6 +5,10 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -60,6 +65,7 @@ import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.extension.bitmapDescriptorFromVector
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomButton
+import com.geohunt.core.ui.component.RoundedGlassContainer
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.GrayE0
@@ -71,6 +77,8 @@ import com.geohunt.domain.model.LeaderBoard
 import com.geohunt.domain.model.Player
 import com.geohunt.domain.model.RoundResult
 import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
+import com.geohunt.presentation.map.mp.game.component.TimeContainer
+import com.geohunt.presentation.map.mp.game.contract.GameMapState
 import com.geohunt.presentation.map.mp.result.component.ItemLeaderBoard
 import com.geohunt.presentation.map.mp.result.component.ItemRoundResult
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpEffect
@@ -99,10 +107,8 @@ fun GameResultMpScreen(
     var showBottomSheetBack by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scaffoldState = rememberBottomSheetScaffoldState()
-    val trueLoc = remember(uiState.round.trueLat, uiState.round.trueLng) {
-        LatLng(uiState.round.trueLat.toDoubleOrNull() ?: 0.0,
-            uiState.round.trueLng.toDoubleOrNull() ?: 0.0)
-    }
+    val scope = rememberCoroutineScope()
+
 
 
     BackHandler {
@@ -145,13 +151,7 @@ fun GameResultMpScreen(
 
 
     LaunchedEffect(uiState.round) {
-        uiState.cameraPositionState.animate(
-                update = CameraUpdateFactory.newLatLngZoom(
-                    LatLng(uiState.round.trueLat.toDoubleOrNull() ?: 0.0,
-                        uiState.round.trueLng.toDoubleOrNull() ?: 0.0),
-                    15f
-                )
-            )
+        vm.onIntent(GameResultMpIntent.OnSetCameraState(uiState.round.trueLat, uiState.round.trueLng))
     }
 
     Crossfade(
@@ -172,60 +172,16 @@ fun GameResultMpScreen(
                 },
                 sheetContent = {
                     GameResultMpContent(uiState, {
-                        showBottomSheetBack = !showBottomSheetBack
+                        scope.launch {
+                            scaffoldState.bottomSheetState.partialExpand()
+                        }
+                        vm.onIntent(it)
                     }, {
                         mpVm.onIntent(it)
                     })
                 }
             ) {
-                Box(Modifier.fillMaxSize()) {
-                    GoogleMap(
-                        modifier = Modifier.fillMaxSize(),
-                        cameraPositionState = uiState.cameraPositionState,
-                        onMapClick = { latLng ->
-
-                        }
-                    ) {
-
-                        uiState.roundResultList.forEachIndexed { index, answer ->
-                            val guessedLoc = remember(answer.lat, answer.lng) {
-                                LatLng(answer.lat.toDoubleOrNull() ?: 0.0,
-                                    answer.lng.toDoubleOrNull() ?: 0.0)
-                            }
-                            Marker(
-                                state = remember(guessedLoc) {
-                                    MarkerState(guessedLoc)
-                                },
-                                title = answer.player.username,
-                                tag = answer.player.username,
-                                icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
-                                    answer.player.playerColor, 56)
-                            )
-
-                            Polyline(
-                                points = listOf(guessedLoc, trueLoc),
-                                color = White,
-                                width = 14f
-                            )
-
-                            Polyline(
-                                points = listOf(guessedLoc, trueLoc),
-                                color = Black1212,
-                                width = 8f
-                            )
-                        }
-                        // true loc
-                        Marker(
-                            state = remember(trueLoc) {
-                                MarkerState(trueLoc)
-                            },
-                            title = "True Location",
-                            tag = "trueLocation",
-                            icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
-                                uiState.trueLocColor, 56)
-                        )
-                    }
-                }
+                GameResultMpGmapContent(uiState)
             }
         }
     }
@@ -248,6 +204,83 @@ fun GameResultMpScreen(
     }
 
 
+}
+
+@Composable
+private fun GameResultMpGmapContent(
+    uiState: GameResultMpUiState
+) {
+    val ctx = LocalContext.current
+    val trueLoc = remember(uiState.round.trueLat, uiState.round.trueLng) {
+        LatLng(uiState.round.trueLat.toDoubleOrNull() ?: 0.0,
+            uiState.round.trueLng.toDoubleOrNull() ?: 0.0)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = uiState.cameraPositionState,
+            onMapClick = { latLng ->
+
+            }
+        ) {
+
+            uiState.roundResultList.forEachIndexed { index, answer ->
+                val guessedLoc = remember(answer.lat, answer.lng) {
+                    LatLng(answer.lat.toDoubleOrNull() ?: 0.0,
+                        answer.lng.toDoubleOrNull() ?: 0.0)
+                }
+                Marker(
+                    state = remember(guessedLoc) {
+                        MarkerState(guessedLoc)
+                    },
+                    title = answer.player.username,
+                    tag = answer.player.username,
+                    icon = ctx.bitmapDescriptorFromVector(R.drawable.ic_marker,
+                        answer.player.playerColor, 56)
+                )
+
+                Polyline(
+                    points = listOf(guessedLoc, trueLoc),
+                    color = White,
+                    width = 14f
+                )
+
+                Polyline(
+                    points = listOf(guessedLoc, trueLoc),
+                    color = Black1212,
+                    width = 8f
+                )
+            }
+            // true loc
+            Marker(
+                state = remember(trueLoc) {
+                    MarkerState(trueLoc)
+                },
+                title = "True Location",
+                tag = "trueLocation",
+                icon = ctx.bitmapDescriptorFromVector(R.drawable.ic_marker,
+                    uiState.trueLocColor, 56)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .systemBarsPadding()
+                .padding(top = 8.dp, start = 16.dp, end = 16.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ) {
+            AnimatedVisibility(
+                visible = uiState.timeLeft > 0,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
+            ) {
+                TimeContainer(uiState.timeLeft)
+            }
+        }
+
+    }
 }
 
 @Composable
@@ -342,7 +375,9 @@ fun GameResultMpContent(uiState: GameResultMpUiState,
                                 .padding(start = 16.dp, end = 16.dp),
                             verticalArrangement = Arrangement.Top) {
                             items(uiState.roundResultList) { item ->
-                                ItemRoundResult(item)
+                                ItemRoundResult(item, {  lat, lng ->
+                                    gameResultIntent(GameResultMpIntent.OnSetCameraState(lat, lng))
+                                })
                                 Spacer(Modifier.height(15.dp))
                             }
                         }
@@ -386,6 +421,15 @@ fun GameResultMpContent(uiState: GameResultMpUiState,
                 }
             }
         }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun GameResultMpGmapContentPreview() {
+    GeoHuntTheme {
+        GameResultMpGmapContent(GameResultMpUiState())
     }
 }
 

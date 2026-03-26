@@ -41,9 +41,10 @@ import com.geohunt.core.ui.theme.Green41B
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.domain.model.RoundResult
 import com.geohunt.domain.model.Player
+import kotlin.math.round
 
 @Composable
-fun ItemRoundResult(roundResult: RoundResult) {
+fun ItemRoundResult(roundResult: RoundResult, onClick: (String, String) -> Unit) {
     val latLng = if (roundResult.lat == "0.0" || roundResult.lng == "0.0") {
         stringResource(R.string.no_location_selected)
     } else {
@@ -132,7 +133,7 @@ fun ItemRoundResult(roundResult: RoundResult) {
                     Spacer(Modifier.width(34.dp))
                     Box(Modifier.align(Alignment.CenterVertically)
                         .clickable(onClick = {
-
+                            onClick(roundResult.lat, roundResult.lng)
                         })) {
                         Text(
                             text = stringResource(R.string.show_marker),
@@ -161,6 +162,6 @@ fun ItemGameHistorySinglePreview() {
         distance = 100f
     )
     GeoHuntTheme {
-        ItemRoundResult(roundResult)
+        ItemRoundResult(roundResult, { _, _ -> })
     }
 }

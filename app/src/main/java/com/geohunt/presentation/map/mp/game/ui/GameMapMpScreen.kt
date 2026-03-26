@@ -229,7 +229,7 @@ fun GameMapMpScreen(
             )
         }
 
-        // back button
+        // app bar
         Row(
             modifier = Modifier.fillMaxWidth()
                 .systemBarsPadding()

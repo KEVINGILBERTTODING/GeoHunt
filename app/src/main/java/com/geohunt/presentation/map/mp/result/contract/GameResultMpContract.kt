@@ -35,6 +35,7 @@ data class GameResultMpUiState(
 
 sealed class GameResultMpIntent: MviIntent {
     object OnBackPressed : GameResultMpIntent()
+    data class OnSetCameraState(val lat: String, val lng: String) : GameResultMpIntent()
 }
 
 sealed class GameResultMpEffect: MviEffect {

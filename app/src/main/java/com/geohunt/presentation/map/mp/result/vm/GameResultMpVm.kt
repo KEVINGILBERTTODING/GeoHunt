@@ -1,5 +1,6 @@
 package com.geohunt.presentation.map.mp.result.vm
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewModelScope
 import com.geohunt.core.base.BaseViewModel
 import com.geohunt.domain.model.RoundResult
@@ -17,11 +18,14 @@ import com.geohunt.presentation.map.mp.result.contract.GameResultMpEffect
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpIntent
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpUiState
 import com.geohunt.presentation.map.mp.result.contract.GameResultState
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.math.ln
 
 @HiltViewModel
 class GameResultMpVm @Inject constructor(
@@ -70,7 +74,7 @@ class GameResultMpVm @Inject constructor(
                                         } ?: emptyList(),
                                     round = room.rounds.getOrNull(state.value.currentRoundIndex)?: Round(),
                                     trueLocColor = colorRepository.getTrueLocationColor(),
-                                    isFinished = room.info.totalRounds == state.value.currentRoundIndex + 1
+                                    isFinished = room.info.totalRounds == state.value.currentRoundIndex + 1,
                                 )
                             }
 
@@ -121,6 +125,22 @@ class GameResultMpVm @Inject constructor(
                     )
                 }
             }
+
+            is GameResultMpIntent.OnSetCameraState -> {
+                setCameraState(intent.lat, intent.lng)
+            }
+        }
+    }
+
+    private fun setCameraState(lat: String = "0.0", lng: String = "0.0") {
+        viewModelScope.launch {
+            state.value.cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(lat.toDoubleOrNull() ?: 0.0,
+                        lng.toDoubleOrNull() ?: 0.0),
+                    15f
+                )
+            )
         }
     }
 
