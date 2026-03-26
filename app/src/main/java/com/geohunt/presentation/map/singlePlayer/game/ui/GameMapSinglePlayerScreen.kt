@@ -1,4 +1,5 @@
 package com.geohunt.presentation.map.singlePlayer.game.ui
+import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
@@ -43,6 +44,7 @@ import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
 import com.geohunt.presentation.map.singlePlayer.game.event.GameMapSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.game.vm.GameMapSinglePlayerVm
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun GameMapSinglePlayerScreen(
     singlePlayerVm: SinglePlayerVm,

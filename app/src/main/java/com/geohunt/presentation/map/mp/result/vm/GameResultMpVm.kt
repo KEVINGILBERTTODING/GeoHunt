@@ -74,10 +74,6 @@ class GameResultMpVm @Inject constructor(
                                 )
                             }
 
-                            if(!state.value.isFinished) {
-                                startTimer()
-                            }
-
                             // observe next round
                             room.rounds.getOrNull(state.value.currentRoundIndex + 1)?.let {
                                 when(it.status) {
@@ -103,6 +99,10 @@ class GameResultMpVm @Inject constructor(
                         }
                     }
                 }
+            }
+
+            if(!state.value.isFinished) {
+                startTimer()
             }
         }
 

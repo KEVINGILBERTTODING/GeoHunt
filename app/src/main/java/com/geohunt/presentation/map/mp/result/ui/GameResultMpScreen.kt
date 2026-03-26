@@ -364,7 +364,7 @@ fun GameResultMpContent(uiState: GameResultMpUiState,
             }
 
             if (uiState.isFinished) {
-                Box(Modifier.padding(16.dp)) {
+                Box(Modifier.padding(bottom = 20.dp, top = 16.dp, end = 16.dp, start = 16.dp)) {
                     CustomButton(
                         Green41B, 14.sp, Black1212,
                         FontWeight.Medium, White, stringResource(R.string.home),
@@ -374,7 +374,7 @@ fun GameResultMpContent(uiState: GameResultMpUiState,
                 }
             }else {
                 if (uiState.gameResultState is GameResultState.Error && uiState.isHost) {
-                    Box(Modifier.padding(16.dp)) {
+                    Box(Modifier.padding(bottom = 20.dp, top = 16.dp, end = 16.dp, start = 16.dp)) {
                         CustomButton(
                             Green41B, 14.sp, Black1212,
                             FontWeight.Medium, White, stringResource(R.string.try_again),

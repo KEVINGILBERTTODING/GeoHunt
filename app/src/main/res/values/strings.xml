@@ -60,5 +60,5 @@
     <string name="show_marker">Show Marker</string>
     <string name="try_again">Try Again</string>
     <string name="data_is_empty">Data is empty</string>
-    <string name="waiting_player">Waiting player…</string>
+    <string name="waiting_player">Waiting player</string>
 </resources>
