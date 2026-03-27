@@ -399,7 +399,7 @@ fun GameResultMpContent(uiState: GameResultMpUiState,
             }
 
             if (uiState.isFinished) {
-                Box(Modifier.padding(bottom = 20.dp, top = 16.dp, end = 16.dp, start = 16.dp)) {
+                Box(Modifier.padding(bottom = 30.dp, top = 16.dp, end = 16.dp, start = 16.dp)) {
                     CustomButton(
                         Green41B, 14.sp, Black1212,
                         FontWeight.Medium, White, stringResource(R.string.home),
@@ -409,7 +409,7 @@ fun GameResultMpContent(uiState: GameResultMpUiState,
                 }
             }else {
                 if (uiState.gameResultState is GameResultState.Error && uiState.isHost) {
-                    Box(Modifier.padding(bottom = 20.dp, top = 16.dp, end = 16.dp, start = 16.dp)) {
+                    Box(Modifier.padding(bottom = 30.dp, top = 16.dp, end = 16.dp, start = 16.dp)) {
                         CustomButton(
                             Green41B, 14.sp, Black1212,
                             FontWeight.Medium, White, stringResource(R.string.try_again),
@@ -438,24 +438,16 @@ fun GameResultMpGmapContentPreview() {
 @Preview(showBackground = true)
 @Composable
 fun ResultMapMpPreview() {
-    val roundResultList = listOf(
-        RoundResult(
+    val roundResultList = mutableListOf<RoundResult>()
+    repeat(20) {
+        roundResultList.add(RoundResult(
             player = Player(username = "kevin"),
             lat = "123.456789",
             lng = "987.654321",
             point = 100,
             distance = 20f
-        ),
-        RoundResult(
-            player = Player(username = "kevin"),
-            lat = "123.456789",
-            lng = "987.654321",
-            point = 100,
-            distance = 20f
-        ),
-
-    )
-
+        ))
+    }
     val leaderBoardList = listOf(
         LeaderBoard(
             player = Player("1", "kevin", playerColor = Color(0xFF9C27B0).toArgb()),
@@ -476,7 +468,8 @@ fun ResultMapMpPreview() {
 
     GeoHuntTheme {
         GameResultMpContent(
-            GameResultMpUiState(roundResultList = roundResultList, leaderBoardList = leaderBoardList)
+            GameResultMpUiState(roundResultList = roundResultList, leaderBoardList = leaderBoardList,
+                isFinished = true)
             ,{}, {}
         )
     }
