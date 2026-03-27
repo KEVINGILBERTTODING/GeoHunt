@@ -44,6 +44,12 @@ class GameResultMpVm @Inject constructor(
             updateState { copy(userData = getUserDataUseCase()) }
             viewModelScope.launch {
                 onShowLoading()
+                // reset load panorama
+                updatePlayerData(
+                    hashMapOf(
+                        "${state.value.userData.userId}/loadPanorama" to false
+                    ), true
+                )
                 observeRoomDataUseCase().collect { result ->
                     onHideLoading()
                     when {
@@ -121,7 +127,8 @@ class GameResultMpVm @Inject constructor(
                             "${state.value.userData.userId}/ready" to false,
                             "${state.value.userData.userId}/online" to false,
                             "${state.value.userData.userId}/loadPanorama" to false
-                        )
+                        ),
+                        false
                     )
                 }
             }
@@ -179,16 +186,18 @@ class GameResultMpVm @Inject constructor(
         sendEffect(GameResultMpEffect.OnBack)
     }
 
-    private fun updatePlayerData(hashMap: HashMap<String, Any>) {
+    private fun updatePlayerData(hashMap: HashMap<String, Any>, isUpdatePanorama: Boolean) {
         launchWithResult(
             showLoading = false,
             request = { updatePlayerUseCase(hashMap) },
             onSuccess = {
-                sendEffect(GameResultMpEffect.OnBack)
+                if (!isUpdatePanorama) sendEffect(GameResultMpEffect.OnBack)
             },
             onError = {
-                sendEffect(GameResultMpEffect.ShowToast(it.message ?: "Something went wrong"))
-                sendEffect(GameResultMpEffect.OnBack)
+                if (!isUpdatePanorama) {
+                    sendEffect(GameResultMpEffect.ShowToast(it.message ?: "Something went wrong"))
+                    sendEffect(GameResultMpEffect.OnBack)
+                }
             }
         )
     }

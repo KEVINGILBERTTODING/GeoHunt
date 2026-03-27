@@ -147,12 +147,12 @@ fun GameMapMpScreen(
                             if (uiState.isHost) {
                                 multiPlayerVm.onIntent(MultiPlayerIntent.OnUpdateRetryState(false))
                             }
-                            vm.onIntent(GameMapMpIntent.UpdateUserLoadPanorama(true))
+                            vm.onIntent(UpdateUserLoadPanorama(true))
                         }
 
                         @JavascriptInterface
                         fun onPanoramaError(errorMsg: String) {
-                            vm.onIntent(GameMapMpIntent.UpdateUserLoadPanorama(false))
+                            vm.onIntent(UpdateUserLoadPanorama(false))
                             if (uiState.isHost) {
                                 multiPlayerVm.onIntent(MultiPlayerIntent.OnStartGame(
                                     mpState.currentRound)
@@ -251,8 +251,6 @@ fun GameMapMpScreen(
                 TimeContainer(uiState.timeLeft)
             }
         }
-
-
     }
 
 
