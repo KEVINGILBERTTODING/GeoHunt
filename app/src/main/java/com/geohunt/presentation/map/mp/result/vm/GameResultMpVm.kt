@@ -151,7 +151,7 @@ class GameResultMpVm @Inject constructor(
 
     private fun startTimer() {
         updateState { copy(endTime =  System.currentTimeMillis()
-                + (15 * 1000L) // 15 second
+                + (if (!state.value.isFinished) 15 else 10 * 1000L) // 15 second and 10 second when finished
         ) }
 
         viewModelScope.launch {

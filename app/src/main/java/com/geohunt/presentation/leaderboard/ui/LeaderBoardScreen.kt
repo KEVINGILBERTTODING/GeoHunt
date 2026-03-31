@@ -1,9 +1,11 @@
 package com.geohunt.presentation.leaderboard.ui
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,12 +24,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
+import com.geohunt.core.contract.MultiPlayerIntent
+import com.geohunt.core.contract.MultiPlayerIntent.OnStartGame
 import com.geohunt.core.ui.component.AppBar
+import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.Green41B
@@ -75,11 +82,12 @@ private fun LeaderBoardContent(
     Box(Modifier
         .fillMaxWidth()
         .systemBarsPadding()
+        .navigationBarsPadding()
         .padding(16.dp)) {
         Column(Modifier.fillMaxSize()) {
             AppBar(
                 actionIcon = null,
-                navigationIcon = R.drawable.ic_arrow,
+                navigationIcon = null,
                 title = stringResource(R.string.leaderboard),
                 navigationIconClick = {
                     onNavigateToHome()
@@ -93,21 +101,36 @@ private fun LeaderBoardContent(
                     LeaderBoardLoadingScreen()
                 }
                 LeaderBoardState.Success -> {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f).navigationBarsPadding()
-                    ) {
-                        item {
-                            LeaderBoardPodium(uiState.leaderBoardPodiumList)
+                    Box(Modifier.fillMaxSize()) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(bottom = 120.dp),
+                        ) {
+                            item {
+                                LeaderBoardPodium(uiState.leaderBoardPodiumList)
+                            }
+                            item {
+                                if (uiState.leaderBoardPodiumList.isNotEmpty()) {
+                                    Spacer(Modifier.height(25.dp))
+                                }
+                            }
+                            items(uiState.leaderBoardNotPodiumList) { leaderBoard ->
+                                ItemLeaderBoardNotPodium(leaderBoard)
+                                Spacer(Modifier.height(16.dp)
+                                )
+                            }
                         }
-                        item {
-                            Spacer(Modifier.height(25.dp))
-                        }
-                        items(uiState.leaderBoardNotPodiumList) { leaderBoard ->
-                            ItemLeaderBoardNotPodium(leaderBoard)
-                            Spacer(Modifier.height(16.dp)
-                            )
+                        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                            .background(White)) {
+                            CustomButton(
+                                Green41B, 14.sp, Black1212,
+                                FontWeight.Medium, White, stringResource(R.string.home),
+                                {
+                                    onNavigateToHome()
+                                })
                         }
                     }
+
                 }
                 else -> {}
             }
@@ -128,6 +151,11 @@ fun LeaderBoardScreenPreview() {
         LeaderBoard(
             player = Player(username = "Jhon Doe", playerColor = Green41B.toArgb()),
             rank = 2,
+            totalPoint = 200
+        ),
+        LeaderBoard(
+            player = Player(username = "Jhon Doe", playerColor = Green41B.toArgb()),
+            rank = 3,
             totalPoint = 200
         ),
         LeaderBoard(

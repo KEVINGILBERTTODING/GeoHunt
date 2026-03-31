@@ -400,7 +400,9 @@ fun GameResultMpContent(uiState: GameResultMpUiState,
                     CustomTextField(true, stringResource(R.string.info), Color.White,
                         16.sp, true, Black1212, Black1212,
                         Black1212, 10.sp,
-                        stringResource(R.string.next_round_in) + " ${uiState.timeLeft.formatTime()}"
+                        stringResource(
+                            if (uiState.isFinished) R.string.result_in else R.string.next_round_in
+                        ) + " ${uiState.timeLeft.formatTime()}"
                         , false, 3)
                 }
             }

@@ -26,19 +26,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.geohunt.R
-import com.geohunt.core.ui.component.TextContainer
+import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.theme.Black1212
-import com.geohunt.core.ui.theme.Black39
 import com.geohunt.core.ui.theme.GeoHuntTheme
 import com.geohunt.core.ui.theme.GrayE0
-import com.geohunt.core.ui.theme.Green41B
-import com.geohunt.core.ui.theme.GreenE6
 import com.geohunt.core.ui.theme.Poppins
-import com.geohunt.data.dto.city.City
-import com.geohunt.data.dto.country.Country
 import com.geohunt.presentation.home.vm.HomeVm
 import timber.log.Timber
 
@@ -59,33 +53,42 @@ fun GameModeBottomSheet(homeVm: HomeVm, onClick: () -> Unit, onDissmiss: () -> U
             )
         }
     ) {
-        Column(
-            Modifier.fillMaxWidth().padding(16.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.select_game_mode),
-                modifier = Modifier.fillMaxWidth(),
-                style = TextStyle(
-                    textAlign = TextAlign.Start,
-                    fontFamily = Poppins, fontSize = 16.sp, color = Black39,
-                    fontWeight = FontWeight.Medium
-                ),
-            )
-            Spacer(Modifier.height(20.dp))
+        Content(homeVm.gameModeState, {
+            homeVm.selectedGameMode = it
+            onClick()
+        })
+    }
+}
 
-            homeVm.gameModeState.forEach { it ->
-                TextContainer (Color.White, 14.sp, Black1212,
-                    FontWeight.Normal, Black1212, it,
-                    TextAlign.Start, {
-                        homeVm.selectedGameMode = it
-                        onClick()
-                    })
-                Spacer(Modifier.height(10.dp))
+@Composable
+private fun Content(gameModeList: List<String> = emptyList(),
+                    onSelected: (String) -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.select_game_mode),
+            modifier = Modifier.fillMaxWidth(),
+            style = TextStyle(
+                textAlign = TextAlign.Start,
+                fontFamily = Poppins, fontSize = 16.sp, color = Black1212,
+                fontWeight = FontWeight.Medium
+            ),
+        )
+        Spacer(Modifier.height(20.dp))
 
-            }
-
+        gameModeList.forEach { it ->
+            CustomTextField(true, "", Color.White,
+                14.sp, true, Black1212, Black1212,
+                Black1212, 10.sp, it, true, 1,
+                onClick = {
+                    onSelected(it)
+                })
+            Spacer(Modifier.height(10.dp))
 
         }
+
+
     }
 }
 
@@ -93,6 +96,6 @@ fun GameModeBottomSheet(homeVm: HomeVm, onClick: () -> Unit, onDissmiss: () -> U
 @Composable
 fun GameModeBottomSheetPreview() {
     GeoHuntTheme {
-        GameModeBottomSheet (hiltViewModel(), {}, {})
+        Content(listOf("Single Player", "Create Room", "Join Room")) {  }
     }
 }

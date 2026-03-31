@@ -1,5 +1,9 @@
 package com.geohunt.core.navigation
 
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -139,7 +143,7 @@ fun AppNavDisplay(modifier: Modifier) {
                 )
             }
 
-            entry<Route.LeaderBoardScreen> {
+            entry<Route.LeaderBoardScreen>() {
                 LeaderBoardScreen(
                     onNavigateToHome = {
                         backStack.removeAll { it != Route.HomeScreen }
