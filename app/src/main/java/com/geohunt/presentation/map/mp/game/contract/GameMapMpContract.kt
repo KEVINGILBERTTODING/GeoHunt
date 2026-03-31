@@ -25,6 +25,7 @@ sealed class GameMapMpEffect: MviEffect {
     object OnBack: GameMapMpEffect()
     object OnTimeUp: GameMapMpEffect()
     object OnNavigateToResult: GameMapMpEffect()
+    object OnNavigateToLeaderBoard: GameMapMpEffect()
 }
 
 data class GameMapMpUiState(

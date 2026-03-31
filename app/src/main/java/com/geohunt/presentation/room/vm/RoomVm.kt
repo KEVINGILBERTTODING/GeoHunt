@@ -53,7 +53,7 @@ class RoomVm @Inject constructor(
                                 checkMinimumPlayerUseCase.invoke(room)
                                     .onFailure {
                                         sendEffect(RoomEffect.ShowToast("Not enough players, stopping..."))
-                                        sendEffect(RoomEffect.OnBack)
+                                        sendEffect(RoomEffect.OnNavigateToRLeaderBoard)
                                     }
                             }
                         }

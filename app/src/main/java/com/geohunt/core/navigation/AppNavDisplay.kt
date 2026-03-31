@@ -111,6 +111,10 @@ fun AppNavDisplay(modifier: Modifier) {
                     onNavigateToGame = {
                         backStack.removeAll { it == Route.RoomScreen }
                         backStack.add(Route.GameMapMpScreen)
+                    },
+                    onNavigateToLeaderBoard = {
+                        backStack.removeAll { it != Route.HomeScreen }
+                        backStack.add(Route.LeaderBoardScreen)
                     }
                 )
             }
@@ -123,6 +127,10 @@ fun AppNavDisplay(modifier: Modifier) {
                     },
                     onBackToHome = {
                         backStack.removeAll { it != Route.HomeScreen }
+                    },
+                    onNavigateToLeaderBoard = {
+                        backStack.removeAll { it != Route.HomeScreen }
+                        backStack.add(Route.LeaderBoardScreen)
                     }
                 )
             }

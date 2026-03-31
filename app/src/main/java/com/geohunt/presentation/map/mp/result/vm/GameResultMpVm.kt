@@ -93,6 +93,7 @@ class GameResultMpVm @Inject constructor(
                                             .onFailure {
                                                 updateState { copy(gameResultState = GameResultState.Idle) }
                                                 sendEffect(GameResultMpEffect.ShowToast("Not enough players, stopping..."))
+                                                sendEffect(GameResultMpEffect.OnNavigateToLeaderBoard)
                                             }
                                     }
                                     "success" -> {

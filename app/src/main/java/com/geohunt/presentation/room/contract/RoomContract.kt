@@ -29,4 +29,5 @@ sealed class RoomEffect: MviEffect {
     data class NavigateToGame(val id: String): RoomEffect()
     object OnBack : RoomEffect()
     object StartGame : RoomEffect()
+    object OnNavigateToRLeaderBoard : RoomEffect()
 }

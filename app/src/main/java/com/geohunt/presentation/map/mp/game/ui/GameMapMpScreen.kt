@@ -60,6 +60,7 @@ fun GameMapMpScreen(
     multiPlayerVm: MultiPlayerVm,
     onBackToHome: () -> Unit,
     onNavigateToResult: () -> Unit,
+    onNavigateToLeaderBoard: () -> Unit,
     vm: GameMapMpVm = hiltViewModel(),
 ) {
     var isPageLoaded by remember { mutableStateOf(false) }
@@ -93,6 +94,10 @@ fun GameMapMpScreen(
 
                 is GameMapMpEffect.OnNavigateToResult -> {
                     onNavigateToResult()
+                }
+
+                GameMapMpEffect.OnNavigateToLeaderBoard -> {
+                    onNavigateToLeaderBoard()
                 }
             }
         }

@@ -55,7 +55,7 @@ class GameMapMpVm @Inject constructor(
                         checkMinimumPlayerUseCase.invoke(room)
                             .onFailure {
                                 sendEffect(GameMapMpEffect.ShowToast(it.message ?: "Something went wrong"))
-                                sendEffect(GameMapMpEffect.OnTimeUp)
+                                sendEffect(GameMapMpEffect.OnNavigateToLeaderBoard)
                             }
 
 

@@ -75,6 +75,7 @@ fun RoomScreen(
     onBackPressed: () -> Unit,
     multiPlayerVm: MultiPlayerVm,
     onNavigateToGame: () -> Unit,
+    onNavigateToLeaderBoard: () -> Unit,
     roomVm: RoomVm = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -110,6 +111,10 @@ fun RoomScreen(
                 }
                 is RoomEffect.StartGame -> {
                     multiPlayerVm.onIntent(OnStartGame(state.room.rounds.size))
+                }
+
+                RoomEffect.OnNavigateToRLeaderBoard -> {
+                    onNavigateToLeaderBoard()
                 }
             }
         }
