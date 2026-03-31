@@ -21,12 +21,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,6 +68,9 @@ import com.geohunt.core.ui.theme.Orange
 import com.geohunt.core.ui.theme.Poppins
 import com.geohunt.core.ui.theme.White
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
+import com.geohunt.data.dto.city.City
+import com.geohunt.data.dto.country.Country
+import com.geohunt.domain.model.GameHistorySinglePlayer
 import com.geohunt.presentation.map.singlePlayer.result.component.ItemGameHistorySinglePlayer
 import com.geohunt.presentation.map.singlePlayer.result.event.GameResultSinglePlayerEvent
 import com.geohunt.presentation.map.singlePlayer.result.vm.GameResultSinglePlayerVm
@@ -90,22 +96,16 @@ fun GameResultSingleScreen(
     val resultVm: GameResultSinglePlayerVm = hiltViewModel()
     val trueLocationState by resultVm.trueLocationState.collectAsStateWithLifecycle()
     val guessedLocationState by resultVm.guessedLocationState.collectAsStateWithLifecycle()
+    val cameraZoomLevelState by resultVm.zoomLvl.collectAsStateWithLifecycle()
     var showBottomSheetBack by remember { mutableStateOf(false) }
-    val trueLocationMarkerState = rememberMarkerState()
-    val guessedLocationMarkerState = rememberMarkerState()
-    val cameraPositionState = rememberCameraPositionState()
-    val listMarker = remember { mutableStateListOf<LatLng>() }
-    val context = LocalContext.current
-    var scaffoldState = rememberBottomSheetScaffoldState()
-    val totalPoint = gameHistory.sumOf { it.point }
+    val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
-    val pointState = remember { mutableIntStateOf (0) }
 
-    LaunchedEffect(gameHistory) {
-        pointState.intValue = gameHistory.last().point
+
+
+    LaunchedEffect(Unit) {
+        scope.launch { scaffoldState.bottomSheetState.partialExpand()}
     }
-
-
 
     // EVENT
     LaunchedEffect(Unit) {
@@ -137,33 +137,7 @@ fun GameResultSingleScreen(
         resultVm.setGuessedLocationState(guessedLocationSingleVmState)
     }
 
-    LaunchedEffect(trueLocationState, guessedLocationState) {
-        if (trueLocationState.first.isNotBlank() && trueLocationState.second.isNotBlank()
-            && guessedLocationState.first.isNotBlank() && guessedLocationState.second.isNotBlank()) {
-            trueLocationMarkerState.position = LatLng(
-                trueLocationState.first.toDouble(),
-                trueLocationState.second.toDouble()
-            )
-            guessedLocationMarkerState.position = LatLng(
-                guessedLocationState.first.toDouble(),
-                guessedLocationState.second.toDouble()
-            )
-            listMarker.clear()
-            listMarker.add(LatLng(
-                trueLocationState.first.toDouble(),
-                trueLocationState.second.toDouble()))
-            listMarker.add(LatLng(
-                guessedLocationState.first.toDouble(),
-                guessedLocationState.second.toDouble()))
 
-            cameraPositionState.animate(
-                update = CameraUpdateFactory.newLatLngZoom(
-                    LatLng(trueLocationState.first.toDouble(), trueLocationState.second.toDouble()),
-                    resultVm.getLevelZoom(trueLocationState, guessedLocationState)
-                )
-            )
-        }
-    }
 
 
 
@@ -198,166 +172,265 @@ fun GameResultSingleScreen(
             )
         },
         sheetContent = {
-            Box(
-                modifier = Modifier
-                    .background(White)
-            ) {
-                LazyColumn(Modifier
-                    .padding(start = 16.dp, end = 16.dp, bottom = 130.dp, top = 10.dp)) {
-                    item {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            style = TextStyle(textAlign = TextAlign.Center),
-                            text =
-                                buildAnnotatedString {
-                                    withStyle(
-                                        style = SpanStyle(
-                                            fontFamily = Poppins,
-                                            fontWeight = FontWeight.Medium,
-                                            fontSize = 40.sp,
-                                            color = Green41B,
-                                        )
-                                    ) {
-                                        append("+${pointState.intValue}")
-                                    }
-                                    withStyle(
-                                        style = SpanStyle(
-                                            fontFamily = Poppins,
-                                            fontWeight = FontWeight.Normal,
-                                            fontSize = 14.sp,
-                                            color = Black1212,
-                                        )
-                                    ) {
-                                        append(" ${stringResource(R.string.points)}")
-                                    }
-                                }
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Box(modifier = Modifier
-                            .fillMaxWidth()
-                            .border(
-                                width = 1.dp,
-                                color = GrayE0,
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                        ) {
-                            Column(Modifier.fillMaxWidth().padding(12.dp)) {
-                                Row(Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(
-                                        text = stringResource(R.string.total_points),
-                                        fontSize = 12.sp,
-                                        fontFamily = Poppins,
-                                        color = Black1212,
-                                        textAlign = TextAlign.Start,
-                                        fontWeight = FontWeight.Normal,
-                                    )
-                                    Spacer(Modifier.width(20.dp))
-                                    Text(
-                                        text = totalPoint.toString(),
-                                        fontSize = 14.sp,
-                                        fontFamily = Poppins,
-                                        color = Black1212,
-                                        textAlign = TextAlign.End,
-                                        fontWeight = FontWeight.Medium,
-                                    )
-                                }
+            BottomSheetContent(
+                gameHistory = gameHistory,
+                navigateToHome = { resultVm.navigateToHome() },
+                onStartGame = { resultVm.nextRound() },
+                onClickMapDetail = { trueLoc, guessedLoc ->
+                    resultVm.changeMarkerStateEvent(trueLoc, guessedLoc)
+                }
+            )
+        }
+    ) {
+        GmapContent(trueLocationState, guessedLocationState, cameraZoomLevelState) { trueLoc, guessLoc ->
+            resultVm.getZoomLevel(trueLoc, guessLoc)
+        }
+    }
 
+}
+
+
+@Composable
+private fun BottomSheetContent(
+    gameHistory: List<GameHistorySinglePlayer> = emptyList(),
+    navigateToHome: () -> Unit,
+    onStartGame: () -> Unit,
+    onClickMapDetail : (Pair<String, String>, Pair<String, String>) -> Unit
+) {
+    val pointState = remember { mutableIntStateOf (0) }
+    val totalPoint = gameHistory.sumOf { it.point }
+
+    LaunchedEffect(gameHistory) {
+        pointState.intValue = gameHistory.last().point
+    }
+
+    Box(
+        modifier = Modifier
+            .background(White)
+    ) {
+        LazyColumn(Modifier
+            .padding(start = 16.dp, end = 16.dp, bottom = 60.dp, top = 10.dp)) {
+            item {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    style = TextStyle(textAlign = TextAlign.Center),
+                    text =
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontFamily = Poppins,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 40.sp,
+                                    color = Green41B,
+                                )
+                            ) {
+                                append("+${pointState.intValue}")
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    fontFamily = Poppins,
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 14.sp,
+                                    color = Black1212,
+                                )
+                            ) {
+                                append(" ${stringResource(R.string.points)}")
                             }
                         }
-
-                        Spacer(Modifier.height(22.dp))
-
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.game_history),
-                            fontSize = 14.sp,
-                            fontFamily = Poppins,
-                            color = Black1212,
-                            fontWeight = FontWeight.Medium,
-                        )
-                        Spacer(Modifier.height(10.dp))
-                    }
-
-
-                    items(gameHistory.asReversed()) { item ->
-                        ItemGameHistorySinglePlayer(item.no, item) {
-                            pointState.intValue = item.point
-                           resultVm.changeMarkerStateEvent(item.trueLocation, item.guessedLocation)
-                        }
-                        Spacer(Modifier.height(15.dp))
-                    }
-
-                }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(bottom = 20.dp, end = 16.dp, start = 16.dp)
-                        .windowInsetsPadding(WindowInsets.navigationBars)
+                )
+                Spacer(Modifier.height(10.dp))
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = GrayE0,
+                        shape = RoundedCornerShape(16.dp)
+                    )
                 ) {
-                    Box(Modifier.weight(1f)) {
-                        CustomButton(
-                            androidx.compose.ui.graphics.Color.White, 14.sp, Black1212,
-                            FontWeight.Medium, Black1212, stringResource(R.string.home), {
-                                resultVm.navigateToHome()
-                            })
-                    }
+                    Column(Modifier.fillMaxWidth().padding(12.dp)) {
+                        Row(Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                text = stringResource(R.string.total_points),
+                                fontSize = 12.sp,
+                                fontFamily = Poppins,
+                                color = Black1212,
+                                textAlign = TextAlign.Start,
+                                fontWeight = FontWeight.Normal,
+                            )
+                            Spacer(Modifier.width(20.dp))
+                            Text(
+                                text = totalPoint.toString(),
+                                fontSize = 14.sp,
+                                fontFamily = Poppins,
+                                color = Black1212,
+                                textAlign = TextAlign.End,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
 
-                    Box(Modifier.weight(1f)) {
-                        CustomButton(
-                            Green41B, 14.sp, Black1212,
-                            FontWeight.Medium, androidx.compose.ui.graphics.Color.White, stringResource(R.string.next), {
-                                resultVm.nextRound()
-                            })
                     }
                 }
+
+                Spacer(Modifier.height(22.dp))
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(R.string.game_history),
+                    fontSize = 14.sp,
+                    fontFamily = Poppins,
+                    color = Black1212,
+                    fontWeight = FontWeight.Medium,
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+
+            itemsIndexed(gameHistory.asReversed()) {index, item ->
+                ItemGameHistorySinglePlayer(item.no, item) {
+                    pointState.intValue = item.point
+                    onClickMapDetail(item.trueLocation, item.guessedLocation)
+                }
+                val isLast = index == gameHistory.lastIndex
+                Spacer(Modifier.height(if (isLast) 100.dp else 15.dp))
             }
 
         }
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                onMapClick = { latLng ->
 
-                }
-            ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(bottom = 20.dp, end = 16.dp, start = 16.dp)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+        ) {
+            Box(Modifier.weight(1f)) {
+                CustomButton(
+                    androidx.compose.ui.graphics.Color.White, 14.sp, Black1212,
+                    FontWeight.Medium, Black1212, stringResource(R.string.home), {
+                        navigateToHome()
+                    })
+            }
 
-                Marker(
-                    state = trueLocationMarkerState,
-                    title = "True Location",
-                    tag = "trueLocation",
-                    icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
-                        BlueE6.toArgb(), 56)
-                )
-
-                Marker(
-                    state = guessedLocationMarkerState,
-                    title = "Guessed Location",
-                    tag = "guessedLocation",
-                    icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
-                        Orange.toArgb(), 56)
-                    )
-
-                Polyline(
-                    points = listMarker.toList(),
-                    color = White,
-                    width = 14f
-                )
-
-
-                Polyline(
-                    points = listMarker.toList(),
-                    color = Black1212,
-                    width = 8f
-                )
+            Box(Modifier.weight(1f)) {
+                CustomButton(
+                    Green41B, 14.sp, Black1212,
+                    FontWeight.Medium, androidx.compose.ui.graphics.Color.White, stringResource(R.string.next), {
+                        onStartGame()
+                    })
             }
         }
     }
 
+}
+
+@Composable
+private fun GmapContent(
+    trueLocationState: Pair<String, String> = "" to "",
+    guessedLocationState: Pair<String, String> = "" to "",
+    cameraZoomLevelState: Float = 0f,
+    onChangeCameraState: (Pair<String, String>, Pair<String, String>) -> Unit
+) {
+    val trueLocationMarkerState = rememberMarkerState()
+    val guessedLocationMarkerState = rememberMarkerState()
+    val cameraPositionState = rememberCameraPositionState()
+    val listMarker = remember { mutableStateListOf<LatLng>() }
+    val context = LocalContext.current
+
+    LaunchedEffect(trueLocationState, guessedLocationState) {
+        if (trueLocationState.first.isNotBlank() && trueLocationState.second.isNotBlank()
+            && guessedLocationState.first.isNotBlank() && guessedLocationState.second.isNotBlank()) {
+            trueLocationMarkerState.position = LatLng(
+                trueLocationState.first.toDouble(),
+                trueLocationState.second.toDouble()
+            )
+            guessedLocationMarkerState.position = LatLng(
+                guessedLocationState.first.toDouble(),
+                guessedLocationState.second.toDouble()
+            )
+            listMarker.clear()
+            listMarker.add(LatLng(
+                trueLocationState.first.toDouble(),
+                trueLocationState.second.toDouble()))
+            listMarker.add(LatLng(
+                guessedLocationState.first.toDouble(),
+                guessedLocationState.second.toDouble()))
+            onChangeCameraState(trueLocationState, guessedLocationState)
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(trueLocationState.first.toDouble(), trueLocationState.second.toDouble()),
+                    cameraZoomLevelState
+                )
+            )
+        }
+    }
+
+
+
+    Box(Modifier.fillMaxSize()) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            onMapClick = { latLng ->
+
+            }
+        ) {
+
+            Marker(
+                state = trueLocationMarkerState,
+                title = "True Location",
+                tag = "trueLocation",
+                icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
+                    BlueE6.toArgb(), 56)
+            )
+
+            Marker(
+                state = guessedLocationMarkerState,
+                title = "Guessed Location",
+                tag = "guessedLocation",
+                icon = context.bitmapDescriptorFromVector(R.drawable.ic_marker,
+                    Orange.toArgb(), 56)
+            )
+
+
+            Polyline(
+                points = listMarker.toList(),
+                color = White,
+                width = 14f
+            )
+
+
+            Polyline(
+                points = listMarker.toList(),
+                color = Black1212,
+                width = 8f
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ResultMapSingleScreenBottomSheetContentPreview() {
+    GeoHuntTheme {
+        val gameHistory = mutableListOf<GameHistorySinglePlayer>()
+        repeat(20) {
+            gameHistory.add(
+                GameHistorySinglePlayer(
+                    country = Country(1, "Indonesia", "", ""),
+                    point = 20,
+                    no = 1,
+                    city = City(1, 1, "Indonesia", lng = "", lat = ""),
+                    distance = 20f,
+                    trueLocation = "" to "",
+                    guessedLocation = "" to ""
+                )
+            )
+        }
+        BottomSheetContent(
+            gameHistory = gameHistory, {}, {}, {
+                _, _ ->
+            }
+        )
+    }
 }
 
 
@@ -365,6 +438,11 @@ fun GameResultSingleScreen(
 @Composable
 fun ResultMapSingleScreenPreview() {
     GeoHuntTheme {
-        GameResultSingleScreen(hiltViewModel(), {}, {})
+        GmapContent(
+            "" to "",
+            "" to "",
+            0f,
+            { _, _ -> }
+        )
     }
 }

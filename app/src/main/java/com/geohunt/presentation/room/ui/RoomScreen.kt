@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,8 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,6 +60,7 @@ import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
 import com.geohunt.domain.model.Player
 import com.geohunt.domain.model.Room
 import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
+import com.geohunt.presentation.map.singlePlayer.game.ui.GameMapPickerScreen
 import com.geohunt.presentation.room.component.ItemPlayer
 import com.geohunt.presentation.room.component.RoomEmpty
 import com.geohunt.presentation.room.component.RoomListLoading
@@ -114,6 +114,7 @@ fun RoomScreen(
             }
         }
     }
+
 
     if (showBottomSheetBack) {
         ConfirmationBottomSheet(stringResource(R.string.return_to_home),

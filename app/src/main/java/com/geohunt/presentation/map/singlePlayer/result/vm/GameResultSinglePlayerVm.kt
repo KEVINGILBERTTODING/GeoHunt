@@ -17,6 +17,7 @@ class GameResultSinglePlayerVm @Inject constructor(
     val gameEvent = MutableSharedFlow<GameResultSinglePlayerEvent>()
     val trueLocationState = MutableStateFlow(Pair("", ""))
     val guessedLocationState = MutableStateFlow(Pair("", ""))
+    val zoomLvl = MutableStateFlow(0f)
 
     fun navigateToHome() {
         viewModelScope.launch {
@@ -24,7 +25,7 @@ class GameResultSinglePlayerVm @Inject constructor(
         }
     }
 
-    fun getLevelZoom(trueLocation: Pair<String, String>, guessedLocation: Pair<String, String>): Float {
+    fun getZoomLevel(trueLocation: Pair<String, String>, guessedLocation: Pair<String, String>){
         val distance = countDistanceUseCase(trueLocation,  guessedLocation)
         val zoomLevel = when {
             distance < 500 -> 18f
@@ -33,7 +34,7 @@ class GameResultSinglePlayerVm @Inject constructor(
             distance < 50000 -> 10f
             else -> 2f
         }
-        return zoomLevel
+        zoomLvl.value = zoomLevel
     }
 
     fun setTrueLocationState(data: Pair<String, String>) {
