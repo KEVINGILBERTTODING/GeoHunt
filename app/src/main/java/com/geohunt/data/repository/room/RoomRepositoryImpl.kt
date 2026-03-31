@@ -130,11 +130,11 @@ class RoomRepositoryImpl @Inject constructor(
 
     }
 
-    override suspend fun getRoomData(): Result<RoomDto> {
+    override suspend fun getRoomData(): Result<Room> {
         try {
             val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
             val snapshot = roomRef.get().await()
-            val roomData = snapshot.getValue<RoomDto>()
+            val roomData = snapshot.getValue<RoomDto>()?.toModel()
             roomData?.let {
                 return Result.success(it)
             }

@@ -43,6 +43,7 @@ sealed class GameResultMpEffect: MviEffect {
     object OnNavigateToMap : GameResultMpEffect()
     object OnBack : GameResultMpEffect()
     object OnStartGame : GameResultMpEffect()
+    object OnNavigateToLeaderBoard : GameResultMpEffect()
 }
 
 sealed class GameResultState() {

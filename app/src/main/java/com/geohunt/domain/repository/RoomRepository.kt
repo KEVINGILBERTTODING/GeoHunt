@@ -14,7 +14,7 @@ interface RoomRepository {
     suspend fun createRoom(roomCode: String, hostId: String,
                            totalRounds: Int, durationPerRound: Int, username: String, countryId: Int): Result<String>
     suspend fun joinRoom(roomCode: String, uid: String, username: String): Result<Unit>
-    suspend fun getRoomData(): Result<RoomDto>
+    suspend fun getRoomData(): Result<Room>
     fun observeRoomData(): Flow<Result<Room>>
     suspend fun storeRound(hashMap: HashMap<String, Any>): Result<Unit>
     suspend fun deleteRoom(): Result<Unit>

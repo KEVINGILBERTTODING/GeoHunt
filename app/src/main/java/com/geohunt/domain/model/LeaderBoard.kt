@@ -4,4 +4,5 @@ data class LeaderBoard(
     val player: Player,
     val totalPoint: Int,
     val rank: Int?
+
 )

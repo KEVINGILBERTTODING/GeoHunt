@@ -15,6 +15,7 @@ import com.geohunt.core.vm.multiPlayer.MultiPlayerVm
 import com.geohunt.core.vm.singlePlayer.SinglePlayerVm
 import com.geohunt.presentation.room.ui.RoomScreen
 import com.geohunt.presentation.home.ui.HomeScreen
+import com.geohunt.presentation.leaderboard.ui.LeaderBoardScreen
 import com.geohunt.presentation.loadingScreen.singlePlayer.ui.LoadingSinglePlayerScreen
 import com.geohunt.presentation.map.mp.game.ui.GameMapMpScreen
 import com.geohunt.presentation.map.mp.result.ui.GameResultMpScreen
@@ -128,7 +129,19 @@ fun AppNavDisplay(modifier: Modifier) {
                         backStack.removeAll { it == Route.GameResultMpScreen }
                         backStack.add(Route.GameMapMpScreen)
                     },
+                    navigateToLeaderBoard = {
+                        backStack.removeAll { it != Route.HomeScreen }
+                        backStack.add(Route.LeaderBoardScreen)
+                    },
                     navigateToHome = {
+                        backStack.removeAll { it != Route.HomeScreen }
+                    }
+                )
+            }
+
+            entry<Route.LeaderBoardScreen> {
+                LeaderBoardScreen(
+                    onNavigateToHome = {
                         backStack.removeAll { it != Route.HomeScreen }
                     }
                 )

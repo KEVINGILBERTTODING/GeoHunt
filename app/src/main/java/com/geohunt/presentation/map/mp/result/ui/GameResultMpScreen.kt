@@ -15,20 +15,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
@@ -60,11 +67,14 @@ import androidx.navigation.NavController
 import com.geohunt.R
 import com.geohunt.core.contract.MultiPlayerEffect
 import com.geohunt.core.contract.MultiPlayerIntent
+import com.geohunt.core.contract.MultiPlayerIntent.*
 import com.geohunt.core.contract.MultiPlayerIntent.OnStartGame
 import com.geohunt.core.contract.MultiPlayerUiState
 import com.geohunt.core.extension.bitmapDescriptorFromVector
+import com.geohunt.core.extension.formatTime
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomButton
+import com.geohunt.core.ui.component.CustomTextField
 import com.geohunt.core.ui.component.RoundedGlassContainer
 import com.geohunt.core.ui.theme.Black1212
 import com.geohunt.core.ui.theme.GeoHuntTheme
@@ -77,8 +87,6 @@ import com.geohunt.domain.model.LeaderBoard
 import com.geohunt.domain.model.Player
 import com.geohunt.domain.model.RoundResult
 import com.geohunt.presentation.loadingScreen.multiplayer.ui.LoadingMpScreen
-import com.geohunt.presentation.map.mp.game.component.TimeContainer
-import com.geohunt.presentation.map.mp.game.contract.GameMapState
 import com.geohunt.presentation.map.mp.result.component.ItemLeaderBoard
 import com.geohunt.presentation.map.mp.result.component.ItemRoundResult
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpEffect
@@ -86,7 +94,6 @@ import com.geohunt.presentation.map.mp.result.contract.GameResultMpIntent
 import com.geohunt.presentation.map.mp.result.contract.GameResultMpUiState
 import com.geohunt.presentation.map.mp.result.contract.GameResultState
 import com.geohunt.presentation.map.mp.result.vm.GameResultMpVm
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
@@ -99,11 +106,11 @@ import kotlinx.coroutines.launch
 fun GameResultMpScreen(
     navigateToHome: () -> Unit,
     navigateToMap: () -> Unit,
+    navigateToLeaderBoard: () -> Unit,
     mpVm: MultiPlayerVm,
     vm: GameResultMpVm = hiltViewModel()
 ) {
     val uiState by vm.state.collectAsStateWithLifecycle()
-    val mpUiState by mpVm.state.collectAsStateWithLifecycle()
     var showBottomSheetBack by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -139,11 +146,15 @@ fun GameResultMpScreen(
                     navigateToMap()
                 }
                 GameResultMpEffect.OnStartGame -> {
-                    mpVm.onIntent(MultiPlayerIntent.OnUpdateRetryState(false))
+                    mpVm.onIntent(OnUpdateRetryState(false))
                     mpVm.onIntent(OnStartGame(uiState.currentRoundIndex + 1))
                 }
                 is GameResultMpEffect.ShowToast -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+
+                GameResultMpEffect.OnNavigateToLeaderBoard -> {
+                    navigateToLeaderBoard()
                 }
             }
         }
@@ -263,23 +274,6 @@ private fun GameResultMpGmapContent(
                     uiState.trueLocColor, 56)
             )
         }
-
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .systemBarsPadding()
-                .padding(top = 8.dp, start = 16.dp, end = 16.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
-        ) {
-            AnimatedVisibility(
-                visible = uiState.timeLeft > 0,
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut()
-            ) {
-                TimeContainer(uiState.timeLeft)
-            }
-        }
-
     }
 }
 
@@ -333,7 +327,7 @@ fun GameResultMpContent(uiState: GameResultMpUiState,
                     }
             )
             Spacer(Modifier.height(10.dp))
-            TabRow(
+            PrimaryTabRow (
                 modifier = Modifier
                     .fillMaxWidth(),
                 selectedTabIndex = pagerState.currentPage) {
@@ -398,26 +392,29 @@ fun GameResultMpContent(uiState: GameResultMpUiState,
                 }
             }
 
-            if (uiState.isFinished) {
-                Box(Modifier.padding(bottom = 30.dp, top = 16.dp, end = 16.dp, start = 16.dp)) {
+            if (uiState.timeLeft > 0) {
+                Box(
+                    Modifier.padding(16.dp)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                ) {
+                    CustomTextField(true, stringResource(R.string.info), Color.White,
+                        16.sp, true, Black1212, Black1212,
+                        Black1212, 10.sp,
+                        stringResource(R.string.next_round_in) + " ${uiState.timeLeft.formatTime()}"
+                        , false, 3)
+                }
+            }
+
+            if (!uiState.isFinished && uiState.gameResultState is GameResultState.Error && uiState.isHost) {
+                Box(Modifier.padding(16.dp)
+                    .windowInsetsPadding(WindowInsets.navigationBars)) {
                     CustomButton(
                         Green41B, 14.sp, Black1212,
-                        FontWeight.Medium, White, stringResource(R.string.home),
+                        FontWeight.Medium, White, stringResource(R.string.try_again),
                         {
-                            gameResultIntent.invoke(GameResultMpIntent.OnBackPressed)
+                            mpIntent.invoke(MultiPlayerIntent.OnUpdateRetryState(false))
+                            mpIntent.invoke(OnStartGame(uiState.currentRoundIndex + 1))
                         })
-                }
-            }else {
-                if (uiState.gameResultState is GameResultState.Error && uiState.isHost) {
-                    Box(Modifier.padding(bottom = 30.dp, top = 16.dp, end = 16.dp, start = 16.dp)) {
-                        CustomButton(
-                            Green41B, 14.sp, Black1212,
-                            FontWeight.Medium, White, stringResource(R.string.try_again),
-                            {
-                                mpIntent.invoke(MultiPlayerIntent.OnUpdateRetryState(false))
-                                mpIntent.invoke(OnStartGame(uiState.currentRoundIndex + 1))
-                            })
-                    }
                 }
             }
         }
@@ -469,7 +466,7 @@ fun ResultMapMpPreview() {
     GeoHuntTheme {
         GameResultMpContent(
             GameResultMpUiState(roundResultList = roundResultList, leaderBoardList = leaderBoardList,
-                isFinished = true)
+                timeLeft = 20)
             ,{}, {}
         )
     }

@@ -9,4 +9,5 @@ sealed interface Route {
     data object RoomScreen : Route
     data object GameMapMpScreen : Route
     data object GameResultMpScreen : Route
+    data object LeaderBoardScreen : Route
 }

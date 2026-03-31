@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
@@ -185,7 +186,8 @@ fun GameMapMpScreen(
                 // FAB
                 Box(modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(bottom = 40.dp, end = 20.dp)) {
+                    .padding(bottom = 20.dp, end = 20.dp)
+                    .navigationBarsPadding()) {
                     CustomFab(painterResource(R.drawable.ic_eye), Black1212,
                         White, Black1212) {
                         showMapPicker = !showMapPicker

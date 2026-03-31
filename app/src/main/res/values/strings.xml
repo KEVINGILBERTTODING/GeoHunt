@@ -61,4 +61,7 @@
     <string name="try_again">Try Again</string>
     <string name="data_is_empty">Data is empty</string>
     <string name="waiting_player">Waiting player</string>
+    <string name="next_round_in">Next round in</string>
+    <string name="true_location">True Location</string>
+    <string name="info">Info</string>
 </resources>

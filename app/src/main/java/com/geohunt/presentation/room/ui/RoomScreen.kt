@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -47,6 +49,7 @@ import com.geohunt.R
 import com.geohunt.core.contract.MultiPlayerEffect
 import com.geohunt.core.contract.MultiPlayerIntent.*
 import com.geohunt.core.contract.MultiPlayerUiState
+import com.geohunt.core.ui.component.AppBar
 import com.geohunt.core.ui.component.ConfirmationBottomSheet
 import com.geohunt.core.ui.component.CustomButton
 import com.geohunt.core.ui.theme.Black1212
@@ -76,7 +79,6 @@ fun RoomScreen(
 ) {
     val context = LocalContext.current
     val state by roomVm.state.collectAsStateWithLifecycle()
-    val mpState by multiPlayerVm.state.collectAsStateWithLifecycle()
     var showBottomSheetBack by remember { mutableStateOf(false) }
     val textButtonBack = if (state.isLoadingBack) stringResource(R.string.loading_game)
     else {
@@ -184,53 +186,25 @@ fun RoomContent(state: RoomUiState, context: Context,
 
     Column(Modifier
         .fillMaxSize()
-        .padding(16.dp)) {
-        Spacer(Modifier.height(20.dp))
-
-        Row(Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround) {
-            IconButton(
-                onClick = {
-                    onBackPressed() }
-            ){
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(R.drawable.ic_arrow),
-                    contentDescription = ""
-                )
-            }
-            Text(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                text = state.room.info.roomCode,
-                style = TextStyle(
-                    textAlign = TextAlign.Center,
-                    fontFamily = Poppins,
-                    fontSize = 16.sp,
-                    color = Black1212,
-                    fontWeight = FontWeight.Medium
-                ),
-            )
-            IconButton(
-                onClick = {
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, state.room.info.roomCode)
-                        setPackage("com.whatsapp")
-                    }
-                    context.startActivity(Intent.createChooser(intent, "Share via"))
+        .padding(16.dp)
+        .systemBarsPadding()
+        .navigationBarsPadding()) {
+        AppBar(
+            actionIcon = R.drawable.ic_share,
+            navigationIcon = R.drawable.ic_arrow,
+            title = state.room.info.roomCode,
+            navigationIconClick = {
+                onBackPressed()
+            },
+            actionIconClick = {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, state.room.info.roomCode)
+                    setPackage("com.whatsapp")
                 }
-            ){
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(R.drawable.ic_share),
-                    contentDescription = ""
-                )
+                context.startActivity(Intent.createChooser(intent, "Share via"))
             }
-
-        }
+        )
         Spacer(Modifier.height(20.dp))
         Text(
             modifier = Modifier.fillMaxWidth(),

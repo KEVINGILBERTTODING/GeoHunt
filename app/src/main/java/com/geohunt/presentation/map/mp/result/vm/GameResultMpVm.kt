@@ -111,9 +111,7 @@ class GameResultMpVm @Inject constructor(
                 }
             }
 
-            if(!state.value.isFinished) {
-                startTimer()
-            }
+            startTimer()
         }
 
     override suspend fun handleIntent(intent: GameResultMpIntent) {
@@ -164,8 +162,13 @@ class GameResultMpVm @Inject constructor(
                 delay(500)
             }
             updateState { copy(timeLeft = 0) }
-            if (state.value.isHost) {
-                sendEffect(GameResultMpEffect.OnStartGame)
+
+            if (state.value.isFinished) {
+                sendEffect(GameResultMpEffect.OnNavigateToLeaderBoard)
+            }else {
+                if (state.value.isHost) {
+                    sendEffect(GameResultMpEffect.OnStartGame)
+                }
             }
         }
     }
