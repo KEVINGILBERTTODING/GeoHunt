@@ -85,22 +85,24 @@ class GameResultMpVm @Inject constructor(
                             }
 
                             // observe next round
-                            room.rounds.getOrNull(state.value.currentRoundIndex + 1)?.let {
-                                when(it.status) {
-                                    "loading" -> {
-                                        updateState { copy(gameResultState = GameResultState.Loading) }
-                                        checkMinimumPlayerUseCase.invoke(room)
-                                            .onFailure {
-                                                updateState { copy(gameResultState = GameResultState.Idle) }
-                                                sendEffect(GameResultMpEffect.ShowToast("Not enough players, stopping..."))
-                                                sendEffect(GameResultMpEffect.OnNavigateToLeaderBoard)
-                                            }
-                                    }
-                                    "success" -> {
-                                        sendEffect(GameResultMpEffect.OnNavigateToMap)
-                                    }
-                                    "error" -> {
-                                        updateState { copy(gameResultState = GameResultState.Error) }
+                            if (!state.value.isFinished) {
+                                room.rounds.getOrNull(state.value.currentRoundIndex + 1)?.let {
+                                    when(it.status) {
+                                        "loading" -> {
+                                            updateState { copy(gameResultState = GameResultState.Loading) }
+                                            checkMinimumPlayerUseCase.invoke(room)
+                                                .onFailure {
+                                                    updateState { copy(gameResultState = GameResultState.Idle) }
+                                                    sendEffect(GameResultMpEffect.ShowToast("Not enough players, stopping..."))
+                                                    sendEffect(GameResultMpEffect.OnNavigateToLeaderBoard)
+                                                }
+                                        }
+                                        "success" -> {
+                                            sendEffect(GameResultMpEffect.OnNavigateToMap)
+                                        }
+                                        "error" -> {
+                                            updateState { copy(gameResultState = GameResultState.Error) }
+                                        }
                                     }
                                 }
                             }
@@ -151,9 +153,12 @@ class GameResultMpVm @Inject constructor(
     }
 
     private fun startTimer() {
-        updateState { copy(endTime =  System.currentTimeMillis()
-                + (if (!state.value.isFinished) 15 else 10 * 1000L) // 15 second and 10 second when finished
-        ) }
+       updateState {
+           copy(
+               endTime = System.currentTimeMillis()
+                       + (if (!state.value.isFinished) 15 else 10) * 1000L
+           )
+       }
 
         viewModelScope.launch {
             while (System.currentTimeMillis() < state.value.endTime) {
