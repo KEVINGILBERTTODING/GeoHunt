@@ -12,18 +12,24 @@ import com.geohunt.domain.model.Player
 import com.geohunt.domain.model.Room
 import com.geohunt.domain.repository.ColorRepository
 import com.geohunt.domain.repository.RoomRepository
+import com.google.firebase.Firebase
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.database
 import com.google.firebase.database.getValue
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
@@ -65,7 +71,7 @@ class RoomRepositoryImpl @Inject constructor(
                 ready = true,
                 playerColor = colorRepository.getColor(0))
 
-            roomRef.onDisconnect().removeValue()
+//            setupHostPresence( hostId, true, appScope)
             roomRef.child("info").setValue(roomInfo).await()
             roomRef.child("players").child(hostId).setValue(roomPlayersDto).await()
              Result.success(roomCode)
@@ -94,11 +100,7 @@ class RoomRepositoryImpl @Inject constructor(
                 if (playerSize < 1) {
                     return Result.failure(Exception("Room not found"))
                 }else if (playerAlreadyJoin || playerSize < 10) {
-                    roomRef.child("players").child(uid).onDisconnect()
-                        .updateChildren(hashMapOf<String, Any>(
-                            "online" to false,
-                            "ready" to false))
-
+//                    setupHostPresence(uid, false, appScope)
                     if (playerAlreadyJoin) {
                         roomRef.child("players").child(uid).updateChildren(
                             hashMapOf<String, Any>(
@@ -218,5 +220,54 @@ class RoomRepositoryImpl @Inject constructor(
             return Result.failure(Exception(e))
         }
     }
+
+//    fun setupHostPresence(userId: String, isHost: Boolean, scope: CoroutineScope) {
+//        val connectedRef = Firebase.database.getReference(".info/connected")
+//        val playerRef = firebaseDatabase.getReference("rooms")
+//            .child(roomCodes).child("players").child(userId)
+//        val roomRef = firebaseDatabase.getReference("rooms").child(roomCodes)
+//
+//        connectedRef.addValueEventListener(object : ValueEventListener {
+//            private var cleanupJob: Job? = null
+//
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                val isConnected = snapshot.getValue(Boolean::class.java) ?: false
+//
+//                if (isConnected) {
+//                    cleanupJob?.cancel()
+//
+//                    // onDisconnect berbeda tergantung host atau bukan
+//                    if (isHost) {
+//                        playerRef.onDisconnect().updateChildren(mapOf(
+//                            "online" to false,
+//                            "ready" to false
+//                        ))
+//                    } else {
+//                        playerRef.onDisconnect().updateChildren(mapOf(
+//                            "online" to false,
+//                            "ready" to false
+//                        ))
+//                    }
+//
+//                    playerRef.child("online").setValue(true)
+//
+//                } else {
+//                    cleanupJob = scope.launch {
+//                        delay(10_000)
+//                        if (isHost) {
+//                            roomRef.removeValue()  // Host → hapus room
+//                        } else {
+//                            playerRef.updateChildren(mapOf( // Bukan host → update aja
+//                                "online" to false,
+//                                "ready" to false
+//                            ))
+//                        }
+//                    }
+//                }
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) = Unit
+//        })
+//    }
 
 }
